@@ -1,0 +1,714 @@
+var assert = require("assert"),
+    PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
+    AttributeDescription = require('./../lib/Descriptors/AttributeDescription'),
+    RelationshipDescription = require('./../lib/Descriptors/RelationshipDescription'),
+    EntityDescription = require('./../lib/Descriptors/EntityDescription'),
+    ManagedObjectModel = require('./../lib/ManagedObjectModel'),
+    ManagedObjectContext = require('./../lib/ManagedObjectContext'),
+    ModelYamlParser = require('./../lib/Parsers/ModelYamlParser'),
+    Predicate = require('./../lib/FetchClasses/Predicate'),
+    SortDescriptor= require('./../lib/FetchClasses/SortDescriptor');
+
+var mysql_store_url = 'mysql://root@localhost/test';
+
+describe('Context', function(){
+    describe('store stuff',function(){
+
+        it('should throw error when creating coordinator with null object model',function(){
+            assert.throws(function(){
+                new PersistentStoreCoordinator();
+            },'Cannot create coordinator without object model')
+        })
+
+        describe('mysql',function(){
+
+            var entity = new EntityDescription('entity1');
+            entity.addAttribute(new AttributeDescription('string','attr1'));
+            var model = new ManagedObjectModel();
+            model.addEntity(entity);
+
+            var storeCoordinator = new PersistentStoreCoordinator(model);
+            it('should not connect to nonexisting store',function(done){
+                storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,'mysql://root@localhost/nonexisting',function(error){
+                    assert.throws(function(){
+                        if(error)throw error;
+                    });
+                    done();
+                })
+            })
+        })
+    })
+
+    describe('context',function(){
+        var storeCoordinator;
+
+        before(function(done){
+//            var ed = new EntityDescription('Car');
+//            var attr = new AttributeDescription('string','brand',null);
+//            var idattr = new AttributeDescription('int','id',null);
+//            ed.addAttribute(attr);
+////            ed.addAttribute(idattr);
+//
+//            var ed2 = new EntityDescription('Owner');
+//            var nameAttr = new AttributeDescription('string','name',null);
+//            ed2.addAttribute(nameAttr);
+////            ed2.addAttribute(idattr);
+//
+//
+//            var relationship = new RelationshipDescription('cars',ed,true,'owner');
+//            var relationship2 = new RelationshipDescription('owner',ed2,false,'cars');
+//
+//            ed2.addRelationship(relationship);
+//            ed.addRelationship(relationship2)
+//
+//            var relationshipMany = new RelationshipDescription('visitors',ed2,true,'visitedCars');
+//            var relationshipMany2 = new RelationshipDescription('visitedCars',ed,true,'visitors');
+//
+//            ed.addRelationship(relationshipMany);
+//            ed2.addRelationship(relationshipMany2);
+//
+//            var relationshipMany = new RelationshipDescription('relatedCars',ed,true,'relatedCars');
+//            ed.addRelationship(relationshipMany);
+
+
+//            var objectModel = new ManagedObjectModel();
+//            for(var i in entities){
+//                objectModel.addEntity(entities[i])
+//            }
+            var objectModel = ModelYamlParser.objectModelFromYamlFile(__dirname + '/schemes/car-model.yaml')
+//            objectModel.addEntity(ed);
+//            objectModel.addEntity(ed2);
+
+            storeCoordinator = new PersistentStoreCoordinator(objectModel);
+
+            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,done);
+        })
+
+        describe('object creation', function(){
+            var context;
+            var object;
+
+            before(function(){
+                context = new ManagedObjectContext(storeCoordinator);
+                object = context.createObjectWithName('Car');
+            })
+            after(function(done){
+                context.getObjectWithObjectID(object.objectID,function(err,object){
+                    context.deleteObject(object);
+                    context.save(done)
+                })
+            })
+
+            it('should insert object into context.insertedObject after creating', function(){
+                assert.notEqual(-1, context.insertedObjects.indexOf(object));
+            })
+            it('should set flag isInserted of object to true',function(){
+                assert.equal(true,object.isInserted);
+            });
+            it('should set flag hasChanges of object to true',function(){
+                assert.equal(true,object.hasChanges);
+            });
+            it('should set flag hasChanges of context to true',function(){
+                assert.equal(true,context.hasChanges);
+            })
+            it('shouldn\'t be fault',function(){
+                assert.equal(object.isFault,false);
+            })
+            it('shouldn\'t fail saving', function(done){
+                context.save(done);
+            })
+            it('should set flag isInserted of object to false after save',function(){
+                assert.equal(false,object.isInserted);
+            });
+            it('should set flag hasChanges of object to false after save',function(){
+                assert.equal(false,object.hasChanges);
+            });
+            it('should set flag hasChanges of context to false after save',function(){
+                assert.equal(false,context.hasChanges);
+            })
+            it('objectID shouldn\'t be temporary after save',function(){
+                assert.equal(object.objectID.isTemporaryID,false);
+            })
+            it('shouldn\'t insert object before save is completed',function(done){
+                var car = context.createObjectWithName('Car');
+                context.save(function(err){
+                    if(err)return done(err);
+                    assert.equal(car.objectID.isTemporaryID,false);
+                    done();
+                });
+                assert.throws(function(){
+                    context.createObjectWithName('Car');
+                })
+            })
+            it('should insert self-reflexive relation',function(done){
+                var owner = context.createObjectWithName('Owner');
+                var owner2 = context.createObjectWithName('Owner');
+                owner.addFriend(owner2);
+                context.save(done);
+            })
+
+            it('should insert two self-reflexive relations',function(done){
+                var owner = context.createObjectWithName('Owner');
+                var owner2 = context.createObjectWithName('Owner');
+                owner.addEmployer(owner2);
+                context.save(done);
+            })
+        })
+
+        describe('intercontext stuff',function(){
+            var context,context2,object;
+            before(function(){
+                context = new ManagedObjectContext(storeCoordinator);
+                context2 = new ManagedObjectContext(storeCoordinator);
+                object = context.createObjectWithName('Car');
+            })
+
+            it('should fail to insert object to another context',function(){
+                assert.throws(function(){
+                    context2.insertObject(object);
+                })
+            });
+            it('should fail to object object from another context',function(){
+                assert.throws(function(){
+                    context2.deleteObject(object);
+                })
+            });
+        })
+
+        describe('deletion', function(){
+            var context;
+            var object;
+
+            before(function(done){
+                context = new ManagedObjectContext(storeCoordinator);
+                context.getObjects('Car',null,null,function(err,cars){
+//                    console.log('xxxx',cars);
+                    if(err)throw err;
+                    cars.forEach(function(car){
+                        context.deleteObject(car);
+                    })
+                    object = context.createObjectWithName('Car');
+                    context.save(function(err){
+                        context.deleteObject(object);
+                        done(err);
+                    })
+                })
+            })
+
+            after(function(done){
+                context.save(function(err){
+                    if(err)return done(err);
+                    context.deleteObject(object);
+                    context.save(done);
+                })
+            })
+
+            it('number of objects after create should be equal to 1', function(done){
+                context.getObjects('Car',null,null,function(err,cars){
+                    assert.equal(cars.length,1);
+                    done();
+                })
+            })
+
+            it('should set flag isDeleted of object to true',function(){
+                assert.equal(true,object.isDeleted);
+            });
+            it('should have _changes',function(){
+                assert.equal(true,object.hasChanges);
+            })
+            it('number of objects after delete should be equal to zero', function(done){
+                context.save(function(err){
+                    if(err)return done(err);
+                    context.getObjects('Car',null,null,function(err,cars){
+                        assert.equal(cars.length,0);
+                        done();
+                    })
+                })
+            })
+        })
+
+        describe('error handling',function(){
+            var context;
+
+            before(function(){
+                context = new ManagedObjectContext(storeCoordinator);
+            })
+
+            it('should throw error when creating nonexisting object',function(){
+                var entityName = 'NonExistent';
+                assert.throws(function(){
+                    context.createObjectWithName(entityName);
+                },function(err){
+                    return err.message == 'entity with name \'' + entityName + '\' doesn\'t exists';
+                })
+            })
+        })
+
+        describe('fetching',function(){
+            var context;
+
+            before(function(done){
+                context = new ManagedObjectContext(storeCoordinator);
+                context.getObjects('Car',null,null,function(err,cars){
+                    if(err)return done(err);
+                    cars.forEach(function(car){context.deleteObject(car)});
+                    context.save(function(err){
+                        if(err)return done(err);
+                        var car = context.createObjectWithName('Car');
+                        car.brand = 'test';
+                        var car2 = context.createObjectWithName('Car');
+                        car2.brand = 'test2';
+                        context.save(function(err){
+                            done(err);
+                        })
+                    })
+                })
+            })
+            after(function(done){
+                return done();
+                context.getObjects('Car',null,null,function(err,objects){
+                    objects.forEach(function(car){context.deleteObject(car)});
+                    context.save(done);
+                })
+            })
+            it('should add loaded objects to registered objects',function(done){
+                context.getObjects('Car',null,null,function(err,objects){
+                    objects.forEach(function(obj){
+                        assert.notEqual(context.registeredObjects.indexOf(obj),-1);
+                    })
+                    done();
+                })
+            })
+            it('should load all created objects',function(){
+                context.getObjects('Car',null,null,function(err,cars){
+                    assert.equal(cars.length,2);
+                })
+            })
+
+            it('should load object by attribute(brand = \'test\')',function(done){
+                context.getObjects('Car',new Predicate('SELF.brand = %s','test'),null,function(err,objects){
+                    assert.equal(objects.length,1);
+                    done();
+                })
+            })
+            it('should load object by attribute(brand = \'test2\')',function(done){
+                context.getObjects('Car',new Predicate('SELF.brand = %s','test2'),null,function(err,objects){
+                    assert.equal(objects.length,1);
+                    done();
+                })
+            })
+            it('should load object correctly sorted',function(done){
+                context.getObjects('Car',null,new SortDescriptor('brand'),function(err,objects){
+                    assert.equal(objects.length,2);
+                    assert.equal(objects[0].brand,'test');
+                    assert.equal(objects[1].brand,'test2');
+                    done();
+                })
+            })
+            it('should load object correctly sorted (descendant)',function(done){
+                context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
+                    assert.equal(objects.length,2);
+                    assert.equal(objects[0].brand,'test2');
+                    assert.equal(objects[1].brand,'test');
+                    done();
+                })
+            })
+            it('should load same objects(uniquely)',function(done){
+                var count = 10,loadedCount = 0;
+                var objects = [];
+                context.getObjects('Car',null,null,function(err,objs){
+                    var obj = objs[0];
+                    if(err)return done(err);
+                    for(var i = 0;i<count;i++){
+                        context.getObjectWithId(obj.entity.name,obj.objectID.recordId(),function(err,object){
+                            objects.push(object)
+                            if(++loadedCount == count){
+                                objects.forEach(function(object,i){
+                                    assert.ok(object === obj,'objects ('+object.objectID+' != '+obj.objectID+') aren\'t equal');
+                                })
+                                done();
+                            }
+                        })
+                    }
+                })
+            })
+            it('should load same objects from relation(uniquely)',function(done){
+                var _context = new ManagedObjectContext(storeCoordinator);
+                var owner = context.createObjectWithName('Owner');
+                var car = context.createObjectWithName('Car')
+                var car2 = context.createObjectWithName('Car')
+                owner.addCar(car)
+                context.save(function(err){
+                    assert.ifError(err)
+                    _context.getObjects('Car',null,null,function(err,_cars){
+                        assert.ifError(err)
+                        _context.getObjectWithObjectID(owner.objectID,function(err,_owner){
+                            assert.ifError(err)
+                            _owner.getCars(function(err,__cars){
+                                assert.ifError(err)
+                                assert.ok(__cars.length > 0)
+                                var _car = __cars[0];
+                                assert.ifError(err)
+                                _cars.forEach(function(_c){
+                                    assert.ok(_car.objectID.toString() != _c.objectID.toString() || _car === _c,_car.objectID.toString()+' == '+_c.objectID.toString()+' are not identical objects');
+                                })
+                                done()
+                            })
+                        })
+                    })
+                })
+            })
+            it('should load same objects in collection',function(done){
+                context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
+                    context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects2){
+                        assert.equal(objects.length,objects2.length,'colletion count is not equal');
+                        objects.forEach(function(obj,i){
+                            assert.ok(obj === objects2[i],'objects aren\'t equal('+i+')');
+                        })
+                        done();
+                    })
+                })
+            })
+            it('should avoid loading same object twice when fetching concurrently',function(done){
+                var array = [];
+                var count = 100;
+                function loaded(){
+                    array[0].forEach(function(obj,i){
+                        for(var x=0;x<count;x++){
+                            assert.ok(obj === array[x][i],'objects aren\'t equal('+i+')');
+                        }
+                    })
+                    done();
+                }
+                var loadedCount = 0;
+                for(var x=0;x<count;x++){
+                    context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
+                        array.push(objects);
+                        if(++loadedCount == count)loaded();
+                    })
+                }
+            })
+        })
+
+        describe('attributes',function(){
+            var context,context2,car;
+            before(function(){
+                context = new ManagedObjectContext(storeCoordinator);
+                context2 = new ManagedObjectContext(storeCoordinator);
+                car = context.createObjectWithName("Car");
+                car.brand = 'test car';
+            })
+            after(function(done){
+                context.deleteObject(car);
+                context.save(done);
+            })
+
+            it('should set flag isUpdated of object to true',function(){
+                assert.equal(true,car.isUpdated);
+            });
+            it('should set flag hasChanges of object to true',function(){
+                assert.equal(true,car.hasChanges);
+            });
+            it('should successfuly save attribute change',function(done){
+                car.managedObjectContext.save(done);
+            })
+            it('should unset flag isUpdated of object to false after save',function(){
+                assert.equal(false,car.isUpdated);
+            });
+            it('should unset flag hasChanges of object to false after save',function(){
+                assert.equal(false,car.hasChanges);
+            });
+
+            it('should successfuly load changed attribute',function(done){
+                context2.getObjectWithObjectID(car.objectID,function(err,_car){
+                    if(err)return done(err);
+                    assert.ok(_car);
+                    assert.equal(car.brand,_car.brand);
+                    done();
+                })
+            })
+        })
+
+        describe('relationships',function(){
+            var context,context2;
+            var car,owner,owner2;
+
+            before(function(done){
+                context = new ManagedObjectContext(storeCoordinator)
+                context2 = new ManagedObjectContext(storeCoordinator)
+                car = context.createObjectWithName('Car');
+                car2 = context.createObjectWithName('Car');
+                owner = context.createObjectWithName('Owner');
+                owner.name = 'Jackie Prudil';
+//                console.log('owner',owner);
+                context.save(done)
+            })
+            after(function(done){
+                context.deleteObject(car);
+                context.deleteObject(car2);
+                context.deleteObject(owner);
+                context.save(done);
+            })
+            describe('toOne',function(){
+                it('should set single object for relation',function(done){
+                    car.setOwner(owner);
+                    car2.setOwner(owner);
+                    done();
+                })
+                it('should return array of assigned objects',function(done){
+                    owner.getCars(function(err,cars){
+                        if(err)return done(err);
+//                        console.log('cars!!1',cars)
+                        assert.equal(cars.length,2);
+                        done();
+                    })
+                })
+                it('should get objects from inversed relation',function(done){
+                    owner.getCars(function(err,cars){
+                        if(err)return done(err);
+                        assert.ok(cars);
+//                        console.log('cars!!',cars)
+                        assert.notEqual(cars.indexOf(car),-1);
+                        assert.notEqual(cars.indexOf(car2),-1);
+                        done();
+                    })
+                })
+                it('should get single object for relation',function(done){
+                    car.getOwner(function(err,_owner){
+                        if(err)return done(err);
+                        owner2 = _owner;
+                        done();
+                    })
+                })
+                it('should return same object for relation',function(){
+                    assert.equal(owner,owner2);
+                })
+                it('should save',function(done){
+//                    console.log('saving car');
+                    context.save(done);
+                })
+                it('should load relation object after saving',function(done){
+                    context2.getObjectWithObjectID(car.objectID,function(err,_car){
+                        if(err)return done(err);
+                        _car.getOwner(function(err,_owner){
+                            if(err)return done(err);
+//                            console.log('!!',_car)
+//                            console.log('_owner',_owner)
+                            assert.ok(_owner)
+                            assert.equal(owner._objectID.toString(),_owner._objectID.toString());
+                            done();
+                        })
+                    })
+                })
+                it('should set null object and save',function(done){
+                    car.setOwner(null);
+                    context.save(done);
+                })
+                it('should load null after setting null',function(done){
+                    car.getOwner(function(err,_owner){
+                        assert.equal(_owner,null)
+                        done(err);
+                    })
+                })
+                it('should remove object from inversed relation after setting null',function(done){
+                    owner.getCars(function(err,cars){
+                        assert.equal(cars.indexOf(car),-1)
+                        done(err);
+                    })
+                })
+                it('should load null also from another context',function(done){
+                    context2.reset();
+//                    console.log('selecting car')
+                    context2.getObjectWithObjectID(car.objectID,function(err,_car){
+                        if(err)return done(err);
+//                        console.log('getting owner')
+                        _car.getOwner(function(err,_owner){
+                            if(err)return done(err);
+//                            console.log('owner get..',!!_owner)
+                            assert.equal(!!_owner,false);
+                            done();
+                        })
+                    })
+                })
+            })
+            describe('toMany',function(){
+                it('should add object to relation',function(){
+                    owner.addCar(car);
+                });
+                it('should assign inversed relation',function(done){
+                    car.getOwner(function(err,_owner){
+                        if(err)return done(err);
+                        assert.ok(_owner == owner);
+                        done()
+                    })
+                })
+                it('should save successfuly',function(done){
+//                    console.log('saving')
+                    context.save(done)
+                })
+                it('should get assigned object from another context',function(done){
+                    context2.reset();
+                    context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
+                        if(err)throw err;
+//                        console.log('getting cars');
+                        _owner.getCars(function(err,_cars){
+                            if(err)return done(err);
+                            var ids = []
+                            _cars.forEach(function(car){
+                                ids.push(car.objectID.toString());
+                            })
+//                            console.log('cars!',car.objectID.toString());
+                            assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
+                            done();
+                        });
+                    })
+                })
+                it('should get inversed assigned object from another context',function(done){
+                    context2.reset();
+                    context2.getObjectWithObjectID(car.objectID,function(err,_car){
+                        if(err)return done(err);
+                        car.getOwner(function(err,_owner){
+                            if(err)return done(err);
+                            assert.equal(_owner,owner);
+                            done();
+                        });
+                    })
+                })
+                it('should get assigned object from another context',function(done){
+                    owner.getCars(function(err,cars){
+                        if(err)return done(err);
+                        assert.notEqual(cars.indexOf(car),-1);
+                        done();
+                    });
+                })
+                it('should remove object from relation',function(){
+                    owner.removeCar(car);
+                })
+                it('should assign reversed relation to null',function(done){
+                    car.getOwner(function(err,_owner){
+                        if(err)return done(err);
+                        assert.ok(_owner == null);
+                        done()
+                    })
+                })
+                it('should save successfuly',function(done){
+                    context.save(done)
+                })
+                it('should get unassigned object from another context',function(done){
+                    context2.reset();
+                    context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
+                        if(err)return done(err);
+                        _owner.getCars(function(err,cars){
+                            if(err)return done(err);
+//                            console.log('cars xxx',cars)
+                            assert.equal(cars.indexOf(car),-1);
+                            done();
+                        });
+                    })
+                })
+            })
+            describe('manyToMany',function(){
+                it('should add object to many-2-many',function(){
+//                    console.log('assign visited car')
+                    owner.addVisitedCar(car);
+//                    console.log(owner._relationChanges);
+//                    console.log(car._relationChanges);
+                })
+                it('should add object to many-2-many',function(done){
+                    car.getVisitors(function(err,owners){
+                        if(err)return done(err);
+//                        console.log('!!!',owners,owner)
+                        assert.notEqual(owners.indexOf(owner),-1);
+                        done();
+                    });
+                })
+                it('should get assigned object',function(done){
+//                    console.log('get visited cars',owner.objectID.toString())
+                    owner.getVisitedCars(function(err,visitedCars){
+                        if(err)return done(err);
+//                        console.log('viscars',visitedCars)
+                        ids = []
+                        if(visitedCars)visitedCars.forEach(function(vc){
+                            ids.push(vc.objectID.toString())
+                        })
+                        assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
+                        done();
+                    })
+                })
+                it('should save successfully',function(done){
+//                    console.log('saving')
+                    context.save(done);
+                })
+                it('should get assigned objects from another context',function(done){
+                    context2.reset();
+                    context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
+                        _owner.getVisitedCars(function(err,visitedCars){
+                            if(err)return done(err);
+//                        console.log('viscars',visitedCars)
+                            ids = []
+                            if(visitedCars)visitedCars.forEach(function(vc){
+                                ids.push(vc.objectID.toString())
+                            })
+                            assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
+                            done();
+                        })
+                    })
+                })
+            })
+            describe('oneToOne',function(){
+                before(function(done){
+                    context.getObjects('Seller',null,null,function(err,objects){
+                        assert.ifError(err)
+                        objects.forEach(function(object){
+                            context.deleteObject(object);
+                        })
+                        context.getObjects('Licence',null,null,function(err,objects){
+                            assert.ifError(err)
+                            objects.forEach(function(object){
+                                context.deleteObject(object);
+                            })
+                            context.save(done);
+                        })
+                    })
+                })
+                var seller,licence;
+                it('should assign oneToOne',function(done){
+                    seller = context.createObjectWithName('Seller')
+                    seller.name = 'test seller';
+
+                    licence = context.createObjectWithName('Licence')
+
+                    seller.setLicence(licence)
+
+                    context.save(done)
+                })
+                it('should load assigned one to one objects',function(done){
+                    context2.reset();
+                    context2.getObjects('Seller',null,null,function(err,sellers){
+                        assert.ifError(err);
+                        var _seller = sellers[0]
+                        assert.equal(_seller.objectID.toString(),seller.objectID.toString())
+                        _seller.getLicence(function(err,_licence){
+                            assert.ifError(err)
+                            assert.equal(_licence.objectID.toString(),licence.objectID.toString())
+                            done();
+                        })
+                    })
+                })
+                it('should load assigned one to one objects',function(done){
+                    context2.reset();
+                    context2.getObjects('Licence',null,null,function(err,licences){
+                        assert.ifError(err);
+                        var _licence = licences[0]
+                        assert.equal(_licence.objectID.toString(),licence.objectID.toString())
+                        _licence.getSeller(function(err,_seller){
+                            assert.ifError(err)
+                            assert.equal(_seller.objectID.toString(),seller.objectID.toString())
+                            done();
+                        })
+                    })
+                })
+            })
+        })
+    })
+})

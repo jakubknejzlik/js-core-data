@@ -1,0 +1,31 @@
+{
+  "name": "js-core-data",
+  "description": "ORM inspired by Apple's Objective-C CoreData",
+  "version": "0.4.3",
+  "dependencies": {
+    "array-control": "^0.2.0",
+    "async": "^1.4.0",
+    "generic-pool": "^2.2.0",
+    "js-yaml": "^3.3.1",
+    "moment": "^2.10.6",
+    "request": "^2.60.0",
+    "underscore": "^1.8.3",
+    "underscore.inflections": "^0.2.1",
+    "yaml-config": "^0.3.0"
+  },
+  "devDependencies": {
+    "mysql": "^2.8.0",
+    "watchify": "~0.6.1"
+  },
+  "scripts": {
+    "deploy": "watchify -e index.js -t partialify -o dist/bundle.js",
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jakubknejzlik/js-core-data.git"
+  },
+  "browserify": {
+    "transform": []
+  }
+}

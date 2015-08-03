@@ -1,0 +1,17 @@
+Car:
+  columns:
+    name: string
+    brand: string
+  relationships:
+    owner:
+      entity: Person
+      inverse: cars
+
+Person:
+  columns:
+    name: string
+  relationships:
+    cars:
+      entity: Car
+      toMany: true
+      inverse: owner

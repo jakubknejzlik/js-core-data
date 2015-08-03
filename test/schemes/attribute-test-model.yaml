@@ -1,0 +1,24 @@
+Hello:
+  columns:
+    name: string
+    int: integer
+    bool: bool
+    decim:
+      type: decimal
+      options:
+        decimals: 2
+        digits: 5
+    float: float
+    double: double
+    email: email
+    url: url
+    date: date
+    timestamp: timestamp
+    data:
+      type: data
+    shortString:
+      type: string
+      options:
+        minLength: 2
+        maxLength: 20
+        regexp: /^(aa)+$/i

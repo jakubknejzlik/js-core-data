@@ -1,0 +1,27 @@
+<component name="libraryTable">
+  <library name="Generated files" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
+        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/MySQLStore.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObject.js" />
+        <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeTransformer.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObjectContext.js" />
+        <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeValidator.js" />
+        <item url="file://$PROJECT_DIR$/index.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObjectModel.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
+      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/MySQLStore.js" />
+      <root url="file://$PROJECT_DIR$/lib/Helpers/AttributeTransformer.js" />
+      <root url="file://$PROJECT_DIR$/lib/ManagedObject.js" />
+      <root url="file://$PROJECT_DIR$/lib/Helpers/AttributeValidator.js" />
+      <root url="file://$PROJECT_DIR$/lib/ManagedObjectContext.js" />
+      <root url="file://$PROJECT_DIR$/index.js" />
+      <root url="file://$PROJECT_DIR$/lib/ManagedObjectModel.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>

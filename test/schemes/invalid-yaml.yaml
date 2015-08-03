@@ -1,0 +1,5 @@
+User:
+	columns:
+		email: string
+		password: string
+		name: string

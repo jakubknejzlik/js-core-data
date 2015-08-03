@@ -1,0 +1,73 @@
+Company:
+  columns:
+    name: string
+  relationships:
+    departments:
+      entity: Department
+      toMany: true
+      inverse: company
+      delete_rule: cascade
+
+Department:
+  columns:
+    name: string
+  relationships:
+    company:
+      entity: Company
+      inverse: departments
+    persons:
+      entity: Person
+      toMany: true
+      inverse: department
+      delete_rule: deny
+    subdepartments:
+      entity: Department
+      toMany: true
+      inverse: parent
+      delete_rule: cascade
+    parent:
+      entity: Department
+      inverse: subdepartments
+    deliveryBoys:
+      entity: DeliveryBoy
+      toMany: true
+      inverse: departments
+
+DeliveryBoy:
+  columns:
+    name: string
+  relationships:
+    departments:
+      entity: Department
+      toMany: true
+      inverse: deliveryBoys
+
+
+Person:
+  columns:
+    name: string
+  relationships:
+    department:
+      entity: Department
+      inverse: persons
+    stuff:
+      entity: Stuff
+      toMany: true
+      inverse: owner
+      delete_rule: nullify
+    collegues:
+      entity: Person
+      inverse: collegues
+      delete_rule: nullify
+      toMany: true
+
+
+Stuff:
+  columns:
+    name: string
+  relationships:
+    owner:
+      entity: Person
+      inverse: stuff
+
+

@@ -1,0 +1,57 @@
+Owner:
+  columns:
+    name: string
+  relations:
+    cars:
+      entity: Car
+      toMany: true
+      inverse: owner
+    visitedCars:
+      entity: Car
+      toMany: true
+      inverse: visitors
+    friends:
+      entity: Owner
+      toMany: true
+      inverse: friends
+    employers:
+      entity: Owner
+      toMany: true
+      inverse: employees
+    employees:
+      entity: Owner
+      toMany: true
+      inverse: employers
+
+Car:
+  columns:
+    brand: string
+  relations:
+    owner:
+      entity: Owner
+      toMany: false
+      inverse: cars
+    relatedCars:
+      entity: Car
+      toMany: true
+      inverse: relatedCars
+    visitors:
+      entity: Owner
+      toMany: true
+      inverse: visitedCars
+
+Seller:
+  columns:
+    name: string
+  relations:
+    licence:
+      entity: Licence
+      inverse: seller
+
+Licence:
+  columns:
+    hash: string
+  relations:
+    seller:
+      entity: Seller
+      inverse: licence

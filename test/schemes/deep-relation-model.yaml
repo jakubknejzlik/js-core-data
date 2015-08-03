@@ -1,0 +1,40 @@
+Entity1:
+  columns:
+    name: string
+  relations:
+    child:
+      entity: Entity2
+      toMany: true
+      inverse: parent
+
+Entity2:
+  columns:
+    name: string
+  relations:
+    child:
+      entity: Entity3
+      toMany: true
+      inverse: parent
+    parent:
+      entity: Entity1
+      inverse: child
+
+Entity3:
+  columns:
+    name: string
+  relations:
+    child:
+      entity: Entity4
+      toMany: true
+      inverse: parent
+    parent:
+      entity: Entity2
+      inverse: child
+
+Entity4:
+  columns:
+    name: string
+  relations:
+    parent:
+      entity: Entity3
+      inverse: child

@@ -1,0 +1,17 @@
+Company:
+  columns:
+    name: string
+  relationships:
+    departments:
+      entity: Department
+      toMany: true
+      inverse: company
+      delete_rule: cascade
+
+Department:
+  columns:
+    name: string
+  relationships:
+    company:
+      entity: company
+      inverse: departments
