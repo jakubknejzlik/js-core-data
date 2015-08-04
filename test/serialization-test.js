@@ -13,7 +13,7 @@ describe('serialization',function(){
         var date = new Date(timestamp*1000);
         function deleteAll(storeCoordinator,done){
             var context = new ManagedObjectContext(storeCoordinator)
-            context.getObjects('Hello',null,null,function(err,objects){
+            context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
                 objects.forEach(function(obj){
                     context.deleteObject(obj);
@@ -23,7 +23,8 @@ describe('serialization',function(){
         }
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)return done(err);
                 deleteAll(storeCoordinator,done);
             });

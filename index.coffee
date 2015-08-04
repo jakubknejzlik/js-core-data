@@ -3,17 +3,80 @@ ManagedObjectModel = require('./lib/ManagedObjectModel')
 ManagedObjectContext = require('./lib/ManagedObjectContext')
 ManagedObject = require('./lib/ManagedObject')
 Predicate = require('./lib/FetchClasses/Predicate')
+EntityDescription = require('./lib/Descriptors/EntityDescription')
+AttributeDescription = require('./lib/Descriptors/AttributeDescription')
+RelationshipDescription = require('./lib/Descriptors/RelationshipDescription')
 Pool = require('generic-pool')
-module.exports.PersistentStoreCoordinator = PersistentStoreCoordinator
-module.exports.ManagedObjectModel = ManagedObjectModel
-module.exports.ManagedObjectContext = ManagedObjectContext
-module.exports.ManagedObject = ManagedObject
-module.exports.Predicate = Predicate
-module.exports.debug = false
+url = require('url')
+async = require('async')
+
+
+class CoreData
+  constructor:(@storeURL,options = {})->
+    @model = new ManagedObjectModel(options.modelFile, options.modelClasses)
+    @_parsedUrl = url.parse(@storeURL)
+
+  syncSchema:(options,callback)->
+    if typeof options is 'function'
+      callback = options
+      options = undefined
+    options = options or {}
+    async.forEach(@_persistentStoreCoordinator().persistentStores,(store,cb)->
+      store.syncSchema(options,cb)
+    ,callback)
+
+  defineEntity:(entityName,attributes,options = {})->
+    entity = new EntityDescription(entityName);
+    if options.class
+      entity.objectClassName = options.class
+
+    for attributeKey,attributeInfo of attributes
+      if attributeInfo not instanceof Object
+        attributeInfo = {type:attributeInfo}
+      attr = new AttributeDescription(attributeInfo.type,attributeInfo,attributeKey,null);
+      if attributeInfo.options
+        attr.options = attributeInfo.options
+      entity.addAttribute(attr)
+
+    @model.addEntity(entity)
+
+    return entity
+
+  defineRelationship:(entity,destinationEntity,name,options = {})->
+    if typeof entity is 'string'
+      entity = @model.entities[entity]
+    if typeof destinationEntity is 'string'
+      destinationEntity = @model.entities[destinationEntity]
+    relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
+    entity.addRelationship(relationship)
+
+  createContext:()->
+    return new ManagedObjectContext(@_persistentStoreCoordinator())
+
+
+  _persistentStoreCoordinator:()->
+    if not @persistentStoreCoordinator
+      @persistentStoreCoordinator = new PersistentStoreCoordinator(@model)
+      if @_parsedUrl.protocol is 'mysql:'
+        @persistentStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL, @storeURL)
+      else
+        throw new Error('unknown store for url' + @storeURL)
+    return @persistentStoreCoordinator
+
+  middleware:()->
 
 
 
-module.exports.createContextPool = (modelFile, storeURL, options, callback) ->
+CoreData.PersistentStoreCoordinator = PersistentStoreCoordinator
+CoreData.ManagedObjectModel = ManagedObjectModel
+CoreData.ManagedObjectContext = ManagedObjectContext
+CoreData.ManagedObject = ManagedObject
+CoreData.Predicate = Predicate
+CoreData.debug = process.env.NOD_ENV isnt 'production'
+
+module.exports = CoreData
+
+CoreData.createContextPool = (modelFile, storeURL, options, callback) ->
 
   createAndSendPool = ->
     options = options or {}
@@ -60,7 +123,7 @@ module.exports.createContextPool = (modelFile, storeURL, options, callback) ->
   return
 
 
-module.exports.ExpressJS =
+CoreData.ExpressJS =
   middleware: (contextPool) ->
     (req, res, next) ->
       contextPool.acquire (err, context) ->

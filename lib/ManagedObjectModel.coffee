@@ -11,9 +11,9 @@ class ManagedObjectModel extends Object
     @modelClasses = modelClasses or {}
     if scheme
       if fs.existsSync(scheme)
-        @loadSchemeFromUrl scheme
+        @loadSchemeFromUrl(scheme)
       else
-        @loadSchemeFromYaml scheme
+        @loadSchemeFromYaml(scheme)
 
   loadSchemeFromUrl:(url) ->
     ext = path.extname(url)
@@ -55,29 +55,13 @@ class ManagedObjectModel extends Object
       for relationship in entity.relationships
         Subclass.addRelationshipDescription(relationship)
 
-#      if entity.objectClass != ManagedObject
-##        ownProperties = {}
-##        console.log(entity.objectClass)
-##        for key in entity.objectClass
-##          console.log('aaa',key)
-##          if entity.objectClass.hasOwnProperty(key)
-##            ownProperties[key] = entity.objectClass[key];
-#
-##        console.log(ownProperties);
-#
-##        util.inherits(entity.objectClass,Subclass)
-#
-##        for key in ownProperties
-##          entity.objectClass[key] = ownProperties[key]
-#        Subclass = entity.objectClass
-
       @classes[entityName] = Subclass
 
     Subclass
 
   _entityObjectClass:(entity)->
-    if entity._objectClass
-      return entity._objectClass
+    if entity.objectClass
+      return entity.objectClass
     objectClassName = entity.objectClassName
     cls = null
     if objectClassName
@@ -95,7 +79,7 @@ class ManagedObjectModel extends Object
       cls = ManagedObject
     if not cls
       throw new Error('module for class ' + entity.name + ' not found')
-    entity._objectClass = cls
+    entity.objectClass = cls
     return cls
 
   insertObjectIntoContext:(entityName,context) ->

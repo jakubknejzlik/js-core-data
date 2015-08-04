@@ -12,7 +12,8 @@ describe('delete rules',function(){
 
     before(function(done){
         storeCoordinator = new PersistentStoreCoordinator(objectModel);
-        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,done);
+        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+        storeCoordinator.persistentStores[0].syncSchema({force:true},done);
     })
 //    after(function(done){
 //        var context = new ManagedObjectContext(storeCoordinator)

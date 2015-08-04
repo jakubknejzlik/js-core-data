@@ -7,7 +7,8 @@ var assert = require("assert"),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     ModelYamlParser = require('./../lib/Parsers/ModelYamlParser'),
     Predicate = require('./../lib/FetchClasses/Predicate'),
-    SortDescriptor= require('./../lib/FetchClasses/SortDescriptor');
+    SortDescriptor= require('./../lib/FetchClasses/SortDescriptor'),
+    CoreData = require('../index');
 
 var mysql_store_url = 'mysql://root@localhost/test';
 
@@ -20,27 +21,27 @@ describe('Context', function(){
             },'Cannot create coordinator without object model')
         })
 
-        describe('mysql',function(){
-
-            var entity = new EntityDescription('entity1');
-            entity.addAttribute(new AttributeDescription('string','attr1'));
-            var model = new ManagedObjectModel();
-            model.addEntity(entity);
-
-            var storeCoordinator = new PersistentStoreCoordinator(model);
-            it('should not connect to nonexisting store',function(done){
-                storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,'mysql://root@localhost/nonexisting',function(error){
-                    assert.throws(function(){
-                        if(error)throw error;
-                    });
-                    done();
-                })
-            })
-        })
+//        describe('mysql',function(){
+//
+//            var entity = new EntityDescription('entity1');
+//            entity.addAttribute(new AttributeDescription('string','attr1'));
+//            var model = new ManagedObjectModel();
+//            model.addEntity(entity);
+//
+//            var storeCoordinator = new PersistentStoreCoordinator(model);
+//            it('should not connect to nonexisting store',function(done){
+//                storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,'mysql://root@localhost/nonexisting',function(error){
+//                    assert.throws(function(){
+//                        if(error)throw error;
+//                    });
+//                    done();
+//                })
+//            })
+//        })
     })
 
     describe('context',function(){
-        var storeCoordinator;
+        var coreData;
 
         before(function(done){
 //            var ed = new EntityDescription('Car');
@@ -75,13 +76,19 @@ describe('Context', function(){
 //            for(var i in entities){
 //                objectModel.addEntity(entities[i])
 //            }
-            var objectModel = ModelYamlParser.objectModelFromYamlFile(__dirname + '/schemes/car-model.yaml')
-//            objectModel.addEntity(ed);
-//            objectModel.addEntity(ed2);
 
-            storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,done);
+//            var objectModel = ModelYamlParser.objectModelFromYamlFile(__dirname + '/schemes/car-model.yaml')
+////            objectModel.addEntity(ed);
+////            objectModel.addEntity(ed2);
+//
+//            storeCoordinator = new PersistentStoreCoordinator(objectModel);
+//
+//            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,done);
+            coreData = new CoreData(mysql_store_url,{
+                modelFile:__dirname + '/schemes/car-model.yaml'
+            })
+            coreData.syncSchema({force:true},done);
         })
 
         describe('object creation', function(){
@@ -89,7 +96,7 @@ describe('Context', function(){
             var object;
 
             before(function(){
-                context = new ManagedObjectContext(storeCoordinator);
+                context = coreData.createContext();
                 object = context.createObjectWithName('Car');
             })
             after(function(done){
@@ -158,8 +165,8 @@ describe('Context', function(){
         describe('intercontext stuff',function(){
             var context,context2,object;
             before(function(){
-                context = new ManagedObjectContext(storeCoordinator);
-                context2 = new ManagedObjectContext(storeCoordinator);
+                context = coreData.createContext();
+                context2 = coreData.createContext();
                 object = context.createObjectWithName('Car');
             })
 
@@ -180,8 +187,8 @@ describe('Context', function(){
             var object;
 
             before(function(done){
-                context = new ManagedObjectContext(storeCoordinator);
-                context.getObjects('Car',null,null,function(err,cars){
+                context = coreData.createContext();
+                context.getObjects('Car',function(err,cars){
 //                    console.log('xxxx',cars);
                     if(err)throw err;
                     cars.forEach(function(car){
@@ -204,7 +211,7 @@ describe('Context', function(){
             })
 
             it('number of objects after create should be equal to 1', function(done){
-                context.getObjects('Car',null,null,function(err,cars){
+                context.getObjects('Car',function(err,cars){
                     assert.equal(cars.length,1);
                     done();
                 })
@@ -219,7 +226,7 @@ describe('Context', function(){
             it('number of objects after delete should be equal to zero', function(done){
                 context.save(function(err){
                     if(err)return done(err);
-                    context.getObjects('Car',null,null,function(err,cars){
+                    context.getObjects('Car',function(err,cars){
                         assert.equal(cars.length,0);
                         done();
                     })
@@ -231,7 +238,7 @@ describe('Context', function(){
             var context;
 
             before(function(){
-                context = new ManagedObjectContext(storeCoordinator);
+                context = coreData.createContext();
             })
 
             it('should throw error when creating nonexisting object',function(){
@@ -248,8 +255,8 @@ describe('Context', function(){
             var context;
 
             before(function(done){
-                context = new ManagedObjectContext(storeCoordinator);
-                context.getObjects('Car',null,null,function(err,cars){
+                context = coreData.createContext();
+                context.getObjects('Car',function(err,cars){
                     if(err)return done(err);
                     cars.forEach(function(car){context.deleteObject(car)});
                     context.save(function(err){
@@ -266,13 +273,15 @@ describe('Context', function(){
             })
             after(function(done){
                 return done();
-                context.getObjects('Car',null,null,function(err,objects){
+                context.getObjects('Car',function(err,objects){
+                    assert.ifError(err)
                     objects.forEach(function(car){context.deleteObject(car)});
                     context.save(done);
                 })
             })
             it('should add loaded objects to registered objects',function(done){
-                context.getObjects('Car',null,null,function(err,objects){
+                context.getObjects('Car',function(err,objects){
+                    assert.ifError(err)
                     objects.forEach(function(obj){
                         assert.notEqual(context.registeredObjects.indexOf(obj),-1);
                     })
@@ -280,25 +289,29 @@ describe('Context', function(){
                 })
             })
             it('should load all created objects',function(){
-                context.getObjects('Car',null,null,function(err,cars){
+                context.getObjects('Car',function(err,cars){
+                    assert.ifError(err)
                     assert.equal(cars.length,2);
                 })
             })
 
             it('should load object by attribute(brand = \'test\')',function(done){
-                context.getObjects('Car',new Predicate('SELF.brand = %s','test'),null,function(err,objects){
+                context.getObjects('Car',{where:['SELF.brand = %s','test']},function(err,objects){
+                    assert.ifError(err)
                     assert.equal(objects.length,1);
                     done();
                 })
             })
             it('should load object by attribute(brand = \'test2\')',function(done){
-                context.getObjects('Car',new Predicate('SELF.brand = %s','test2'),null,function(err,objects){
+                context.getObjects('Car',{where:['SELF.brand = %s','test2']},function(err,objects){
+                    assert.ifError(err)
                     assert.equal(objects.length,1);
                     done();
                 })
             })
             it('should load object correctly sorted',function(done){
-                context.getObjects('Car',null,new SortDescriptor('brand'),function(err,objects){
+                context.getObjects('Car',{sort:'brand'},function(err,objects){
+                    assert.ifError(err)
                     assert.equal(objects.length,2);
                     assert.equal(objects[0].brand,'test');
                     assert.equal(objects[1].brand,'test2');
@@ -306,7 +319,8 @@ describe('Context', function(){
                 })
             })
             it('should load object correctly sorted (descendant)',function(done){
-                context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
+                context.getObjects('Car',{sort:'-brand'},function(err,objects){
+                    assert.ifError(err)
                     assert.equal(objects.length,2);
                     assert.equal(objects[0].brand,'test2');
                     assert.equal(objects[1].brand,'test');
@@ -316,7 +330,7 @@ describe('Context', function(){
             it('should load same objects(uniquely)',function(done){
                 var count = 10,loadedCount = 0;
                 var objects = [];
-                context.getObjects('Car',null,null,function(err,objs){
+                context.getObjects('Car',function(err,objs){
                     var obj = objs[0];
                     if(err)return done(err);
                     for(var i = 0;i<count;i++){
@@ -333,14 +347,14 @@ describe('Context', function(){
                 })
             })
             it('should load same objects from relation(uniquely)',function(done){
-                var _context = new ManagedObjectContext(storeCoordinator);
+                var _context = coreData.createContext();
                 var owner = context.createObjectWithName('Owner');
                 var car = context.createObjectWithName('Car')
                 var car2 = context.createObjectWithName('Car')
                 owner.addCar(car)
                 context.save(function(err){
                     assert.ifError(err)
-                    _context.getObjects('Car',null,null,function(err,_cars){
+                    _context.getObjects('Car',function(err,_cars){
                         assert.ifError(err)
                         _context.getObjectWithObjectID(owner.objectID,function(err,_owner){
                             assert.ifError(err)
@@ -359,8 +373,8 @@ describe('Context', function(){
                 })
             })
             it('should load same objects in collection',function(done){
-                context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
-                    context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects2){
+                context.getObjects('Car',{sort:'brand'},function(err,objects){
+                    context.getObjects('Car',{sort:'brand'},function(err,objects2){
                         assert.equal(objects.length,objects2.length,'colletion count is not equal');
                         objects.forEach(function(obj,i){
                             assert.ok(obj === objects2[i],'objects aren\'t equal('+i+')');
@@ -382,7 +396,7 @@ describe('Context', function(){
                 }
                 var loadedCount = 0;
                 for(var x=0;x<count;x++){
-                    context.getObjects('Car',null,new SortDescriptor('brand',false),function(err,objects){
+                    context.getObjects('Car',{sort:'-brand'},function(err,objects){
                         array.push(objects);
                         if(++loadedCount == count)loaded();
                     })
@@ -393,8 +407,8 @@ describe('Context', function(){
         describe('attributes',function(){
             var context,context2,car;
             before(function(){
-                context = new ManagedObjectContext(storeCoordinator);
-                context2 = new ManagedObjectContext(storeCoordinator);
+                context = coreData.createContext();
+                context2 = coreData.createContext();
                 car = context.createObjectWithName("Car");
                 car.brand = 'test car';
             })
@@ -434,8 +448,8 @@ describe('Context', function(){
             var car,owner,owner2;
 
             before(function(done){
-                context = new ManagedObjectContext(storeCoordinator)
-                context2 = new ManagedObjectContext(storeCoordinator)
+                context = coreData.createContext();
+                context2 = coreData.createContext();
                 car = context.createObjectWithName('Car');
                 car2 = context.createObjectWithName('Car');
                 owner = context.createObjectWithName('Owner');
@@ -657,12 +671,12 @@ describe('Context', function(){
             })
             describe('oneToOne',function(){
                 before(function(done){
-                    context.getObjects('Seller',null,null,function(err,objects){
+                    context.getObjects('Seller',function(err,objects){
                         assert.ifError(err)
                         objects.forEach(function(object){
                             context.deleteObject(object);
                         })
-                        context.getObjects('Licence',null,null,function(err,objects){
+                        context.getObjects('Licence',function(err,objects){
                             assert.ifError(err)
                             objects.forEach(function(object){
                                 context.deleteObject(object);
@@ -684,7 +698,7 @@ describe('Context', function(){
                 })
                 it('should load assigned one to one objects',function(done){
                     context2.reset();
-                    context2.getObjects('Seller',null,null,function(err,sellers){
+                    context2.getObjects('Seller',function(err,sellers){
                         assert.ifError(err);
                         var _seller = sellers[0]
                         assert.equal(_seller.objectID.toString(),seller.objectID.toString())
@@ -697,7 +711,7 @@ describe('Context', function(){
                 })
                 it('should load assigned one to one objects',function(done){
                     context2.reset();
-                    context2.getObjects('Licence',null,null,function(err,licences){
+                    context2.getObjects('Licence',function(err,licences){
                         assert.ifError(err);
                         var _licence = licences[0]
                         assert.equal(_licence.objectID.toString(),licence.objectID.toString())

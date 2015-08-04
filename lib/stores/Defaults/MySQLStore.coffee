@@ -119,18 +119,17 @@ class MySQLStore extends IncrementalStore
     else if request.predicate
       sql += ' WHERE ' + request.predicate
 
-    if request.sortDescriptors
+    if Array.isArray(request.sortDescriptors) and request.sortDescriptors.length > 0
       descriptors = request.sortDescriptors
       if descriptors and not Array.isArray(descriptors)
         descriptors = [descriptors]
 #      if typeof descriptors is 'string'
 #        descriptors = descriptors.split(',');
-        sql += ' ORDER BY ';
-        keys = [];
-        for key in descriptors
-          keys.push(key.toString())
-        sql += keys.join(',');
-#        console.log('desc',keys,sql);
+      sql += ' ORDER BY ';
+      keys = [];
+      for key in descriptors
+        keys.push(key.toString())
+      sql += keys.join(',');
 
     sql
 
@@ -248,9 +247,15 @@ class MySQLStore extends IncrementalStore
 #    components[components.length - 1].replace(/^[pt]/,'')
 
 
-  buildSchema: (callback)->
+  syncSchema: (options,callback)->
+    if typeof options is 'function'
+      callback = options
+      options = null
+    options = options or {}
     objectModel = @storeCoordinator.objectModel
     schema = {}
+    sqls = []
+
     for key,entity of objectModel.entities
       tableName = @_formatTableName(entity.name)
       parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']
@@ -266,11 +271,12 @@ class MySQLStore extends IncrementalStore
         if not relationship.toMany
           parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
 
-
+      if options.force
+        sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
       sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
-      sql += parts.join(',');
+      sql += parts.join(',')
       sql += ') ENGINE=InnoDB  DEFAULT CHARSET=utf8;'
-      schema[tableName] = sql;
+      schema[tableName] = sql
 
       for key,relationship of entity.relationships
         if relationship.toMany
@@ -278,16 +284,18 @@ class MySQLStore extends IncrementalStore
           if inversedRelationship.toMany
             reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
             reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+            if options.force
+              sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
             schema[reflexiveTableName] = 'CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))'
 
-    sqls = []
     for key,sql of schema
       sqls.push(sql);
-    async.forEachSeries sqls,(sql,cb)=>
-      @connection.sendRawQuery(sql,cb)
-    ,(err)->
-      if callback
-        callback(err)
+    async.forEachSeries(sqls,(sql,cb)=>
+        @connection.sendRawQuery(sql,cb)
+      ,(err)->
+        if callback
+          callback(err)
+    )
 
   _relationshipByPriority: (relationship,inversedRelationship)->
     if relationship.name > inversedRelationship.name
@@ -355,7 +363,7 @@ class MySQLConnection extends Object
     @pool = GenericPool.Pool({
       name     : "mysql",
       create   : (callback)->
-        connection = mysql.createConnection(url)
+        connection = mysql.createConnection(url,{multipleStatements:yes})
         connection.connect (err)->
           callback(err,connection)
       destroy  : (connection)->

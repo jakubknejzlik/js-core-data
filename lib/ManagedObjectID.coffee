@@ -11,7 +11,7 @@ class ManagedObjectID extends Object
 
   recordId: ()->
     components = @stringValue.split('/')
-    components[components.length - 1].replace(/^[pt]/,'')
+    return components[components.length - 1].replace(/^[pt]/,'')*1
 
 
 

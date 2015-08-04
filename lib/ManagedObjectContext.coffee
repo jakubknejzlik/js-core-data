@@ -3,6 +3,7 @@ ManagedObject = require('./ManagedObject')
 ManagedObjectID = require('./ManagedObjectID')
 FetchRequest = require('./FetchRequest')
 Predicate = require('./FetchClasses/Predicate')
+SortDescriptor = require('./FetchClasses/SortDescriptor')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
 
 ac = require('array-control')
@@ -37,17 +38,20 @@ class ManagedObjectContext extends Object
     if @locked
       throw new Error('context is locked')
     @_deleteObjectWithoutLockCheck(object)
+
   _deleteObjectWithoutLockCheck:(object)->
     if object.managedObjectContext isnt this
       throw new Error('cannot delete object from another context')
     ac.removeObject(@insertedObjects,object)
-    object._isInserted = no
+#    object._isInserted = no
     object._isDeleted = yes
     ac.addObject(@deletedObjects,object)
 
 
   createObjectWithName: (entityName)->
     @storeCoordinator.objectModel.insertObjectIntoContext(entityName,this)
+
+  @::create = @::createObjectWithName
 
   getObjectWithId: (entityName,id,callback)->
     entity = @storeCoordinator.objectModel.getEntity(entityName)
@@ -60,30 +64,66 @@ class ManagedObjectContext extends Object
     request.setLimit(1);
     request.predicate = new Predicate(ObjectID)
 #    console.log('execute request');
-    @storeCoordinator.execute request,this,(err,objects)=>
+    @storeCoordinator.execute(request,@,(err,objects)=>
       return callback(err) if err
       if objects[0]
         ac.addObject(@registeredObjects,objects[0])
         callback(null,objects[0])
       else callback(null,null)
+    )
 
-  getObjects: (entityName,predicate,sortDescriptors,callback)->
+  getObjects: (entityName,options,callback)->
 #    cache?!
+
+    if typeof options is 'function'
+      callback = options
+      options = undefined
+
+    options = options or {}
+    predicate = null
+    sortDescriptors = []
+
+    if typeof options.where is 'string'
+      predicate = new Predicate(options.where)
+    else if Array.isArray(options.where)
+      where = JSON.parse(JSON.stringify(options.where))
+      where.unshift(null)
+      predicate = new (Function.prototype.bind.apply(Predicate, where))
+
+    sort = options.sort
+    if typeof sort is 'string'
+      sort = [sort]
+    if Array.isArray(sort)
+      for sortItem in sort
+        ascending = yes
+        if sortItem[0] is '-'
+          ascending = no
+          sortItem = sortItem.substring(1)
+        sortDescriptors.push(new SortDescriptor(sortItem,ascending))
+
+
     request = new FetchRequest(@storeCoordinator.objectModel.getEntity(entityName),predicate,sortDescriptors)
     request.predicate = predicate
     request.sortDescriptors = sortDescriptors
-    @storeCoordinator.execute request,this,(err,objects)=>
+    request.setcannot delete object from(options.limit) if options.limit
+    request.setOffset(options.offset) if options.offset
+    @storeCoordinator.execute(request,this,(err,objects)=>
       if not err
         ac.addObjects(@registeredObjects,objects)
       callback(err,objects)
+    )
 
-  getObject: (entityName,predicate,callback)->
-    @getObjects entityName,predicate,null,(err,objects)->
+  getObject: (entityName,options,callback)->
+    if typeof options is 'function'
+      callback = options
+      options = null
+    @getObjects(entityName,options,(err,objects)->
       return callback(err) if err
       if objects.length > 0
         callback(null,objects[0])
       else
         callback(null,null)
+    )
 
   _getObjectsForRelationship: (relationship,object,context,callback)->
     if object.objectID.isTemporaryID

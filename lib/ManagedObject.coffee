@@ -221,6 +221,8 @@ class ManagedObject extends Object
 
 
   Object.defineProperties @prototype,
+    id:
+      get: -> @_objectID.recordId()
     objectID:
       get: -> @_objectID
     hasChanges:

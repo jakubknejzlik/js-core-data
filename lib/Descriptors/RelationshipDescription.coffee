@@ -8,10 +8,10 @@ class RelationshipDescription extends PropertyDescription
     DENY:'deny'
   }
 
-  constructor:(name,@destinationEntity,@toMany,@inverseRelationshipName,entity)->
+  constructor:(name,@destinationEntity,@toMany,@inverseRelationshipName,entity,@deleteRule = RelationshipDescription.deleteRules.NULLIFY)->
     if not @destinationEntity
       throw new Error('destination entity cannot be null for relationship \'' + name + '\'')
-    @deleteRule = RelationshipDescription.deleteRules.NULLIFY
+#    @deleteRule = @deleteRule or RelationshipDescription.deleteRules.NULLIFY
     super(name,entity)
 
   inverseRelationship:->

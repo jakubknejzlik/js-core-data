@@ -14,29 +14,31 @@ describe('attributes',function(){
     it('should throw error for invalid model',function(done){
         storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel);
 
-        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url);
+        storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
             assert.throws(function(){
                 if(err)throw err;
             },function(err){
                 return err.message == 'unknown attribute type blah';
             })
             done()
-        });
+        })
     })
     it('shouldn\'t throw error for valid model',function(done){
         storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
-        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url);
+        storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
             assert.ifError(err);
             done()
-        });
+        })
     })
     describe('validation',function(){
         var storeCoordinator,timestamp = Math.round(Date.now() / 1000);
         var date = new Date(timestamp*1000);
         function deleteAll(storeCoordinator,done){
             var context = new ManagedObjectContext(storeCoordinator)
-            context.getObjects('Hello',null,null,function(err,objects){
+            context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
                 objects.forEach(function(obj){
                     context.deleteObject(obj);
@@ -46,10 +48,11 @@ describe('attributes',function(){
         }
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)return done(err);
                 deleteAll(storeCoordinator,done);
-            });
+            })
         })
 //        after(function(done){
 //            deleteAll(storeCoordinator,done);
@@ -73,7 +76,7 @@ describe('attributes',function(){
         })
         it('should load all attributes',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
-            context.getObjects('Hello',null,null,function(err,objects){
+            context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
                 var obj = objects[0];
                 assert.strictEqual(obj.bool,true);
@@ -109,7 +112,7 @@ describe('attributes',function(){
         })
         it('should load all attributes',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
-            context.getObjects('Hello',null,null,function(err,objects){
+            context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
                 var obj = objects[0];
                 assert.strictEqual(obj.bool,true);

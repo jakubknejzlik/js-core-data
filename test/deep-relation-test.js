@@ -6,14 +6,15 @@ var assert = require("assert"),
 
 var mysql_store_url = 'mysql://root@localhost/test';
 
-describe('custom classes',function(){
+describe('deep relation',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/deep-relation-model.yaml');
 
     describe('parent class',function(){
         var storeCoordinator;
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)done(err)
                 done()
             });
@@ -37,10 +38,11 @@ describe('custom classes',function(){
         })
         it('should load all toOne relationships',function(done){
             var newStoreCoordinator = new PersistentStoreCoordinator(objectModel);
-            newStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+            newStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:false},function(err){
                 assert.ifError(err)
                 var context = new ManagedObjectContext(newStoreCoordinator)
-                context.getObjects('Entity4',null,null,function(err,objects){
+                context.getObjects('Entity4',function(err,objects){
                     var entity4 = objects[0];
                     assert.ifError(err)
                     assert.equal(entity4.name,'entity4');

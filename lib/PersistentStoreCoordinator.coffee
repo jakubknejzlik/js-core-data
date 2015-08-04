@@ -18,6 +18,7 @@ class PersistentStoreCoordinator extends Object
     @persistentStores = []
     @waitingRequests = []
     @temporaryId = 1
+    @parallelExecution = yes
 
 
 
@@ -27,18 +28,23 @@ class PersistentStoreCoordinator extends Object
 
   addStore: (storeType,URL,callback)->
     store = new registeredStoreTypes[storeType](this,URL);
-    store.buildSchema (err)=>
-      if not err
-        @persistentStores.push(store)
-      callback(err) if callback
+    if callback
+      console.error('adding store with callback is deprecated')
+      store.syncSchema((err)=>
+        if not err
+          @persistentStores.push(store)
+        callback(err) if callback
+      )
+    else
+      @persistentStores.push(store)
 
   execute: (request,context,callback)->
     @waitingRequests.push({request:request,context:context,callback:callback});
     @_executeNextRequestIfPossible()
 
   _executeNextRequestIfPossible: ()->
-    if @executingRequest
-      return;
+    if @executingRequest and not @parallelExecution
+      return
     info = @waitingRequests.shift()
 
 #    console.log('next info',info);
@@ -57,7 +63,7 @@ class PersistentStoreCoordinator extends Object
         return @_requestCompleted(callback,null,[obj])
 
     store = @persistentStores[0]
-    store.execute request,context,(err,ObjectIDs)=>
+    store.execute(request,context,(err,ObjectIDs)=>
       return @_requestCompleted(callback,err) if err
       objects = []
       for objectID in ObjectIDs
@@ -67,6 +73,7 @@ class PersistentStoreCoordinator extends Object
         else
           objects.push(@_objectForID(request,context,objectID))
       @_requestCompleted(callback,null,objects)
+    )
 
   _requestCompleted:(callback,err,objects)->
     @executingRequest = false

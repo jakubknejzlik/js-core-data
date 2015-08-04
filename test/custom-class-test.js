@@ -17,7 +17,8 @@ describe('custom classes',function(){
         var storeCoordinator,car,owner;
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,function(err){
+            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)done(err)
                 var context = new ManagedObjectContext(storeCoordinator)
                 car = context.createObjectWithName('Car')
