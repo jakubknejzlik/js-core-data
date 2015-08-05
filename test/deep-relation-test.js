@@ -4,7 +4,8 @@ var assert = require("assert"),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator');
 
-var mysql_store_url = 'mysql://root@localhost/test';
+//var store_url = 'mysql://root@localhost/test';
+var store_url = 'sqlite://:memory:';
 
 describe('deep relation',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/deep-relation-model.yaml');
@@ -13,11 +14,8 @@ describe('deep relation',function(){
         var storeCoordinator;
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                if(err)done(err)
-                done()
-            });
+            storeCoordinator.addStore(store_url)
+            storeCoordinator.persistentStores[0].syncSchema({force:true},done);
         })
         it('should load prepare data',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
@@ -37,30 +35,25 @@ describe('deep relation',function(){
             context.save(done);
         })
         it('should load all toOne relationships',function(done){
-            var newStoreCoordinator = new PersistentStoreCoordinator(objectModel);
-            newStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
-            storeCoordinator.persistentStores[0].syncSchema({force:false},function(err){
+            var context = new ManagedObjectContext(storeCoordinator)
+            context.getObjects('Entity4',function(err,objects){
+                var entity4 = objects[0];
                 assert.ifError(err)
-                var context = new ManagedObjectContext(newStoreCoordinator)
-                context.getObjects('Entity4',function(err,objects){
-                    var entity4 = objects[0];
+                assert.equal(entity4.name,'entity4');
+                entity4.getParent(function(err,entity3){
                     assert.ifError(err)
-                    assert.equal(entity4.name,'entity4');
-                    entity4.getParent(function(err,entity3){
-                        assert.ifError(err)
-                        assert.equal(entity3.name,'entity3');
-                        entity3.getParent(function(err,entity2){
+                    assert.equal(entity3.name,'entity3');
+                    entity3.getParent(function(err,entity2){
+                        assert.ifError(err);
+                        assert.equal(entity2.name,'entity2');
+                        entity2.getParent(function(err,entity1){
                             assert.ifError(err);
-                            assert.equal(entity2.name,'entity2');
-                            entity2.getParent(function(err,entity1){
-                                assert.ifError(err);
-                                assert.equal(entity1.name,'entity1');
-                                done();
-                            })
+                            assert.equal(entity1.name,'entity1');
+                            done();
                         })
                     })
                 })
-            });
+            })
         })
     })
 })

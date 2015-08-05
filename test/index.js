@@ -4,7 +4,7 @@ var CoreData = require('../index');
 
 describe('core module',function(){
 
-    var cd = new CoreData('mysql://root@localhost/test')
+    var cd = new CoreData('sqlite://:memory:')
 
     it('should should successfuly define entities',function(){
         cd.defineEntity('User',{

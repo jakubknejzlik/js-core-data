@@ -5,8 +5,6 @@ var assert = require("assert"),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator');
 
-var mysql_store_url = 'mysql://root@localhost/test';
-
 describe('general tests',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/deep-relation-model.yaml');
 

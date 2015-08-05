@@ -12,15 +12,15 @@
         <item url="file://$PROJECT_DIR$/lib/stores/Defaults/MySQLStore.js" />
         <item url="file://$PROJECT_DIR$/lib/Parsers/ModelYamlParser.js" />
         <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeTransformer.js" />
+        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/GenericSQLStore.js" />
         <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeValidator.js" />
+        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
         <item url="file://$PROJECT_DIR$/lib/PersistentStoreCoordinator.js" />
         <item url="file://$PROJECT_DIR$/index.js" />
         <item url="file://$PROJECT_DIR$/lib/stores/PersistentStore.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
-      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
       <root url="file://$PROJECT_DIR$/lib/Descriptors/EntityDescription.js" />
       <root url="file://$PROJECT_DIR$/lib/Descriptors/RelationshipDescription.js" />
       <root url="file://$PROJECT_DIR$/lib/ManagedObject.js" />
@@ -31,9 +31,11 @@
       <root url="file://$PROJECT_DIR$/lib/stores/Defaults/MySQLStore.js" />
       <root url="file://$PROJECT_DIR$/lib/Parsers/ModelYamlParser.js" />
       <root url="file://$PROJECT_DIR$/lib/Helpers/AttributeTransformer.js" />
+      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/GenericSQLStore.js" />
       <root url="file://$PROJECT_DIR$/lib/Helpers/AttributeValidator.js" />
       <root url="file://$PROJECT_DIR$/index.js" />
       <root url="file://$PROJECT_DIR$/lib/PersistentStoreCoordinator.js" />
+      <root url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
       <root url="file://$PROJECT_DIR$/lib/stores/PersistentStore.js" />
     </CLASSES>
     <SOURCES />

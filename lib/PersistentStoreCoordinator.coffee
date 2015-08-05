@@ -2,13 +2,19 @@ PersistentStoreRequest = require('./stores/PersistentStoreRequest')
 IncrementalStore = require('./stores/IncrementalStore')
 ManagedObject = require('./ManagedObject')
 Predicate = require('./FetchClasses/Predicate')
-async = require('async')
-
-ac = require('array-control')
 AttributeTransformer = require('./Helpers/AttributeTransformer')
+async = require('async')
+url = require('url')
+ac = require('array-control')
+
+_knownStoreProtocols = {
+  'sqlite:':'SQLiteStore',
+  'mysql:':'MySQLStore'
+}
 
 class PersistentStoreCoordinator extends Object
   @STORE_TYPE_MYSQL = 'MySQLStore'
+  @STORE_TYPE_SQLITE = 'SQLiteStore'
 
   registeredStoreTypes = {}
 
@@ -27,7 +33,16 @@ class PersistentStoreCoordinator extends Object
     this
 
   addStore: (storeType,URL,callback)->
-    store = new registeredStoreTypes[storeType](this,URL);
+    if URL is undefined
+      URL = storeType
+      parsedURL = url.parse(URL)
+      storeType = _knownStoreProtocols[parsedURL.protocol]
+    if not storeType
+      throw new Error('unknown store for url ' + URL)
+    storeClass = registeredStoreTypes[storeType]
+    if not storeClass
+      storeClass = require('./stores/Defaults/'+storeType)
+    store = new (storeClass)(this,URL);
     if callback
       console.error('adding store with callback is deprecated')
       store.syncSchema((err)=>
@@ -159,6 +174,7 @@ class PersistentStoreCoordinator extends Object
 
 # If a relationship is nil, you should create a new value by invoking newValueForRelationship:forObjectWithID:withContext:error: on the NSPersistentStore object.
 
-PersistentStoreCoordinator.registerStoreClass(require('./stores/Defaults/MySQLStore'),PersistentStoreCoordinator.STORE_TYPE_MYSQL);
+#PersistentStoreCoordinator.registerStoreClass(require('./stores/Defaults/MySQLStore'),PersistentStoreCoordinator.STORE_TYPE_MYSQL);
+#PersistentStoreCoordinator.registerStoreClass(require('./stores/Defaults/SQLiteStore'),PersistentStoreCoordinator.STORE_TYPE_SQLITE);
 
 module.exports = PersistentStoreCoordinator;

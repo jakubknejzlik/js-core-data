@@ -10,7 +10,8 @@ var assert = require("assert"),
     SortDescriptor= require('./../lib/FetchClasses/SortDescriptor'),
     CoreData = require('../index');
 
-var mysql_store_url = 'mysql://root@localhost/test';
+//var mysql_store_url = 'mysql://root@localhost/test';
+var mysql_store_url = 'sqlite://:memory:';
 
 describe('Context', function(){
     describe('store stuff',function(){

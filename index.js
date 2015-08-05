@@ -31,7 +31,6 @@
         options = {};
       }
       this.model = new ManagedObjectModel(options.modelFile, options.modelClasses);
-      this._parsedUrl = url.parse(this.storeURL);
     }
 
     CoreData.prototype.syncSchema = function(options, callback) {
@@ -93,11 +92,7 @@
     CoreData.prototype._persistentStoreCoordinator = function() {
       if (!this.persistentStoreCoordinator) {
         this.persistentStoreCoordinator = new PersistentStoreCoordinator(this.model);
-        if (this._parsedUrl.protocol === 'mysql:') {
-          this.persistentStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL, this.storeURL);
-        } else {
-          throw new Error('unknown store for url' + this.storeURL);
-        }
+        this.persistentStoreCoordinator.addStore(this.storeURL);
       }
       return this.persistentStoreCoordinator;
     };

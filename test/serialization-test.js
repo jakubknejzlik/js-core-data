@@ -4,7 +4,8 @@ var assert = require("assert"),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
     moment = require('moment');
 
-var mysql_store_url = 'mysql://root@localhost/test';
+//var store_url = 'mysql://root@localhost/test';
+var store_url = 'sqlite://:memory:';
 
 describe('serialization',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-test-model.yaml');
@@ -23,7 +24,7 @@ describe('serialization',function(){
         }
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.addStore(store_url)
             storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)return done(err);
                 deleteAll(storeCoordinator,done);

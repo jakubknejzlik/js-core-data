@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "mysql": "^2.8.0",
+    "sqlite3": "^3.0.9",
     "watchify": "~0.6.1"
   },
   "scripts": {

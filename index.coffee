@@ -14,7 +14,6 @@ async = require('async')
 class CoreData
   constructor:(@storeURL,options = {})->
     @model = new ManagedObjectModel(options.modelFile, options.modelClasses)
-    @_parsedUrl = url.parse(@storeURL)
 
   syncSchema:(options,callback)->
     if typeof options is 'function'
@@ -57,10 +56,7 @@ class CoreData
   _persistentStoreCoordinator:()->
     if not @persistentStoreCoordinator
       @persistentStoreCoordinator = new PersistentStoreCoordinator(@model)
-      if @_parsedUrl.protocol is 'mysql:'
-        @persistentStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL, @storeURL)
-      else
-        throw new Error('unknown store for url' + @storeURL)
+      @persistentStoreCoordinator.addStore(@storeURL)
     return @persistentStoreCoordinator
 
   middleware:()->

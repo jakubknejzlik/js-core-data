@@ -4,7 +4,8 @@ var assert = require("assert"),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
     moment = require('moment');
 
-var mysql_store_url = 'mysql://root@localhost/test';
+//var store_url = 'mysql://root@localhost/test';
+var store_url = 'sqlite://:memory:';
 
 describe('attributes',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-test-model.yaml');
@@ -14,7 +15,7 @@ describe('attributes',function(){
     it('should throw error for invalid model',function(done){
         storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel);
 
-        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url);
+        storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
             assert.throws(function(){
                 if(err)throw err;
@@ -27,7 +28,7 @@ describe('attributes',function(){
     it('shouldn\'t throw error for valid model',function(done){
         storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
-        storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url);
+        storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
             assert.ifError(err);
             done()
@@ -48,7 +49,7 @@ describe('attributes',function(){
         }
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.addStore(store_url)
             storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)return done(err);
                 deleteAll(storeCoordinator,done);

@@ -7,7 +7,8 @@ var assert = require("assert"),
     Owner = require('./Classes/Owner'),
     moment = require('moment');
 
-var mysql_store_url = 'mysql://root@localhost/test';
+//var mysql_store_url = 'mysql://root@localhost/test';
+var mysql_store_url = 'sqlite://:memory:';
 
 describe('custom classes',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/car-model-custom-classes.yaml',{'Car':require('./Classes/Car')});
@@ -17,7 +18,7 @@ describe('custom classes',function(){
         var storeCoordinator,car,owner;
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url)
+            storeCoordinator.addStore(mysql_store_url)
             storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 if(err)done(err)
                 var context = new ManagedObjectContext(storeCoordinator)
