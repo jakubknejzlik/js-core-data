@@ -1,5 +1,6 @@
 var assert = require("assert"),
-    Predicate = require('./../lib/FetchClasses/Predicate');
+    Predicate = require('./../lib/FetchClasses/Predicate'),
+    moment = require('moment');
 
 describe('Predicate',function(){
     it('should correctly format string',function(){
@@ -13,5 +14,11 @@ describe('Predicate',function(){
     it('should correctly format multiple numbers',function(){
         var predicate = new Predicate('name = %d AND test = %d OR xxx = %d',12,25,58);
         assert.equal(predicate.toString(),'name = 12 AND test = 25 OR xxx = 58');
+    })
+    it('should correctly format dates',function(){
+        var date = moment();
+        var date2 = new Date();
+        var predicate = new Predicate('date = %s AND date2 = %s',date,date2);
+        assert.equal(predicate.toString(),'date = \'' + date.format('YYYY-MM-DD HH:mm:ss') + '\' AND date2 = \'' + moment(date2).format('YYYY-MM-DD HH:mm:ss')+'\'');
     })
 })

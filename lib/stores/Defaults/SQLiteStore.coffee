@@ -81,7 +81,7 @@ class SQLiteConnection extends Object
           callback(err,connection)
         )
       destroy  : (connection)->
-        connection.destroy()
+        connection.close()
       max : 1 #settings?.maxConnections or (if process.NODE_ENV is 'production' then 100 else 10),
       idleTimeoutMillis : settings?.idletimeoutMillis ? 60*1000,
       reapIntervalMillis : settings?.reapIntervalMillis ? 5*1000

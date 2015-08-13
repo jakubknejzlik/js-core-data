@@ -35,4 +35,7 @@ class EntityDescription
   relationshipsByName : ->
     @_relationshipsByName
 
+  relationshipByName : (name)->
+    @_relationshipsByName[name]
+
 module.exports = EntityDescription;

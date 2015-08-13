@@ -51,7 +51,11 @@ class ManagedObjectContext extends Object
   createObjectWithName: (entityName)->
     @storeCoordinator.objectModel.insertObjectIntoContext(entityName,this)
 
-  @::create = @::createObjectWithName
+  create:(entityName, data)->
+    object = @createObjectWithName(entityName)
+    for key,value of data
+      object[key] = value
+    return object
 
   getObjectWithId: (entityName,id,callback)->
     entity = @storeCoordinator.objectModel.getEntity(entityName)

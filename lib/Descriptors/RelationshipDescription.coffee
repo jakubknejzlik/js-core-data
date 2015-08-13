@@ -15,6 +15,8 @@ class RelationshipDescription extends PropertyDescription
     super(name,entity)
 
   inverseRelationship:->
+    if not @inverseRelationshipName
+      throw new Error('inverse relationship for '+@entity.name+'->'+@name + ' not defined')
     inv = @destinationEntity.relationshipsByName()[@inverseRelationshipName];
     if not inv
       throw new Error('could not found inverse relationship \''+@inverseRelationshipName+'\' for relationship '+@entity.name+'->'+@name)

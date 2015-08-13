@@ -4,21 +4,19 @@ GenericPool = require('generic-pool')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
+squel = require('squel')
 
-try
-  require('sqlite3')
-catch e
-  throw new Error('sqlite3 module is required to user SQLite storage, please install it by running npm install --save sqlite3')
-
-sqlite = require('sqlite3')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
 
 
-class SQLiteStore extends IncrementalStore
+class GenericSQLStore extends IncrementalStore
+  @::tableAlias = 'SELF'
+
   constructor: (@storeCoordinator,@URL)->
-    @connection = @createConnection()
+    if @storeCoordinator
+      @connection = @createConnection()
     @fetchedObjectValuesCache = {}
     @permanentIDsCache = {}
     @debug = no
@@ -121,29 +119,85 @@ class SQLiteStore extends IncrementalStore
 
 
   sqlForFetchRequest: (request) ->
-    columns = ['`_id` as `_id`']
+    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias).field(@tableAlias + '._id','_id')
     for attribute in request.entity.attributes
-      columns.push('`' + attribute.name + '` as `' + attribute.name + '`')
-    sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(request.entity.name) + '` SELF';
-    if request.predicate instanceof Predicate
-      sql += ' WHERE ' + request.predicate.toString();
-#      sql += ' WHERE `_id` = ' + mysql.escape(@_recordIDForObjectID(request.predicate));
-    else if request.predicate
-      sql += ' WHERE ' + request.predicate
+      query.field(@tableAlias + '.' + attribute.name,attribute.name)
+    if request.predicate
+      query.where(request.predicate.toString())
 
     if Array.isArray(request.sortDescriptors) and request.sortDescriptors.length > 0
       descriptors = request.sortDescriptors
-      if descriptors and not Array.isArray(descriptors)
-        descriptors = [descriptors]
-#      if typeof descriptors is 'string'
-#        descriptors = descriptors.split(',');
-      sql += ' ORDER BY ';
-      keys = [];
-      for key in descriptors
-        keys.push(key.toString())
-      sql += keys.join(',');
+      for descriptor in descriptors
+        column = descriptor.attribute
+        if column.indexOf(@tableAlias + '.') isnt 0
+          column = @tableAlias + '.' + column
+        query.order(column,descriptor.ascending)
 
-    sql
+    return @_getRawTranslatedQueryWithJoins(query,request)
+
+
+
+
+  _getRawTranslatedQueryWithJoins:(query,request)->
+    replaceNames = {}
+    joins = {}
+
+    sqlString = query.toString()
+
+    clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
+    joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_][a-zA-Z0-9_]*){2,}','g'));
+
+    if not joinMatches or joinMatches.length is 0
+      return sqlString
+
+    leftJoin = (subkeys, parentEntity, path) =>
+      as = subkeys.shift()
+      relation = parentEntity.relationshipByName(as)
+      if not relation
+        throw new Error('relation ' + parentEntity.name + '=>' + as + ' not found')
+      inversedRelation = relation.inverseRelationship()
+      subPath = path + "." + as
+      unless ~alreadyJoined.indexOf(subPath)
+        alreadyJoined.push(subPath)
+        replaceNames[path] = path.replace(/\./g, "_")  unless replaceNames[path]
+        replaceNames[subPath] = subPath.replace(/\./g, "_")  unless replaceNames[subPath]
+        parentAlias = replaceNames[path]
+        pathAlias = replaceNames[subPath]
+        if relation.toMany and inversedRelation.toMany
+          reflexiveRelation = @_relationshipByPriority(relation,inversedRelation)
+          inversedRelation = relation.inverseRelationship()
+          middleTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelation)
+          middleTableNameAlias = pathAlias + "__mid"
+          query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
+          query.left_join(@_formatTableName(reflexiveRelation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
+        else
+          if relation.toMany
+            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
+          else
+            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + '._id' + ' = ' + parentAlias + '.' + relation.name + '_id')
+      leftJoin(subkeys, relation.destinationEntity, subPath) if subkeys.length > 0
+
+    replaceNames[@tableAlias] = @tableAlias
+    for match in joinMatches
+      match = match.slice(0, match.lastIndexOf("."))
+      if match isnt @tableAlias
+        replaceNames[match] = match.replace(/\./g, "_")
+        match = match.replace(@tableAlias + ".", "")
+        joins[match] = match
+
+    alreadyJoined = []
+    for key of joins
+      _subkeys = key.split(".")
+#      console.log(key,_subkeys)
+      leftJoin(_subkeys, request.entity, @tableAlias)
+    replaceNameSorted = Object.keys(replaceNames).sort().reverse()
+
+    sqlString = query.toString()
+    for i of replaceNameSorted
+      sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
+      sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "`", "g"), replaceNames[replaceNameSorted[i]] + "`")
+
+    return sqlString
 
   _updateRelationsForObject: (transaction,object,callback)->
     sqls = []
@@ -160,7 +214,7 @@ class SQLiteStore extends IncrementalStore
         if addedObjects
           for addedObject in addedObjects
 #          console.log('xxxxx',object.relationChanges);
-            sql = 'INSERT INTO `' + @_formatTableName(relationship.entity.name) + '_' + relationship.name + '` (reflexive,`' + relationship.name + '_id`) VALUES(' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
+            sql = 'INSERT INTO `' + @_getMiddleTableNameForManyToManyRelation(relationship) + '` (reflexive,`' + relationship.name + '_id`) VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
             sqls.push(sql)
 
         removedObjects = object._relationChanges?['removed_' + relationship.name]
@@ -168,11 +222,14 @@ class SQLiteStore extends IncrementalStore
         if removedObjects
           for removedObject in removedObjects
 #          console.log('xxxxx',object.relationChanges);
-            sql = 'DELETE FROM `' + @_formatTableName(relationship.entity.name) + '_' + relationship.name + '` WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND `' + relationship.name + '_id` = ' + @_recordIDForObjectID(removedObject.objectID)
+            sql = 'DELETE FROM `' + @_getMiddleTableNameForManyToManyRelation(relationship) + '` WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND `' + relationship.name + '_id` = ' + @_recordIDForObjectID(removedObject.objectID)
             sqls.push(sql)
     async.forEachSeries sqls,(sql,cb)->
       transaction.sendQuery(sql,cb)
     ,callback
+
+  _getMiddleTableNameForManyToManyRelation:(relationship)->
+    return @_formatTableName(relationship.entity.name) + '_' + relationship.name
 
   _valuesWithRelationshipsForObject:(object)->
     data = {}
@@ -321,4 +378,4 @@ class SQLiteStore extends IncrementalStore
     return definition
 
 
-module.exports = SQLiteStore;
+module.exports = GenericSQLStore

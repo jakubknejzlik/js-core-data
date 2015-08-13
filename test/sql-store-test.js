@@ -1,0 +1,48 @@
+var assert = require("assert"),
+    FetchRequest = require('./../lib/FetchRequest'),
+    Predicate = require('./../lib/FetchClasses/Predicate'),
+    SortDescriptor = require('./../lib/FetchClasses/SortDescriptor'),
+    CoreData = require('../index');
+
+describe('SQL Store',function(){
+    var cd = new CoreData('sqlite://:memory:')
+
+    var User = cd.defineEntity('User',{username:'string'})
+    var Company = cd.defineEntity('Company',{name:'string'})
+    var Team = cd.defineEntity('Team',{name:'string'})
+    cd.defineRelationship('User','Company','company',{toMany:false,inverse:'users'})
+    cd.defineRelationship('Company','User','users',{toMany:true,inverse:'company'})
+    cd.defineRelationship('User','Team','teams',{toMany:true,inverse:'users'})
+    cd.defineRelationship('Team','User','users',{toMany:true,inverse:'teams'})
+
+    var context = cd.createContext();
+    var store = context.storeCoordinator.persistentStores[0];
+
+//    before(function(done){
+//        cd.syncSchema(done)
+//    })
+
+    it('should format SQL',function(){
+        var req = new FetchRequest(User,new Predicate('username = %s','test'),[new SortDescriptor('username')]);
+        var sql = store.sqlForFetchRequest(req);
+        assert.equal(sql,'SELECT SELF._id AS "_id", SELF.username AS "username" FROM users `SELF` WHERE (username = \'test\') ORDER BY SELF.username ASC')
+    })
+
+    it('should format SQL with joins for oneToMany',function(){
+        var req = new FetchRequest(User,new Predicate('SELF.company.name = %s','test'),[new SortDescriptor('SELF.company.name')]);
+        var sql = store.sqlForFetchRequest(req);
+        assert.equal(sql,"SELECT SELF._id AS \"_id\", SELF.username AS \"username\" FROM users `SELF` LEFT JOIN companies `SELF_company` ON (SELF_company.id = SELF.company_id) WHERE (SELF_company.name = 'test') ORDER BY SELF_company.name ASC")
+    })
+
+    it('should format SQL with joins for manyToOne',function(){
+        var req = new FetchRequest(Company,new Predicate('SELF.users.username = %s','test'),[new SortDescriptor('SELF.users.username')]);
+        var sql = store.sqlForFetchRequest(req);
+        assert.equal(sql,"SELECT SELF._id AS \"_id\", SELF.name AS \"name\" FROM companies `SELF` LEFT JOIN users `SELF_users` ON (SELF_users.company_id = SELF.id) WHERE (SELF_users.username = 'test') ORDER BY SELF_users.username ASC")
+    })
+
+    it('should format SQL with joins for manyToMany',function(){
+        var req = new FetchRequest(User,new Predicate('SELF.teams.name = %s','test'),[new SortDescriptor('SELF.teams.name')]);
+        var sql = store.sqlForFetchRequest(req);
+        assert.equal(sql,"SELECT SELF._id AS \"_id\", SELF.username AS \"username\" FROM users `SELF` LEFT JOIN teams_users `SELF_teams__mid` ON (SELF.id = SELF_teams__mid.users_id) LEFT JOIN users `SELF_teams` ON (SELF_teams__mid.reflexive = SELF_teams.id) WHERE (SELF_teams.name = 'test') ORDER BY SELF_teams.name ASC")
+    })
+})
