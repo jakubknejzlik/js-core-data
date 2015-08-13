@@ -2,6 +2,8 @@
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
   "version": "0.5.1",
+  "license": "MIT",
+  "keywords":["ORM","CoreData","object relational mapper","context","sqlite","mysql"],
   "dependencies": {
     "array-control": "^0.2.0",
     "async": "^1.4.0",
