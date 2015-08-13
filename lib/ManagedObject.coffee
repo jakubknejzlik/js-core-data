@@ -194,7 +194,7 @@ class ManagedObject extends Object
 #      console.log('add',@objectID.toString());
       @_didUpdateValues();
 
-  _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion) ->
+  _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion,fireEvent = yes) ->
     @fetchData() if @isFault
 #    console.log('remove',object.objectID.toString(),relationshipDescription.name,'=>',inversedRelationshipDescription.name)
     if not @_data[relationshipDescription.name] or object in @_data[relationshipDescription.name]
@@ -212,9 +212,11 @@ class ManagedObject extends Object
           object._setObjectToRelation(null,inversedRelationshipDescription)
         else
           object._removeObjectFromRelation(@,inversedRelationshipDescription,relationshipDescription,true)
-      @_didUpdateValues();
+      @_didUpdateValues() if fireEvent
 
   _didUpdateValues: ->
+    if @managedObjectContext.locked
+      throw new Error('cannot update object when it\'s context is locked')
     @_isUpdated = yes
     if this not in @managedObjectContext?.updatedObjects
       ac.addObject(@managedObjectContext.updatedObjects,this)

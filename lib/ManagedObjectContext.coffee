@@ -149,7 +149,7 @@ class ManagedObjectContext extends Object
       if err
         @locked = no
         return callback(err);
-      @storeCoordinator.saveContext @,(err)=>
+      @storeCoordinator.saveContext(@,(err)=>
   #      console.log('done saving',err)
         if not err
           for object in @insertedObjects
@@ -167,6 +167,7 @@ class ManagedObjectContext extends Object
           @deletedObjects = []
         @locked = no
         callback(err)
+      )
 
   reset:->
     if @locked
@@ -224,8 +225,8 @@ class ManagedObjectContext extends Object
               if objects
                 for obj in objects
 #                  console.log('remove',obj.objectID.toString(),'=>',relationship.name)
-                  object._removeObjectFromRelation(obj,relationship,relationship.inverseRelationship(),yes)
-                  obj._removeObjectFromRelation(object,relationship.inverseRelationship(),relationship,yes)
+                  object._removeObjectFromRelation(obj,relationship,relationship.inverseRelationship(),yes,no)
+                  obj._removeObjectFromRelation(object,relationship.inverseRelationship(),relationship,yes,no)
               cb()
           when RelationshipDescription.deleteRules.CASCADE
 #            console.log('cascade')
