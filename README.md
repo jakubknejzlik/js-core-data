@@ -1,15 +1,15 @@
-#js-core-data
+# js-core-data
 
 CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by helper methods. Providing easy interface for defining data model, working with entities and persisting data to persistent store (MySQL and SQLite are currently supported).
 
-#Context
+# Context
 
 When you create/update/access/delete data you always use context. Every time you create or fetch some object (entity instance) it's stored in context. Every updated attribute or relationship is stored in memory. After everything is ready, you just save the context.
 
 The *best* thing about the context is that all changes are stored in memory until you save them into persistent store in ***one transaction***.
 
 
-#Example
+# Example
 
 ```
 var CoreData = require('js-core-data');
@@ -41,7 +41,7 @@ db.syncSchema({force:true},function(err){
 })
 ```
 
-##Fetching objects
+## Fetching objects
 ```
 ...
 var User = db.define('User',{username:'string});
@@ -61,7 +61,7 @@ context.getObjects('User',{
 
 For more examples see */examples*
 
-##TO-DO
+# TO-DO
 - more detailed documentation (object subclasses etc.)
 - foreign keys support
 - more examples
