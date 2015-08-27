@@ -281,7 +281,7 @@ describe('Context', function(){
                 })
             })
             it('should add loaded objects to registered objects',function(done){
-                context.getObjects('Car',function(err,objects){
+                context.getObjects('Car',{limit:1},function(err,objects){
                     assert.ifError(err)
                     objects.forEach(function(obj){
                         assert.notEqual(context.registeredObjects.indexOf(obj),-1);

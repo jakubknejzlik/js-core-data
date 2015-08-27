@@ -109,7 +109,7 @@ class ManagedObjectContext extends Object
     request = new FetchRequest(@storeCoordinator.objectModel.getEntity(entityName),predicate,sortDescriptors)
     request.predicate = predicate
     request.sortDescriptors = sortDescriptors
-    request.setcannot delete object from(options.limit) if options.limit
+    request.setLimit(options.limit) if options.limit
     request.setOffset(options.offset) if options.offset
     @storeCoordinator.execute(request,this,(err,objects)=>
       if not err
