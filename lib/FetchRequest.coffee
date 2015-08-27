@@ -6,20 +6,20 @@ class FetchRequest extends PersistentStoreRequest
   constructor: (@entity,@predicate,@sortDescriptors = [])->
     super 'fetch'
     assert(@entity instanceof EntityDescription,'entity must be instance of EntityDescription')
-    @_limit = 0
-    @_offset = 0
+    @limit = 0
+    @offset = 0
 
   setLimit: (value)->
-    @_limit = value;
+    @limit = value;
     @
   getLimit: ->
-    @_limit
+    @limit
 
   setOffset: (value)->
-    @_offset = value;
+    @offset = value;
     @
   getOffset: ->
-    @_offset
+    @offset
 
 
 

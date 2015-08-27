@@ -123,6 +123,9 @@ class GenericSQLStore extends IncrementalStore
     if request.predicate
       query.where(request.predicate.toString())
 
+    query.limit(request.limit) if request.limit
+    query.offset(request.offset) if request.offset
+
     if Array.isArray(request.sortDescriptors) and request.sortDescriptors.length > 0
       descriptors = request.sortDescriptors
       for descriptor in descriptors

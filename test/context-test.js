@@ -280,8 +280,28 @@ describe('Context', function(){
                     context.save(done);
                 })
             })
-            it('should add loaded objects to registered objects',function(done){
+            it('should load limited number of objects',function(done){
                 context.getObjects('Car',{limit:1},function(err,objects){
+                    assert.ifError(err)
+                    assert.equal(objects.length,1)
+                    done();
+                })
+            })
+            it('should load offest objects',function(done){
+                context.getObjects('Car',{offset:1,limit:2},function(err,objects){
+                    assert.ifError(err)
+                    assert.equal(objects.length,1)
+                    done();
+                })
+            })
+            it('should not load offest without limit',function(){
+                assert.throws(function(){
+                    context.getObjects('Car',{offset:1},function(err,objects){
+                    })
+                },'limit must be supplied when fetching with offset')
+            })
+            it('should add loaded objects to registered objects',function(done){
+                context.getObjects('Car',function(err,objects){
                     assert.ifError(err)
                     objects.forEach(function(obj){
                         assert.notEqual(context.registeredObjects.indexOf(obj),-1);
