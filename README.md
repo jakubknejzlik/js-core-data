@@ -16,11 +16,11 @@ var CoreData = require('js-core-data');
 
 var db = new CoreData('sqlite://:memory:');
 
-Entity = db.defineEntity('Entity',{attribute1:'string'});
-Entity2 = db.defineEntity('Entity2',{attribute1:'string'});
+var User = db.define('User',{username:'string'});
+var Company = db.define('Company',{name:'string'});
 
-db.defineRelationship(Entity,Entity2,'myentity',{inverse:'myentity2'});
-db.defineRelationship(Entity2,Entity,'myentity2',{inverse:'myentity',toMany:true});
+db.defineRelationship(User,Company,'company',{inverse:'users'});
+db.defineRelationship(Company,User,'users',{inverse:'company',toMany:true});
 
 db.syncSchema({force:true},function(err){
     if(err) throw err;
@@ -28,11 +28,13 @@ db.syncSchema({force:true},function(err){
 
     var context = db.createContext();
 
-    var obj = context.create('Entity',{username:'user1'});
-    var obj2 = context.create('Entity2',{name:'test company'});
+    var user1 = context.create('User',{username:'user1'});
+    var user2 = context.create('User',{username:'user2'});
 
-    obj.setMyentity(obj2);
-    //or obj.addMyentity2s([obj1]);
+    var company = context.create('Company',{name:'test company'});
+
+    user1.setCompany(company);
+    company.addUser(user2);
 
     context.save(function(err){
         if(err) throw err;
@@ -44,8 +46,8 @@ db.syncSchema({force:true},function(err){
 ## Fetching objects
 ```
 ...
-var User = db.define('User',{username:'string});
-var Company = db.define('Company',{name:'string});
+var User = db.define('User',{username:'string'});
+var Company = db.define('Company',{name:'string'});
 
 db.defineRelationship(User,Company,'company',{inverse:'users'});
 db.defineRelationship(Company,User,'users',{inverse:'company',toMany:true});
