@@ -165,12 +165,16 @@ class GenericSQLStore extends IncrementalStore
         parentAlias = replaceNames[path]
         pathAlias = replaceNames[subPath]
         if relation.toMany and inversedRelation.toMany
-          reflexiveRelation = @_relationshipByPriority(relation,inversedRelation)
+          primaryRelation = @_relationshipByPriority(relation,inversedRelation)
           inversedRelation = relation.inverseRelationship()
-          middleTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelation)
+          middleTableName = @_getMiddleTableNameForManyToManyRelation(primaryRelation)
           middleTableNameAlias = pathAlias + "__mid"
-          query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
-          query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
+          if primaryRelation is relation
+            query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + ".reflexive")
+            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + "." + relation.name + "_id = " + pathAlias + "._id")
+          else
+            query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
+            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
         else
           if relation.toMany
             query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
