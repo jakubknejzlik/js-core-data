@@ -43,6 +43,6 @@ describe('SQL Store',function(){
     it('should format SQL with joins for manyToMany',function(){
         var req = new FetchRequest(User,new Predicate('SELF.teams.name = %s','test'),[new SortDescriptor('SELF.teams.name')]);
         var sql = store.sqlForFetchRequest(req);
-        assert.equal(sql,"SELECT SELF._id AS \"_id\", SELF.username AS \"username\" FROM users `SELF` LEFT JOIN teams_users `SELF_teams__mid` ON (SELF._id = SELF_teams__mid.users_id) LEFT JOIN users `SELF_teams` ON (SELF_teams__mid.reflexive = SELF_teams._id) WHERE (SELF_teams.name = 'test') ORDER BY SELF_teams.name ASC")
+        assert.equal(sql,"SELECT SELF._id AS \"_id\", SELF.username AS \"username\" FROM users `SELF` LEFT JOIN teams_users `SELF_teams__mid` ON (SELF._id = SELF_teams__mid.users_id) LEFT JOIN teams `SELF_teams` ON (SELF_teams__mid.reflexive = SELF_teams._id) WHERE (SELF_teams.name = 'test') ORDER BY SELF_teams.name ASC")
     })
 })

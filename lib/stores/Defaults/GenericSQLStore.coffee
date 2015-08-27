@@ -170,7 +170,7 @@ class GenericSQLStore extends IncrementalStore
           middleTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelation)
           middleTableNameAlias = pathAlias + "__mid"
           query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
-          query.left_join(@_formatTableName(reflexiveRelation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
+          query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
         else
           if relation.toMany
             query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
