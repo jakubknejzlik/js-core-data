@@ -97,7 +97,7 @@ class MySQLConnection extends Object
           @pool.release(conn)
           callback?(err,result,fields)
         )
-        console.log(q.sql) if @store.debug
+        @store.globals?.logging(q.sql) if @store.globals?.logging
       catch error
         @pool.release(conn)
         callback?(error)
@@ -126,7 +126,6 @@ class Transaction extends Object
   constructor:(@connection)->
     @started = false;
     @autoRollback = true;
-    @debug = no
 
   ensureBegin: (callback)->
     if @started
@@ -150,8 +149,8 @@ class Transaction extends Object
             callback(err)
         else return callback(err)
 
-      if @debug
-        console.log('trans sql:',q)
+      if @connection.store?.globals?.logging
+        @connection.store?.globals?.logging(q)
 
       @connection.query(q,params,callback);
 

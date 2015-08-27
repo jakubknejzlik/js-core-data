@@ -14,12 +14,11 @@ _.mixin(require('underscore.inflections'));
 class GenericSQLStore extends IncrementalStore
   @::tableAlias = 'SELF'
 
-  constructor: (@storeCoordinator,@URL)->
+  constructor: (@storeCoordinator,@URL,@globals)->
     if @storeCoordinator
       @connection = @createConnection()
     @fetchedObjectValuesCache = {}
     @permanentIDsCache = {}
-    @debug = no
 
   createConnection: ()->
     throw new Error('createConnection must be overriden')
@@ -30,7 +29,6 @@ class GenericSQLStore extends IncrementalStore
 
     if request.type is 'save'
       @connection.createTransaction (transaction)=>
-        transaction.debug = @debug
         async.series [
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>

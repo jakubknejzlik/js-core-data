@@ -99,7 +99,7 @@ class SQLiteConnection extends Object
           @pool.release(conn)
           callback?(err,results)
         )
-        console.log('sql:',query) if @store.debug
+        @store.globals.logging(query) if @store.globals?.logging
       catch error
         @pool.release(conn)
         callback?(error)
@@ -152,8 +152,8 @@ class Transaction extends Object
             callback(err)
         else return callback(err)
 
-      if @debug
-        console.log('trans sql:',q)
+      if @connection.store?.globals?.logging
+        @connection.store.globals.logging(q)
 
       params = params or {}
       @connection.run(q,params,(err,results)->

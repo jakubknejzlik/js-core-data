@@ -12,8 +12,10 @@ async = require('async')
 
 
 class CoreData
-  constructor:(@storeURL,options = {})->
-    @model = new ManagedObjectModel(options.modelFile, options.modelClasses)
+  constructor:(@storeURL,@options = {})->
+    if @options.logging is undefined
+      @options.logging = console.log
+    @model = new ManagedObjectModel(@options.modelFile, @options.modelClasses)
 
   syncSchema:(options,callback)->
     if typeof options is 'function'
@@ -55,7 +57,7 @@ class CoreData
 
   _persistentStoreCoordinator:()->
     if not @persistentStoreCoordinator
-      @persistentStoreCoordinator = new PersistentStoreCoordinator(@model)
+      @persistentStoreCoordinator = new PersistentStoreCoordinator(@model,@options)
       @persistentStoreCoordinator.addStore(@storeURL)
     return @persistentStoreCoordinator
 

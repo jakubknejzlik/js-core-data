@@ -18,7 +18,7 @@ class PersistentStoreCoordinator extends Object
 
   registeredStoreTypes = {}
 
-  constructor: (@objectModel)->
+  constructor: (@objectModel,@globals = {})->
 #    @store = new storeClasses[storeType]
     throw new Error('Cannot create coordinator without object model') if not @objectModel
     @persistentStores = []
@@ -42,7 +42,7 @@ class PersistentStoreCoordinator extends Object
     storeClass = registeredStoreTypes[storeType]
     if not storeClass
       storeClass = require('./stores/Defaults/'+storeType)
-    store = new (storeClass)(this,URL);
+    store = new (storeClass)(this,URL,@globals);
     if callback
       console.error('adding store with callback is deprecated')
       store.syncSchema((err)=>

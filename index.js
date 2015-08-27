@@ -25,12 +25,13 @@
   async = require('async');
 
   CoreData = (function() {
-    function CoreData(storeURL1, options) {
+    function CoreData(storeURL1, options1) {
       this.storeURL = storeURL1;
-      if (options == null) {
-        options = {};
+      this.options = options1 != null ? options1 : {};
+      if (this.options.logging === void 0) {
+        this.options.logging = console.log;
       }
-      this.model = new ManagedObjectModel(options.modelFile, options.modelClasses);
+      this.model = new ManagedObjectModel(this.options.modelFile, this.options.modelClasses);
     }
 
     CoreData.prototype.syncSchema = function(options, callback) {
@@ -91,7 +92,7 @@
 
     CoreData.prototype._persistentStoreCoordinator = function() {
       if (!this.persistentStoreCoordinator) {
-        this.persistentStoreCoordinator = new PersistentStoreCoordinator(this.model);
+        this.persistentStoreCoordinator = new PersistentStoreCoordinator(this.model, this.options);
         this.persistentStoreCoordinator.addStore(this.storeURL);
       }
       return this.persistentStoreCoordinator;
