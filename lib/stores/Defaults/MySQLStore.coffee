@@ -114,16 +114,16 @@ class MySQLConnection extends Object
 
   createTransaction: (callback)->
 #    console.log('acquire connection');
-    @pool.acquire (err,connection)->
+    @pool.acquire (err,connection)=>
       if err
         return callback(err)
-      callback(new Transaction(connection))
+      callback(new Transaction(connection,@store))
 
   releaseTransaction: (transaction)->
     @pool.release(transaction.connection);
 
 class Transaction extends Object
-  constructor:(@connection)->
+  constructor:(@connection,@store)->
     @started = false;
     @autoRollback = true;
 
@@ -149,10 +149,11 @@ class Transaction extends Object
             callback(err)
         else return callback(err)
 
-      if @connection.store?.globals?.logging
-        @connection.store?.globals?.logging(q)
+      query = @connection.query(q,params,callback);
 
-      @connection.query(q,params,callback);
+      if @store?.globals?.logging
+        @store.globals.logging(query.sql)
+
 
   commit: (callback)->
     @connection.query('COMMIT',callback);

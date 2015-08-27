@@ -142,6 +142,8 @@ class ManagedObjectContext extends Object
 
 
   save: (callback)->
+    callback = callback or (err)->
+      throw err if err
 #    console.log('saving')
     if @locked
       throw new Error('context is locked')

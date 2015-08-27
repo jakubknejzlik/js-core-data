@@ -116,16 +116,16 @@ class SQLiteConnection extends Object
 
   createTransaction: (callback)->
 #    console.log('acquire connection');
-    @pool.acquire (err,connection)->
+    @pool.acquire (err,connection)=>
       if err
         return callback(err)
-      callback(new Transaction(connection))
+      callback(new Transaction(connection,@store))
 
   releaseTransaction: (transaction)->
     @pool.release(transaction.connection);
 
 class Transaction extends Object
-  constructor:(@connection)->
+  constructor:(@connection,@store)->
     @started = false;
     @autoRollback = true;
     @debug = no
@@ -152,8 +152,8 @@ class Transaction extends Object
             callback(err)
         else return callback(err)
 
-      if @connection.store?.globals?.logging
-        @connection.store.globals.logging(q)
+      if @store?.globals?.logging
+        @store.globals.logging(q)
 
       params = params or {}
       @connection.run(q,params,(err,results)->
