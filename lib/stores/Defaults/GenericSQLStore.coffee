@@ -134,6 +134,8 @@ class GenericSQLStore extends IncrementalStore
           column = @tableAlias + '.' + column
         query.order(column,descriptor.ascending)
 
+    query.group('SELF._id')
+
     return @_getRawTranslatedQueryWithJoins(query,request)
 
 
