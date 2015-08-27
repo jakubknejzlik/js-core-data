@@ -61,6 +61,28 @@ context.getObjects('User',{
 
 ```
 
+## Express middleware
+```
+var CoreData = require('js-core-data');
+var express = require('express');
+
+var db = new CoreData('sqlite://:memory:');
+var app = new express();
+
+// creates context and assigns it to req.context; context is automatically destroyed when response is finished
+app.use(db.middleware());
+
+app.get('/users',function(req,res,next){
+    req.context.getObjects('User',function(err,users){
+        if(err)return next(err);
+        res.send(users);
+    })
+})
+
+app.listen(process.env.PORT)
+
+```
+
 For more examples see */examples*
 
 # TO-DO
