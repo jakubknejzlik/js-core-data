@@ -25,8 +25,8 @@
   async = require('async');
 
   CoreData = (function() {
-    function CoreData(storeURL1, options1) {
-      this.storeURL = storeURL1;
+    function CoreData(storeURL, options1) {
+      this.storeURL = storeURL;
       this.options = options1 != null ? options1 : {};
       if (this.options.logging === void 0) {
         this.options.logging = console.log;
@@ -98,7 +98,19 @@
       return this.persistentStoreCoordinator;
     };
 
-    CoreData.prototype.middleware = function() {};
+    CoreData.prototype.middleware = function() {
+      return (function(_this) {
+        return function(req, res, next) {
+          var context;
+          context = _this.createContext();
+          req.context = context;
+          res.once('finish', function() {
+            return context.destroy();
+          });
+          return next();
+        };
+      })(this);
+    };
 
     return CoreData;
 
@@ -117,73 +129,5 @@
   CoreData.debug = process.env.NOD_ENV !== 'production';
 
   module.exports = CoreData;
-
-  CoreData.createContextPool = function(modelFile, storeURL, options, callback) {
-    var createAndSendPool, objectModel, persistentStoreCoordinator;
-    createAndSendPool = function() {
-      var pool;
-      options = options || {};
-      options.name = 'model:' + modelFile + ';store:' + storeURL;
-      options.max = options.max || 10;
-      options.idleTimeoutMillis = options.idleTimeoutMillis || 1000;
-      options.create = function(callback) {
-        callback(null, new ManagedObjectContext(persistentStoreCoordinator));
-      };
-      options.destroy = function(context) {
-        context.destroy();
-      };
-      pool = new Pool.Pool(options);
-      pool.runBlockWithCallback = (function(callback, fn) {
-        return pool.acquire(function(err, context) {
-          if (err) {
-            return callback(err);
-          }
-          return fn(context, function() {
-            pool.release(context);
-            return callback.apply(this, arguments);
-          });
-        });
-      });
-      callback(null, pool);
-    };
-    options = options || {};
-    objectModel = new ManagedObjectModel(modelFile, options.modelClasses);
-    persistentStoreCoordinator = new PersistentStoreCoordinator(objectModel);
-    if (storeURL.indexOf('mysql:') === 0) {
-      persistentStoreCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL, storeURL, function(err) {
-        if (err) {
-          return callback(err);
-        }
-        return createAndSendPool();
-      });
-    } else {
-      callback(new Error('unknown store for url' + storeURL));
-    }
-  };
-
-  CoreData.ExpressJS = {
-    middleware: function(contextPool) {
-      return function(req, res, next) {
-        contextPool.acquire(function(err, context) {
-          if (err) {
-            return next(err);
-          }
-          req.context = context;
-          res.on('finish', function() {
-            contextPool.release(context);
-          });
-          next();
-        });
-      };
-    },
-    errorReleaseHandler: function(contextPool) {
-      return function(err, req, res, next) {
-        if (req.context) {
-          contextPool.release(req.context);
-        }
-        next(err);
-      };
-    }
-  };
 
 }).call(this);
