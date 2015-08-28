@@ -126,6 +126,8 @@ class GenericSQLStore extends IncrementalStore
   countSqlForFetchRequest:(request)->
     query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT SELF._id)','count')
+    if request.predicate
+      query.where(request.predicate.toString())
     return @_getRawTranslatedQueryWithJoins(query,request)
 
   sqlForFetchRequest: (request) ->
