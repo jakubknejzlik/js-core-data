@@ -1,4 +1,3 @@
-async = require('async')
 ManagedObject = require('./ManagedObject')
 ManagedObjectID = require('./ManagedObjectID')
 FetchRequest = require('./FetchRequest')
@@ -6,7 +5,9 @@ Predicate = require('./FetchClasses/Predicate')
 SortDescriptor = require('./FetchClasses/SortDescriptor')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
 
+async = require('async')
 ac = require('array-control')
+Lock = require('lock')
 
 class ManagedObjectContext extends Object
   constructor:(@storeCoordinator) ->
@@ -15,6 +16,7 @@ class ManagedObjectContext extends Object
     @deletedObjects = []
     @registeredObjects = []
     @locked = no
+    @lock = new Lock()
 
   hasChanges: ->
     return @insertedObjects.length > 0 or @updatedObjects.length > 0 or @deletedObjects.length > 0
@@ -132,6 +134,21 @@ class ManagedObjectContext extends Object
       else
         callback(null,null)
     )
+
+  getOrCreateObject:(entityName,options,defaultValues,callback)->
+    if typeof defaultValues is 'function'
+      callback = defaultValues
+      defaultValues = undefined
+    @lock(entityName,(release)=>
+      callback = release(callback)
+      @getObject(entityName,options,(err,object)=>
+        return callback(err) if err
+        if not object
+          object = @create(entityName,defaultValues)
+        callback(null,object)
+      )
+    )
+
 
   _getObjectsForRelationship: (relationship,object,context,callback)->
     if object.objectID.isTemporaryID

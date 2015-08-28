@@ -52,6 +52,9 @@ Seller:
 
 Licence:
   columns:
+    uid:
+      type: string
+
     hash: string
   relations:
     seller:

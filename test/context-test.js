@@ -116,6 +116,23 @@ describe('Context', function(){
                     })
                 });
             })
+
+            it('should get or create object',function(done){
+                var brand = 'this is my car';
+                var brand2 = 'this is my another car';
+                context.getOrCreateObject('Car',{where:['SELF.brand = %s',brand]},{brand:brand},function(err,car){
+                    assert.ifError(err);
+                    assert.equal(car.brand,brand);
+                    context.save(function(err){
+                        assert.ifError(err);
+                        context.getOrCreateObject('Car',{where:['SELF.brand = %s',brand]},{brand:brand2},function(err,car2){
+                            assert.ifError(err);
+                            assert.equal(car.brand,car2.brand);
+                            done();
+                        })
+                    })
+                })
+            })
         })
 
         describe('intercontext stuff',function(){
