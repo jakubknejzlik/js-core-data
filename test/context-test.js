@@ -13,7 +13,7 @@ var assert = require("assert"),
 //var mysql_store_url = 'mysql://root@localhost/test';
 var mysql_store_url = 'sqlite://:memory:';
 
-describe.only('Context', function(){
+describe('Context', function(){
     describe('store stuff',function(){
 
         it('should throw error when creating coordinator with null object model',function(){
@@ -416,6 +416,16 @@ describe.only('Context', function(){
                 context.getObjects('Car',function(err,cars){
                     assert.ifError(err);
                     context.getObjectsCount('Car',function(err,count){
+                        assert.ifError(err);
+                        assert.equal(count,cars.length);
+                        done();
+                    })
+                })
+            })
+            it('should get objects count with predicate',function(done){
+                context.getObjects('Car',{where:['SELF.brand = %s','test']},function(err,cars){
+                    assert.ifError(err);
+                    context.getObjectsCount('Car',{where:['SELF.brand = %s','test']},function(err,count){
                         assert.ifError(err);
                         assert.equal(count,cars.length);
                         done();
