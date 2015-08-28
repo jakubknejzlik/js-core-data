@@ -26,6 +26,8 @@ Owner:
 Car:
   columns:
     brand: string
+    date: date
+    timestamp: timestamp
   relations:
     owner:
       entity: Owner

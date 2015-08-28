@@ -21,71 +21,12 @@ describe('Context', function(){
                 new PersistentStoreCoordinator();
             },'Cannot create coordinator without object model')
         })
-
-//        describe('mysql',function(){
-//
-//            var entity = new EntityDescription('entity1');
-//            entity.addAttribute(new AttributeDescription('string','attr1'));
-//            var model = new ManagedObjectModel();
-//            model.addEntity(entity);
-//
-//            var storeCoordinator = new PersistentStoreCoordinator(model);
-//            it('should not connect to nonexisting store',function(done){
-//                storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,'mysql://root@localhost/nonexisting',function(error){
-//                    assert.throws(function(){
-//                        if(error)throw error;
-//                    });
-//                    done();
-//                })
-//            })
-//        })
     })
 
     describe('context',function(){
         var coreData;
 
         before(function(done){
-//            var ed = new EntityDescription('Car');
-//            var attr = new AttributeDescription('string','brand',null);
-//            var idattr = new AttributeDescription('int','id',null);
-//            ed.addAttribute(attr);
-////            ed.addAttribute(idattr);
-//
-//            var ed2 = new EntityDescription('Owner');
-//            var nameAttr = new AttributeDescription('string','name',null);
-//            ed2.addAttribute(nameAttr);
-////            ed2.addAttribute(idattr);
-//
-//
-//            var relationship = new RelationshipDescription('cars',ed,true,'owner');
-//            var relationship2 = new RelationshipDescription('owner',ed2,false,'cars');
-//
-//            ed2.addRelationship(relationship);
-//            ed.addRelationship(relationship2)
-//
-//            var relationshipMany = new RelationshipDescription('visitors',ed2,true,'visitedCars');
-//            var relationshipMany2 = new RelationshipDescription('visitedCars',ed,true,'visitors');
-//
-//            ed.addRelationship(relationshipMany);
-//            ed2.addRelationship(relationshipMany2);
-//
-//            var relationshipMany = new RelationshipDescription('relatedCars',ed,true,'relatedCars');
-//            ed.addRelationship(relationshipMany);
-
-
-//            var objectModel = new ManagedObjectModel();
-//            for(var i in entities){
-//                objectModel.addEntity(entities[i])
-//            }
-
-
-//            var objectModel = ModelYamlParser.objectModelFromYamlFile(__dirname + '/schemes/car-model.yaml')
-////            objectModel.addEntity(ed);
-////            objectModel.addEntity(ed2);
-//
-//            storeCoordinator = new PersistentStoreCoordinator(objectModel);
-//
-//            storeCoordinator.addStore(PersistentStoreCoordinator.STORE_TYPE_MYSQL,mysql_store_url,done);
             coreData = new CoreData(mysql_store_url,{
                 modelFile:__dirname + '/schemes/car-model.yaml'
             })
@@ -160,6 +101,20 @@ describe('Context', function(){
                 var owner2 = context.createObjectWithName('Owner');
                 owner.addEmployer(owner2);
                 context.save(done);
+            })
+
+            it('should store object',function(done){
+                var car = context.create('Car',{brand:'test car',timestamp:new Date(),date:new Date()});
+
+                context.save(function(err){
+                    assert.ifError(err)
+                    var context2 = coreData.createContext()
+                    context2.getObjectWithObjectID(car.objectID,function(err,car2){
+                        assert.ifError(err)
+                        assert.equal(car.timestamp.toString(),car2.timestamp.toString())
+                        done();
+                    })
+                });
             })
         })
 

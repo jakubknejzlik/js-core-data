@@ -164,7 +164,7 @@ class PersistentStoreCoordinator extends Object
   valuesForObject: (object)->
     values = @persistentStores[0].valuesForObject(object.objectID,object.context)
     for attributeDescription in object.entity.attributes
-      values[attributeDescription.name] = AttributeTransformer.transformValueForAttribute(values[attributeDescription.name],attributeDescription)
+      values[attributeDescription.name] = AttributeTransformer.transformedValueForAttribute(values[attributeDescription.name],attributeDescription)
     values
 
 

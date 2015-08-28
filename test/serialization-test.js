@@ -42,8 +42,8 @@ describe('serialization',function(){
             obj.email = 'jackie@gmail.com';
             obj.url = 'http://www.google.com';
             obj.date = date;
-            obj.timestamp = timestamp;
-            var json = '{"id":'+obj.objectID.recordId()+',"name":"test","int":1600,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","date":'+JSON.stringify(date)+',"timestamp":'+timestamp+',"data":null,"shortString":null}';
+            obj.timestamp = date;
+            var json = '{"id":'+obj.objectID.recordId()+',"name":"test","int":1600,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json)
         })
 

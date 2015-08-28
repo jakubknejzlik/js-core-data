@@ -6,6 +6,7 @@ ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
 squel = require('squel')
 
+AttributeTransformer = require('../../Helpers/AttributeTransformer')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -241,7 +242,7 @@ class GenericSQLStore extends IncrementalStore
   _valuesWithRelationshipsForObject:(object)->
     data = {}
     for key,value of object._changes
-      data[key] = value;
+      data[key] = AttributeTransformer.persistentValueForAttribute(value,object.entity.attributesByName()[key]);
 #    console.log('xxx',object.entity.name)
     for relation in object.entity.relationships
       if not relation.toMany

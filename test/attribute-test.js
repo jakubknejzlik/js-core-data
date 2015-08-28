@@ -89,7 +89,7 @@ describe('attributes',function(){
                 assert.strictEqual(obj.email,'jackie@gmail.com');
                 assert.strictEqual(obj.url,'http://www.google.com');
                 assert.equal(obj.date.toISOString(),date.toISOString())
-                assert.equal(obj.timestamp,timestamp)
+                assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString())
                 done();
             })
         })
@@ -125,7 +125,7 @@ describe('attributes',function(){
                 assert.strictEqual(obj.email,'jackie@gmail.com');
                 assert.strictEqual(obj.url,'http://www.google.com');
                 assert.equal(obj.date.toISOString(),date.toISOString())
-                assert.equal(obj.timestamp,timestamp)
+                assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString())
                 done();
             })
         })

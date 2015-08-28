@@ -1,10 +1,10 @@
 moment = require('moment')
 
 class AttributeTransformer extends Object
-  @transformValueForAttribute:(value,attribute)->
+  @transformedValueForAttribute:(value,attribute)->
     switch attribute.type
 
-      when 'date'
+      when 'date','timestamp'
         if typeof value is 'string'
           value = new Date(value)
         return moment(value).toDate()
@@ -24,5 +24,15 @@ class AttributeTransformer extends Object
         return parseInt(value,10)
 
     return value
+
+  @persistentValueForAttribute:(value,attribute)->
+    switch attribute.type
+      when 'timestamp'
+        if typeof value is 'string'
+          value = new Date(value)
+        return moment(value).valueOf()
+
+    return value
+
 
 module.exports = AttributeTransformer

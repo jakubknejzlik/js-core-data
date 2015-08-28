@@ -68,7 +68,7 @@ class ManagedObject extends Object
       if value isnt @_data[attributeDescription.name]
         if value
           @['validate'+capitalizedName](value)
-        value = AttributeTransformer.transformValueForAttribute(value,attributeDescription)
+        value = AttributeTransformer.transformedValueForAttribute(value,attributeDescription)
         @_data[attributeDescription.name] = value;
         @_changes = @_changes || {}
         @_changes[attributeDescription.name] = value;
