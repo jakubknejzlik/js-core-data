@@ -78,6 +78,21 @@ describe('Context', function(){
             it('objectID shouldn\'t be temporary after save',function(){
                 assert.equal(object.objectID.isTemporaryID,false);
             })
+
+            it('shouldn\'t assign persistent ObjectID on error save',function(done){
+                var tempContext = coreData.createContext();
+                var car1 = tempContext.create('Car',{uid:'uid'});
+                var car2 = tempContext.create('Car',{uid:'uid'});
+                tempContext.save(function(err){
+                    assert.ok(!!err);
+                    assert.equal(car1.objectID.isTemporaryID,true);
+                    assert.equal(car2.objectID.isTemporaryID,true);
+                    tempContext.save(function(err){
+                        done();
+                    })
+                })
+            })
+
             it('shouldn\'t insert object before save is completed',function(done){
                 var car = context.createObjectWithName('Car');
                 context.save(function(err){
@@ -133,6 +148,7 @@ describe('Context', function(){
                     })
                 })
             })
+
         })
 
         describe('intercontext stuff',function(){

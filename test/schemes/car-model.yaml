@@ -28,6 +28,9 @@ Car:
     brand: string
     date: date
     timestamp: timestamp
+    uid:
+      type: string
+      unique: true
   relations:
     owner:
       entity: Owner

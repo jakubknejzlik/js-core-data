@@ -118,19 +118,25 @@ class PersistentStoreCoordinator extends Object
       if not ac.hasObject(request.insertedObjects,obj)
         request.updatedObjects.push(obj)
     request.deletedObjects = context.deletedObjects
-    async.forEach @persistentStores,
+    temporaryObjectIDs = []
+    async.forEach(@persistentStores,
       (store,cb)->
         if store instanceof IncrementalStore
-          store.execute request,context,cb,=>
+          store.execute(request,context,(err)->
+            if err
+              for i,object of context.insertedObjects
+                object._objectID = temporaryObjectIDs[i]
+            cb(err)
+          ,()=>
             permanentObjectIDs = store.permanentIDsForObjects(context.insertedObjects)
-            i=0
-#            console.log('perms',permanentObjectIDs,context.insertedObjects)
-            for object in context.insertedObjects
+            for i,object of context.insertedObjects
+              temporaryObjectIDs[i] = object._objectID
               object._objectID = permanentObjectIDs[i]
-              i++
+          )
         else cb(new Error('not an incremental store'))
       ,(err)=>
         callback(err)
+    )
 
   _valuesForForRelationship: (relationship,ObjectID,context,callback)->
     store = @persistentStores[0]

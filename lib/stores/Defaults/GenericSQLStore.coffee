@@ -81,7 +81,8 @@ class GenericSQLStore extends IncrementalStore
               seriesCallback(err)
           ],(err)=>
             if err
-              return transaction.rollback (rollbackError)->
+              return transaction.rollback (rollbackError)=>
+                @connection.releaseTransaction(transaction)
                 callback(err)
             transaction.commit (err)=>
               @connection.releaseTransaction(transaction)
@@ -280,7 +281,7 @@ class GenericSQLStore extends IncrementalStore
           sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `' + inversedRelationship.name + '_id` = ' + @_recordIDForObjectID(ObjectID)
 #      else
 #        if relationship.toMany
-#          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `' + inversedRelationship.name + '_id` = ' + mysql.escape(@_recordIDForObjectID(ObjectID))
+#          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTablxeName(relationship.destinationEntity.name) + '` WHERE `' + inversedRelationship.name + '_id` = ' + mysql.escape(@_recordIDForObjectID(ObjectID))
 #        else
 #          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `_id` IN (SELECT `' + relationship.name + '_id` FROM `' + @_formatTableName(relationship.entity.name) + '` WHERE `_id` = ' + mysql.escape(@_recordIDForObjectID(ObjectID)) + ')'
 #      console.log('sql!!',relationship.name,sql)
