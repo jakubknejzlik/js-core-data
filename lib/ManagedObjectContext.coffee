@@ -79,12 +79,17 @@ class ManagedObjectContext extends Object
     )
 
   getObjects: (entityName,options,callback)->
-#    cache?!
-
     if typeof options is 'function'
       callback = options
       options = undefined
 
+    @storeCoordinator.execute(@_getFetchRequestRequest(entityName,options),@,(err,objects)=>
+      if not err
+        ac.addObjects(@registeredObjects,objects)
+      callback(err,objects)
+    )
+
+  _getFetchRequestRequest:(entityName,options)->
     options = options or {}
     predicate = null
     sortDescriptors = []
@@ -117,11 +122,8 @@ class ManagedObjectContext extends Object
 
     request.setLimit(options.limit) if options.limit
     request.setOffset(options.offset) if options.offset
-    @storeCoordinator.execute(request,this,(err,objects)=>
-      if not err
-        ac.addObjects(@registeredObjects,objects)
-      callback(err,objects)
-    )
+
+    return request
 
   getObject: (entityName,options,callback)->
     if typeof options is 'function'
@@ -148,6 +150,14 @@ class ManagedObjectContext extends Object
         callback(null,object)
       )
     )
+
+  getObjectsCount:(entityName,options,callback)->
+    if typeof options is 'function'
+      callback = options
+      options = undefined
+
+    @storeCoordinator.numberOfObjectsForFetchRequest(@_getFetchRequestRequest(entityName,options),callback)
+
 
 
   _getObjectsForRelationship: (relationship,object,context,callback)->

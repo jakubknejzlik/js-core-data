@@ -13,7 +13,7 @@ var assert = require("assert"),
 //var mysql_store_url = 'mysql://root@localhost/test';
 var mysql_store_url = 'sqlite://:memory:';
 
-describe('Context', function(){
+describe.only('Context', function(){
     describe('store stuff',function(){
 
         it('should throw error when creating coordinator with null object model',function(){
@@ -410,6 +410,17 @@ describe('Context', function(){
                         if(++loadedCount == count)loaded();
                     })
                 }
+            })
+
+            it('should get objects count',function(done){
+                context.getObjects('Car',function(err,cars){
+                    assert.ifError(err);
+                    context.getObjectsCount('Car',function(err,count){
+                        assert.ifError(err);
+                        assert.equal(count,cars.length);
+                        done();
+                    })
+                })
             })
         })
 

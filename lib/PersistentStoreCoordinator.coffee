@@ -78,10 +78,10 @@ class PersistentStoreCoordinator extends Object
         return @_requestCompleted(callback,null,[obj])
 
     store = @persistentStores[0]
-    store.execute(request,context,(err,ObjectIDs)=>
+    store.execute(request,context,(err,ObjectIDsOrCount)=>
       return @_requestCompleted(callback,err) if err
       objects = []
-      for objectID in ObjectIDs
+      for objectID in ObjectIDsOrCount
         obj = @_objectFromContextCache(context,objectID)
         if obj
           objects.push(obj)
@@ -89,6 +89,10 @@ class PersistentStoreCoordinator extends Object
           objects.push(@_objectForID(request,context,objectID))
       @_requestCompleted(callback,null,objects)
     )
+
+  numberOfObjectsForFetchRequest:(request,callback)->
+    store = @persistentStores[0]
+    store.numberOfObjectsForFetchRequest(request,callback)
 
   _requestCompleted:(callback,err,objects)->
     @executingRequest = false

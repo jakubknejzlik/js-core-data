@@ -103,6 +103,11 @@ class GenericSQLStore extends IncrementalStore
         callback(null,ids)
       )
 
+  numberOfObjectsForFetchRequest:(request,callback)->
+    @connection.sendRawQuery(@countSqlForFetchRequest(request),(err,result)=>
+      callback(err,result[0].count)
+    )
+
   updateQueryForUpdatedObject:(updatedObject)->
     formattedTableName = @_formatTableName(updatedObject.entity.name)
     id = @_recordIDForObjectID(updatedObject.objectID);
@@ -118,8 +123,15 @@ class GenericSQLStore extends IncrementalStore
       return [null,null]
 
 
+  countSqlForFetchRequest:(request)->
+    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
+    query.field('COUNT(DISTINCT SELF._id)','count')
+    return @_getRawTranslatedQueryWithJoins(query,request)
+
   sqlForFetchRequest: (request) ->
-    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias).field(@tableAlias + '._id','_id')
+    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
+
+    query.field(@tableAlias + '._id','_id')
     for attribute in request.entity.attributes
       query.field(@tableAlias + '.' + attribute.name,attribute.name)
     if request.predicate
