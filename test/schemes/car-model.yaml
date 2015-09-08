@@ -30,7 +30,7 @@ Car:
     timestamp: timestamp
     uid:
       type: uuid
-      defaultvalue: uuidv4
+      default: uuidv4
       unique: true
   relations:
     owner:

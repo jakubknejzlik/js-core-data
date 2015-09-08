@@ -36,10 +36,13 @@ class AttributeTransformer extends Object
     return value
 
   @defaultValueForAttribute:(attribute)->
-    switch attribute.name
+    switch attribute.type
       when 'uuid'
         if attribute.info?.default in ['uuid','uuidv4']
           return uuid.v4()
+      when 'date'
+        if attribute.info?.default in ['now']
+          return moment()
 
     return attribute.info?.default or null
 

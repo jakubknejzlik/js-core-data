@@ -32,7 +32,8 @@ class ManagedObjectContext extends Object
       values = {}
       for attributeDescription in object.entity.attributes
         values[attributeDescription.name] = AttributeTransformer.defaultValueForAttribute(attributeDescription)
-      object._data = values
+      object._data = {}
+      object.setValues(values)
       object._isInserted = yes
       object._isDeleted = no
       object._objectID = @storeCoordinator.temporaryObjectID(object)

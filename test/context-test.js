@@ -149,6 +149,21 @@ describe('Context', function(){
                 })
             })
 
+            it('should store object with default values',function(done){
+                var car = context.create('Car');
+                context.save(function(err){
+                    assert.ifError(err);
+                    assert.ok(car.uid);
+                    tempContext = coreData.createContext();
+                    tempContext.getObjectWithObjectID(car.objectID,function(err,car2){
+                        assert.ifError(err);
+                        assert.equal(car.uid,car2.uid)
+                        tempContext.destroy()
+                        done()
+                    })
+                })
+            })
+
         })
 
         describe('intercontext stuff',function(){
