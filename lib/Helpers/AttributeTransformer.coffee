@@ -1,4 +1,5 @@
 moment = require('moment')
+uuid = require('uuid')
 
 class AttributeTransformer extends Object
   @transformedValueForAttribute:(value,attribute)->
@@ -33,6 +34,14 @@ class AttributeTransformer extends Object
         return moment(value).valueOf()
 
     return value
+
+  @defaultValueForAttribute:(attribute)->
+    switch attribute.name
+      when 'uuid'
+        if attribute.info?.default in ['uuid','uuidv4']
+          return uuid.v4()
+
+    return attribute.info?.default or null
 
 
 module.exports = AttributeTransformer

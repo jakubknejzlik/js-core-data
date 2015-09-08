@@ -394,8 +394,10 @@ class GenericSQLStore extends IncrementalStore
         type = 'datetime'
       when 'timestamp'
         type = 'bigint(20)'
+      when 'uuid'
+        type = 'char(36)'
       else return null
-    definition = '`'+attribute.name+'` '+type+' DEFAULT '+defaultValue
+    definition = '`'+attribute.name+'` '+type+' DEFAULT NULL'
     if attribute.info.unique
       definition += ' UNIQUE'
     return definition

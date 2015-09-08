@@ -29,7 +29,8 @@ Car:
     date: date
     timestamp: timestamp
     uid:
-      type: string
+      type: uuid
+      defaultvalue: uuidv4
       unique: true
   relations:
     owner:

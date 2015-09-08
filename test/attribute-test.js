@@ -58,6 +58,15 @@ describe('attributes',function(){
 //        after(function(done){
 //            deleteAll(storeCoordinator,done);
 //        })
+
+        it('should create object with default values',function(){
+            var context = new ManagedObjectContext(storeCoordinator)
+            var obj = context.createObjectWithName('Hello')
+//            console.log(obj)
+            assert.equal(obj.name,'defVal')
+
+        })
+
         it('should create object and assign all valid values',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
             var obj = context.createObjectWithName('Hello')

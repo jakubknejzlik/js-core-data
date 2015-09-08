@@ -4,6 +4,7 @@ FetchRequest = require('./FetchRequest')
 Predicate = require('./FetchClasses/Predicate')
 SortDescriptor = require('./FetchClasses/SortDescriptor')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
+AttributeTransformer = require('./Helpers/AttributeTransformer')
 
 async = require('async')
 ac = require('array-control')
@@ -28,7 +29,10 @@ class ManagedObjectContext extends Object
       throw new Error('cannot insert object to another context')
     if object not in @insertedObjects
       object._isFault = no
-      object._data = {}
+      values = {}
+      for attributeDescription in object.entity.attributes
+        values[attributeDescription.name] = AttributeTransformer.defaultValueForAttribute(attributeDescription)
+      object._data = values
       object._isInserted = yes
       object._isDeleted = no
       object._objectID = @storeCoordinator.temporaryObjectID(object)

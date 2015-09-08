@@ -1,6 +1,11 @@
 Hello:
   columns:
-    name: string
+    uuid:
+      type: uuid
+      default: uuidv4
+    name:
+      type: string
+      default: defVal
     int: integer
     bool: bool
     decim:
