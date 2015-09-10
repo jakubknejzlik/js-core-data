@@ -3,6 +3,9 @@ uuid = require('uuid')
 
 class AttributeTransformer extends Object
   @transformedValueForAttribute:(value,attribute)->
+    if value is null
+      return null
+
     switch attribute.type
 
       when 'date','timestamp'
@@ -19,14 +22,23 @@ class AttributeTransformer extends Object
           else return no
 
       when 'decimal','double','float'
-        return parseFloat(value)
+        value = parseFloat(value)
+        if isNaN(value)
+          value = null
+        return value
 
       when 'int','integer'
-        return parseInt(value,10)
+        value = parseInt(value,10)
+        if isNaN(value)
+          value = null
+        return value
 
     return value
 
   @persistentValueForAttribute:(value,attribute)->
+    if value is null
+      return null
+
     switch attribute.type
       when 'timestamp'
         if typeof value is 'string'
