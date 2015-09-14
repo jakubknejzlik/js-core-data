@@ -9,6 +9,8 @@ RelationshipDescription = require('./lib/Descriptors/RelationshipDescription')
 Pool = require('generic-pool')
 url = require('url')
 async = require('async')
+Q = require('q')
+
 
 
 class CoreData
@@ -18,13 +20,21 @@ class CoreData
     @model = new ManagedObjectModel(@options.modelFile, @options.modelClasses)
 
   syncSchema:(options,callback)->
+    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = undefined
     options = options or {}
     async.forEach(@_persistentStoreCoordinator().persistentStores,(store,cb)->
       store.syncSchema(options,cb)
-    ,callback)
+    ,(err)->
+#      callback(err) if callback
+      if err
+        deferred.reject(err)
+      else
+        deferred.resolve()
+    )
+    return deferred.promise.nodeify(callback)
 
   defineEntity:(entityName,attributes,options = {})->
     entity = new EntityDescription(entityName);

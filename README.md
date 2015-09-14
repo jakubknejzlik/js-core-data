@@ -90,5 +90,4 @@ For more examples see */examples*
 - foreign keys support
 - more examples
 - browser storage support
-- promise support
 - more and more tests :)

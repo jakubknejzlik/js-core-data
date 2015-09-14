@@ -30,7 +30,7 @@ describe('Context', function(){
             coreData = new CoreData(mysql_store_url,{
                 modelFile:__dirname + '/schemes/car-model.yaml'
             })
-            coreData.syncSchema({force:true},done);
+            coreData.syncSchema({force:true}).then(done,done);
         })
 
         describe('object creation', function(){
@@ -83,23 +83,21 @@ describe('Context', function(){
                 var tempContext = coreData.createContext();
                 var car1 = tempContext.create('Car',{uid:'uid'});
                 var car2 = tempContext.create('Car',{uid:'uid'});
-                tempContext.save(function(err){
-                    assert.ok(!!err);
+                tempContext.save().then(function(){
+                    done(new Error('should not save successfuly'))
+                }).catch(function(err){
                     assert.equal(car1.objectID.isTemporaryID,true);
                     assert.equal(car2.objectID.isTemporaryID,true);
-                    tempContext.save(function(err){
-                        done();
-                    })
+                    done()
                 })
             })
 
             it('shouldn\'t insert object before save is completed',function(done){
                 var car = context.createObjectWithName('Car');
-                context.save(function(err){
-                    if(err)return done(err);
+                context.save().then(function(){
                     assert.equal(car.objectID.isTemporaryID,false);
                     done();
-                });
+                }).catch(done);
                 assert.throws(function(){
                     context.createObjectWithName('Car');
                 })
@@ -108,7 +106,7 @@ describe('Context', function(){
                 var owner = context.createObjectWithName('Owner');
                 var owner2 = context.createObjectWithName('Owner');
                 owner.addFriend(owner2);
-                context.save(done);
+                context.save().then(done).catch(done);
             })
 
             it('should insert two self-reflexive relations',function(done){
@@ -124,11 +122,10 @@ describe('Context', function(){
                 context.save(function(err){
                     assert.ifError(err)
                     var context2 = coreData.createContext()
-                    context2.getObjectWithObjectID(car.objectID,function(err,car2){
-                        assert.ifError(err)
+                    context2.getObjectWithObjectID(car.objectID).then(function(car2){
                         assert.equal(car.timestamp.toString(),car2.timestamp.toString())
                         done();
-                    })
+                    }).catch(done)
                 });
             })
 
@@ -229,7 +226,7 @@ describe('Context', function(){
             })
             it('number of objects after delete should be equal to zero', function(done){
                 context.save(function(err){
-                    if(err)return done(err);
+                    assert.ifError(err);
                     context.getObjects('Car',function(err,cars){
                         assert.equal(cars.length,0);
                         done();
@@ -382,8 +379,7 @@ describe('Context', function(){
                         assert.ifError(err)
                         _context.getObjectWithObjectID(owner.objectID,function(err,_owner){
                             assert.ifError(err)
-                            _owner.getCars(function(err,__cars){
-                                assert.ifError(err)
+                            _owner.getCars().then(function(__cars){
                                 assert.ok(__cars.length > 0)
                                 var _car = __cars[0];
                                 assert.ifError(err)
@@ -391,7 +387,7 @@ describe('Context', function(){
                                     assert.ok(_car.objectID.toString() != _c.objectID.toString() || _car === _c,_car.objectID.toString()+' == '+_c.objectID.toString()+' are not identical objects');
                                 })
                                 done()
-                            })
+                            }).catch(done)
                         })
                     })
                 })

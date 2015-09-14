@@ -6,6 +6,7 @@ AttributeValidator = require('./Helpers/AttributeValidator')
 AttributeTransformer = require('./Helpers/AttributeTransformer')
 
 ac = require('array-control')
+Q = require('q')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -92,13 +93,18 @@ class ManagedObject extends Object
     inverseRelationshipCapitalizedName = inverseRelationship.name[0].toUpperCase() + inverseRelationship.name.substring(1)
     if not relationshipDescription.toMany
       @prototype['get' + capitalizedName] = (callback)->
+        deferred = Q.defer()
         @fetchData() if @isFault
         if @_data[relationshipDescription.name] is undefined
 #          console.log('getting!',@_data[relationshipDescription.name])
           @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
 #            console.log('got!',@_data[relationshipDescription.name])
-            callback(err,object)
-        else callback(null,@_data[relationshipDescription.name]);
+            if err
+              deferred.reject(err)
+            else
+              deferred.resolve(object)
+        else deferred.resolve(@_data[relationshipDescription.name]);
+        return deferred.promise.nodeify(callback)
       @prototype['set' + capitalizedName] = (object)->
 #        console.log('set',capitalizedName,object)
 #        @fetchData() if @isFault
@@ -108,11 +114,12 @@ class ManagedObject extends Object
 #      console.log('add' + capitalizedName + 'Objects')
 #      console.log('get' + capitalizedName + 'Objects')
       @prototype['get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
+        deferred = Q.defer()
         @fetchData() if @isFault
         if not @_data[relationshipDescription.name]
 #          console.log('get',capitalizedName,@_data[relationshipDescription.name])
           @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
-            return callback(err) if err
+            return deferred.reject(err) if err
 #            console.log('got objects',objects.length)
             if @_relationChanges
               for item in @_relationChanges['added_' + relationshipDescription.name]?
@@ -122,8 +129,9 @@ class ManagedObject extends Object
 #                  console.log('removing objects',item.objectID.toString() ,subitem.objectID.toString(),item == subitem)
                 ac.removeObject(objects,item)
             @_data[relationshipDescription.name] = objects
-            callback(null,@_data[relationshipDescription.name])
-        else callback(null,@_data[relationshipDescription.name]);
+            deferred.resolve(@_data[relationshipDescription.name])
+        else deferred.resolve(@_data[relationshipDescription.name]);
+        return deferred.promise.nodeify(callback)
       @prototype['add' + capitalizedSingularizedName] = (object)->
         @['add' + capitalizedName]([object])
       @prototype['add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->
