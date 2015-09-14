@@ -111,7 +111,7 @@ class ManagedObjectContext extends Object
     if typeof options.where is 'string'
       predicate = new Predicate(options.where)
     else if Array.isArray(options.where)
-      where = JSON.parse(JSON.stringify(options.where))
+      where = options.where.slice()
       where.unshift(null)
       predicate = new (Function.prototype.bind.apply(Predicate, where))
 

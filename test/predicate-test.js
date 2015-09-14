@@ -4,7 +4,7 @@ var assert = require("assert"),
     ManagedObject = require('../lib/ManagedObject'),
     ManagedObjectID = require('../lib/ManagedObjectID');
 
-describe.only('Predicate',function(){
+describe('Predicate',function(){
     it('should correctly format string',function(){
         var predicate = new Predicate('name = %s','aa');
         assert.equal(predicate.toString(),'name = \'aa\'');
