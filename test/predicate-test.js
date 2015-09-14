@@ -4,7 +4,7 @@ var assert = require("assert"),
     ManagedObject = require('../lib/ManagedObject'),
     ManagedObjectID = require('../lib/ManagedObjectID');
 
-describe('Predicate',function(){
+describe.only('Predicate',function(){
     it('should correctly format string',function(){
         var predicate = new Predicate('name = %s','aa');
         assert.equal(predicate.toString(),'name = \'aa\'');
@@ -27,11 +27,14 @@ describe('Predicate',function(){
         var objectID = new ManagedObjectID();
         var object = new ManagedObject();
         object._objectID = objectID;
-        objectID.stringValue = "xxxx/1";
+        objectID.stringValue = "xxxx/p1";
         var predicate = new Predicate('object = %@ AND objectID =%@',object,objectID);
         assert.equal(predicate.toString(),'object._id = 1 AND objectID._id = 1');
-        objectID.stringValue = "yyyy/2";
+        objectID.stringValue = "yyyy/p2";
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
         assert.equal(predicate.toString(),'object._id = 2 AND objectID._id = 2');
+        objectID.stringValue = "yyyy/o2";
+        predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
+        assert.equal(predicate.toString(),'object._id = NaN AND objectID._id = NaN');
     })
 })

@@ -11,7 +11,11 @@ class ManagedObjectID extends Object
 
   recordId: ()->
     components = @stringValue.split('/')
-    return parseInt(components[components.length - 1].replace(/^[pt]/,''))
+    ID = components[components.length - 1]
+    if ID[0] is 'p'
+      return parseInt(ID.substring(1).replace(/^[pt]/,''))
+    else
+      return ID
 
 
 
