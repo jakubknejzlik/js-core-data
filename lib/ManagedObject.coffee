@@ -42,9 +42,9 @@ class ManagedObject extends Object
 #        console.log('set',setterFnName,values[attributeDescription.name],values)
         @[setterFnName](values[attributeDescription.name])
 
-  getValues:->
+  getValues:(options = {})->
     @fetchData() if @isFault
-    values = {id:parseInt(@objectID.recordId())}
+    values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
       getterFnName = 'get'+capitalizedString(attributeDescription.name)
 #      console.log(getterFnName,@[getterFnName])
@@ -53,10 +53,20 @@ class ManagedObject extends Object
         values[attributeDescription.name] = value
       else
         values[attributeDescription.name] = null
+    if not options.noRelations
+      for relationship in @entity.relationships
+        getterFnName = 'get' + capitalizedString(_.singularize(relationship.name)) + 'ID'
+#        console.log(getterFnName,@[getterFnName])
+        value = @[getterFnName]()
+        if value?
+          values[_.singularize(relationship.name) + '_id'] = value
+        else
+          values[_.singularize(relationship.name) + '_id'] = null
+
     return values
 
-  toJSON:->
-    return @getValues()
+  toJSON:(options)->
+    return @getValues(options)
 
   @addAttributeDescription:(attributeDescription)->
     capitalizedName = capitalizedString(attributeDescription.name);
@@ -92,6 +102,9 @@ class ManagedObject extends Object
     inverseRelationship = relationshipDescription.inverseRelationship()
     inverseRelationshipCapitalizedName = inverseRelationship.name[0].toUpperCase() + inverseRelationship.name.substring(1)
     if not relationshipDescription.toMany
+      @prototype['get' + capitalizedSingularizedName + 'ID'] = ()->
+        @fetchData() if @isFault
+        return @_data[singularizedName + '_id']
       @prototype['get' + capitalizedName] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault

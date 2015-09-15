@@ -23,6 +23,15 @@ Owner:
       toMany: true
       inverse: employers
 
+Manufacturer:
+  columns:
+    name: string
+  relations:
+    cars:
+      entity: Car
+      toMany: true
+      inverse: manufacturer
+
 Car:
   columns:
     brand: string
@@ -45,6 +54,9 @@ Car:
       entity: Owner
       toMany: true
       inverse: visitedCars
+    manufacturer:
+      entity: Manufacturer
+      inverse: cars
 
 Seller:
   columns:

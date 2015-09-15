@@ -99,6 +99,7 @@ describe('attributes',function(){
                 assert.strictEqual(obj.url,'http://www.google.com');
                 assert.equal(obj.date.toISOString(),date.toISOString())
                 assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString())
+                assert.equal(obj.getWorldID(),null)
                 done();
             })
         })

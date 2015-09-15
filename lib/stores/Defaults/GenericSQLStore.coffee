@@ -97,6 +97,10 @@ class GenericSQLStore extends IncrementalStore
           _row = {}
           for attribute in request.entity.attributes
             _row[attribute.name] = row[attribute.name]
+          for relationship in request.entity.relationships
+            if not relationship.toMany
+              columnName = _.singularize(relationship.name) + '_id'
+              _row[columnName] = row[columnName]
           objectID = @_permanentIDForRecord(request.entity,row._id)
           @fetchedObjectValuesCache[objectID.toString()] = _row;
           ids.push(objectID)
@@ -136,6 +140,10 @@ class GenericSQLStore extends IncrementalStore
     query.field(@tableAlias + '._id','_id')
     for attribute in request.entity.attributes
       query.field(@tableAlias + '.' + attribute.name,attribute.name)
+    for relationship in request.entity.relationships
+      if not relationship.toMany
+        columnName = _.singularize(relationship.name) + '_id'
+        query.field(@tableAlias + '.' + columnName,columnName)
     if request.predicate
       query.where(request.predicate.toString())
 
@@ -307,6 +315,10 @@ class GenericSQLStore extends IncrementalStore
         _row = {}
         for attribute in relationship.destinationEntity.attributes
           _row[attribute.name] = row[attribute.name]
+        for rel in relationship.destinationEntity.relationships
+          if not rel.toMany
+            columnName = _.singularize(rel.name) + '_id'
+            _row[columnName] = row[columnName]
         objectID = @_permanentIDForRecord(relationship.destinationEntity,row._id)
         @fetchedObjectValuesCache[objectID.toString()] = _row;
         ids.push(objectID)

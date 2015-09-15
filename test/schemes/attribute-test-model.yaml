@@ -27,3 +27,15 @@ Hello:
         minLength: 2
         maxLength: 20
         regexp: /^(aa)+$/i
+  relations:
+    world:
+      entity: World
+      inverse: hello
+
+World:
+  columns:
+    name: string
+  relations:
+    hello:
+      entity: Hello
+      inverse: world
