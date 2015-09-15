@@ -31,6 +31,11 @@ Hello:
     world:
       entity: World
       inverse: hello
+    subworlds:
+      entity: World
+      toMany: true
+      inverse: parent
+
 
 World:
   columns:
@@ -39,3 +44,6 @@ World:
     hello:
       entity: Hello
       inverse: world
+    parent:
+      entity: Hello
+      inverse: subworlds

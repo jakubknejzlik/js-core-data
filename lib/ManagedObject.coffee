@@ -55,13 +55,14 @@ class ManagedObject extends Object
         values[attributeDescription.name] = null
     if not options.noRelations
       for relationship in @entity.relationships
-        getterFnName = 'get' + capitalizedString(_.singularize(relationship.name)) + 'ID'
-#        console.log(getterFnName,@[getterFnName])
-        value = @[getterFnName]()
-        if value?
-          values[_.singularize(relationship.name) + '_id'] = value
-        else
-          values[_.singularize(relationship.name) + '_id'] = null
+        if not relationship.toMany
+          getterFnName = 'get' + capitalizedString(_.singularize(relationship.name)) + 'ID'
+  #        console.log(getterFnName,@[getterFnName])
+          value = @[getterFnName]()
+          if value?
+            values[_.singularize(relationship.name) + '_id'] = value
+          else
+            values[_.singularize(relationship.name) + '_id'] = null
 
     return values
 
