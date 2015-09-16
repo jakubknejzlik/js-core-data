@@ -18,7 +18,7 @@ class Predicate extends Object
     if @format instanceof ManagedObjectID
       return '`_id` = ' + @format.recordId();
     else
-      format = @format.replace(/[\s]*=[\s]*%@/g,'._id = %d').replace(/%s/g,'\'%s\'')
+      format = @format.replace(/[\s]*=[\s]*%@/g,'_id = %d').replace(/%s/g,'\'%s\'')
 
       args = [format]
       for variable in @variables

@@ -29,12 +29,12 @@ describe('Predicate',function(){
         object._objectID = objectID;
         objectID.stringValue = "xxxx/p1";
         var predicate = new Predicate('object = %@ AND objectID =%@',object,objectID);
-        assert.equal(predicate.toString(),'object._id = 1 AND objectID._id = 1');
+        assert.equal(predicate.toString(),'object_id = 1 AND objectID_id = 1');
         objectID.stringValue = "yyyy/p2";
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
-        assert.equal(predicate.toString(),'object._id = 2 AND objectID._id = 2');
+        assert.equal(predicate.toString(),'object_id = 2 AND objectID_id = 2');
         objectID.stringValue = "yyyy/o2";
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
-        assert.equal(predicate.toString(),'object._id = NaN AND objectID._id = NaN');
+        assert.equal(predicate.toString(),'object_id = NaN AND objectID_id = NaN');
     })
 })
