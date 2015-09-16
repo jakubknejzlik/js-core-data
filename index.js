@@ -63,7 +63,7 @@
       }
       entity = new EntityDescription(entityName);
       if (options["class"]) {
-        entity.objectClassName = options["class"];
+        entity.objectClass = options["class"];
       }
       for (attributeKey in attributes) {
         attributeInfo = attributes[attributeKey];

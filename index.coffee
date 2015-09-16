@@ -39,7 +39,7 @@ class CoreData
   defineEntity:(entityName,attributes,options = {})->
     entity = new EntityDescription(entityName);
     if options.class
-      entity.objectClassName = options.class
+      entity.objectClass = options.class
 
     for attributeKey,attributeInfo of attributes
       if attributeInfo not instanceof Object
