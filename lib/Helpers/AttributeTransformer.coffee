@@ -52,7 +52,6 @@ class AttributeTransformer extends Object
           value = new Date(value)
         return moment(value).valueOf()
       when 'transformable'
-        console.log(value)
         return JSON.stringify(value)
 
     return value
