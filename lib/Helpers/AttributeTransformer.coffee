@@ -33,7 +33,14 @@ class AttributeTransformer extends Object
           value = null
         return value
 
+      when 'transformable'
+        if typeof value is 'string'
+          value = JSON.parse(value)
+        return value
+
     return value
+
+
 
   @persistentValueForAttribute:(value,attribute)->
     if value is null
@@ -44,6 +51,9 @@ class AttributeTransformer extends Object
         if typeof value is 'string'
           value = new Date(value)
         return moment(value).valueOf()
+      when 'transformable'
+        console.log(value)
+        return JSON.stringify(value)
 
     return value
 

@@ -364,7 +364,6 @@ class GenericSQLStore extends IncrementalStore
 
   _columnDefinitionForAttribute:(attribute)->
     type = null
-    defaultValue = attribute.info.default or 'NULL'
     switch attribute.type
       when 'bool','boolean'
         type = 'tinyint(1)'
@@ -408,6 +407,8 @@ class GenericSQLStore extends IncrementalStore
         type = 'bigint(20)'
       when 'uuid'
         type = 'char(36)'
+      when 'transformable'
+        type = 'mediumblob'
       else return null
     definition = '`'+attribute.name+'` '+type+' DEFAULT NULL'
     if attribute.info.unique

@@ -37,6 +37,7 @@ describe('attributes',function(){
     describe('validation',function(){
         var storeCoordinator,timestamp = Math.round(Date.now() / 1000);
         var date = new Date(timestamp*1000);
+        var transformableObject = {aa:'bb',date:(new Date())}
         function deleteAll(storeCoordinator,done){
             var context = new ManagedObjectContext(storeCoordinator)
             context.getObjects('Hello',function(err,objects){
@@ -81,6 +82,7 @@ describe('attributes',function(){
                 obj.url = 'http://www.google.com';
                 obj.date = date;
                 obj.timestamp = timestamp;
+                obj.transformable = transformableObject;
             })
             context.save(done);
         })
@@ -99,6 +101,7 @@ describe('attributes',function(){
                 assert.strictEqual(obj.url,'http://www.google.com');
                 assert.equal(obj.date.toISOString(),date.toISOString())
                 assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString())
+                assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject))
                 assert.equal(obj.getWorldID(),null)
                 done();
             })
@@ -116,12 +119,13 @@ describe('attributes',function(){
                     double: 100.5054,
                     email:'jackie@gmail.com',
                     url:'http://www.google.com',
-                    timestamp: timestamp
+                    timestamp: timestamp,
+                    transformable: transformableObject
                 })
             })
             context.save(done);
         })
-        it('should load all attributes',function(done){
+        it('should load all attributes from persistent store',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
             context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
@@ -136,6 +140,7 @@ describe('attributes',function(){
                 assert.strictEqual(obj.url,'http://www.google.com');
                 assert.equal(obj.date.toISOString(),date.toISOString())
                 assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString())
+                assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject))
                 done();
             })
         })

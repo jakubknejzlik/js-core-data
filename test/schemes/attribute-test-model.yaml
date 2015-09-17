@@ -27,6 +27,8 @@ Hello:
         minLength: 2
         maxLength: 20
         regexp: /^(aa)+$/i
+    transformable:
+      type: transformable
   relations:
     world:
       entity: World

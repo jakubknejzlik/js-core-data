@@ -43,14 +43,15 @@ describe('serialization',function(){
             obj.url = 'http://www.google.com';
             obj.date = date;
             obj.timestamp = date;
-            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"test","int":1600,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"world_id":null}';
+            obj.transformable = {aa:'bb'};
+            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"test","int":1600,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"transformable":{"aa":"bb"},"world_id":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json)
         })
 
         it('should create generate valid JSON for empty object',function(){
             var context = new ManagedObjectContext(storeCoordinator)
             var obj = context.createObjectWithName('Hello')
-            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"defVal","int":null,"bool":null,"decim":null,"float":null,"double":null,"email":null,"url":null,"date":null,"timestamp":null,"data":null,"shortString":null,"world_id":null}';
+            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"defVal","int":null,"bool":null,"decim":null,"float":null,"double":null,"email":null,"url":null,"date":null,"timestamp":null,"data":null,"shortString":null,"transformable":null,"world_id":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json)
         })
     })
