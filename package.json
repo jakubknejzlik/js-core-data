@@ -1,7 +1,7 @@
 {
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "license": "MIT",
   "keywords": [
     "ORM",
