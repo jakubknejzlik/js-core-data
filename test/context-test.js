@@ -100,7 +100,7 @@ describe('Context', function(){
                 var values = car.getValues();
                 assert.notEqual(values.owner_id,null)
                 context.save().then(function(){
-                    return context.getObjectWithObjectID(car.objectID).then(function(tempCar){
+                    return tempContext.getObjectWithObjectID(car.objectID).then(function(tempCar){
                         values = tempCar.getValues();
                         assert.equal(values.owner_id,car.getOwnerID());
                         assert.equal(values.owner_id,tempCar.getOwnerID());

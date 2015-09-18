@@ -63,7 +63,7 @@ class PersistentStoreCoordinator extends Object
       return
     info = @waitingRequests.shift()
 
-#    console.log('next info',info);
+    #    console.log('next info',info);
     if not info
       return
 
@@ -125,22 +125,22 @@ class PersistentStoreCoordinator extends Object
     request.deletedObjects = context.deletedObjects
     temporaryObjectIDs = []
     async.forEach(@persistentStores,
-      (store,cb)->
-        if store instanceof IncrementalStore
-          store.execute(request,context,(err)->
-            if err
-              for i,object of context.insertedObjects
-                object._objectID = temporaryObjectIDs[i]
-            cb(err)
-          ,()=>
-            permanentObjectIDs = store.permanentIDsForObjects(context.insertedObjects)
+    (store,cb)->
+      if store instanceof IncrementalStore
+        store.execute(request,context,(err)->
+          if err
             for i,object of context.insertedObjects
-              temporaryObjectIDs[i] = object._objectID
-              object._objectID = permanentObjectIDs[i]
-          )
-        else cb(new Error('not an incremental store'))
-      ,(err)=>
-        callback(err)
+              object._objectID = temporaryObjectIDs[i]
+          cb(err)
+        ,()=>
+          permanentObjectIDs = store.permanentIDsForObjects(context.insertedObjects)
+          for i,object of context.insertedObjects
+            temporaryObjectIDs[i] = object._objectID
+            object._objectID = permanentObjectIDs[i]
+        )
+      else cb(new Error('not an incremental store'))
+    ,(err)=>
+      callback(err)
     )
 
   _valuesForForRelationship: (relationship,ObjectID,context,callback)->

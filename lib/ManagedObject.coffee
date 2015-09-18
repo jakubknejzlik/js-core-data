@@ -27,14 +27,14 @@ class ManagedObject extends Object
     @_relationChanges = null
 
   fetchData: ->
+    data = {}
     if @_rawData
-      data = {}
       for attributeDescription in @entity.attributes
         data[attributeDescription.name] = AttributeTransformer.transformedValueForAttribute(@_rawData[attributeDescription.name],attributeDescription)
-      delete @_rawData
-      @_data = data
-    else
-      @_data = @managedObjectContext.storeCoordinator.valuesForObject(this)
+      for relationship in @entity.relationships
+        data[relationship.name + '_id'] = @_rawData[relationship.name + '_id']
+    delete @_rawData
+    @_data = data
     @_isFault = no
 
   validateValueForKey:(value,key)->
