@@ -7,13 +7,11 @@ var assert = require("assert"),
 //var store_url = 'mysql://root@localhost/test';
 var store_url = 'sqlite://:memory:';
 
-describe('attributes',function(){
+describe('mysqlattributes',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-test-model.yaml');
     var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
-//    before(function(done){
-//    })
     it('should throw error for invalid model',function(done){
-        storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel);
+        storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel,{logging:console.log});
 
         storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
@@ -26,7 +24,7 @@ describe('attributes',function(){
         })
     })
     it('shouldn\'t throw error for valid model',function(done){
-        storeCoordinator = new PersistentStoreCoordinator(objectModel);
+        storeCoordinator = new PersistentStoreCoordinator(objectModel,{logging:console.log});
 
         storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
@@ -63,9 +61,7 @@ describe('attributes',function(){
         it('should create object with default values',function(){
             var context = new ManagedObjectContext(storeCoordinator)
             var obj = context.createObjectWithName('Hello')
-//            console.log(obj)
             assert.equal(obj.name,'defVal')
-
         })
 
         it('should create object and assign all valid values',function(done){

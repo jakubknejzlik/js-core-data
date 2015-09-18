@@ -359,7 +359,7 @@ class GenericSQLStore extends IncrementalStore
       when 'uuid'
         type = 'char(36)'
       when 'transformable'
-        type = 'mediumblob'
+        type = 'mediumtext'
       else return null
     definition = '`'+attribute.name+'` '+type+' DEFAULT NULL'
     if attribute.info.unique
