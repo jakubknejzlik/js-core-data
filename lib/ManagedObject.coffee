@@ -15,7 +15,7 @@ capitalizedString = (string)->
   string[0].toUpperCase() + string.substring(1);
 
 class ManagedObject extends Object
-  constructor:(@entity,@managedObjectContext) ->
+  constructor:(@entity,@managedObjectContext,@_rawData) ->
     @_objectID = null
     @_isInserted = no
     @_isUpdated = no
@@ -26,7 +26,14 @@ class ManagedObject extends Object
     @_relationChanges = null
 
   fetchData: ->
-    @_data = @managedObjectContext.storeCoordinator.valuesForObject(this)
+    if @_rawData
+      data = {}
+      for attributeDescription in @entity.attributes
+        data[attributeDescription.name] = AttributeTransformer.transformedValueForAttribute(@_rawData[attributeDescription.name],attributeDescription)
+      delete @_rawData
+      @_data = data
+    else
+      @_data = @managedObjectContext.storeCoordinator.valuesForObject(this)
     @_isFault = no
 #    console.log('fetched data',@_data)
 

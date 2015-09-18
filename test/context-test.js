@@ -380,7 +380,7 @@ describe('Context', function(){
                         _context.getObjectWithObjectID(owner.objectID,function(err,_owner){
                             assert.ifError(err)
                             _owner.getCars().then(function(__cars){
-                                assert.ok(__cars.length > 0)
+                                assert.ok(__cars.length > 0,'object count')
                                 var _car = __cars[0];
                                 assert.ifError(err)
                                 _cars.forEach(function(_c){
@@ -579,7 +579,7 @@ describe('Context', function(){
 //                        console.log('getting owner')
                         _car.getOwner(function(err,_owner){
                             if(err)return done(err);
-//                            console.log('owner get..',!!_owner)
+                            console.log('owner get..',_owner)
                             assert.equal(!!_owner,false);
                             done();
                         })

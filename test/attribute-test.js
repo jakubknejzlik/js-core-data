@@ -91,7 +91,7 @@ describe('attributes',function(){
             context.getObjects('Hello',function(err,objects){
                 if(err)return done(err);
                 var obj = objects[0];
-                assert.strictEqual(obj.bool,true);
+                assert.strictEqual(obj.bool,true,'bool value');
                 assert.strictEqual(obj.name,'test');
                 assert.strictEqual(obj.int,1600);
                 assert.strictEqual(obj.decim,0.55);

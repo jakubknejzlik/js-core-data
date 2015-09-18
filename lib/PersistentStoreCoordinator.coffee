@@ -3,6 +3,7 @@ IncrementalStore = require('./stores/IncrementalStore')
 ManagedObject = require('./ManagedObject')
 Predicate = require('./FetchClasses/Predicate')
 AttributeTransformer = require('./Helpers/AttributeTransformer')
+FetchRequest = require('./FetchRequest')
 async = require('async')
 url = require('url')
 ac = require('array-control')
@@ -78,15 +79,15 @@ class PersistentStoreCoordinator extends Object
         return @_requestCompleted(callback,null,[obj])
 
     store = @persistentStores[0]
-    store.execute(request,context,(err,ObjectIDsOrCount)=>
+    store.execute(request,context,(err,ObjectIDs,objectValues = {})=>
       return @_requestCompleted(callback,err) if err
       objects = []
-      for objectID in ObjectIDsOrCount
+      for objectID in ObjectIDs
         obj = @_objectFromContextCache(context,objectID)
         if obj
           objects.push(obj)
         else
-          objects.push(@_objectForID(request,context,objectID))
+          objects.push(@_objectForID(request.entity,context,objectID,objectValues[objectID.toString()]))
       @_requestCompleted(callback,null,objects)
     )
 
@@ -100,9 +101,9 @@ class PersistentStoreCoordinator extends Object
     @_executeNextRequestIfPossible()
 
 
-  _objectForID: (request,context,objectID) ->
-    subclass = @objectModel.subclassForEntity(request.entity.name);
-    object = new subclass(request.entity,context)
+  _objectForID: (entity,context,objectID,objectValues = {}) ->
+    subclass = @objectModel.subclassForEntity(entity.name);
+    object = new subclass(entity,context,objectValues)
     object._objectID = objectID
     return object
 
@@ -143,28 +144,36 @@ class PersistentStoreCoordinator extends Object
     )
 
   _valuesForForRelationship: (relationship,ObjectID,context,callback)->
-    store = @persistentStores[0]
-    store.valuesForRelationship relationship,ObjectID,context,(err,ObjectIDs)=>
-      return callback(err) if err
+    inversedRelationship = relationship.inverseRelationship()
+    request = new FetchRequest(inversedRelationship.entity,new Predicate('SELF.' + inversedRelationship.name + '._id = %d',ObjectID.recordId()))
+    @execute(request,context,(err,objects)->
       if relationship.toMany
-        objects = []
-        for objID in ObjectIDs
-          object = @_objectFromContextCache(context,objID)
-          if not object
-            subclass = @objectModel.subclassForEntity(relationship.destinationEntity.name);
-            object = new subclass(relationship.destinationEntity,context)
-            object._objectID = objID
-          ac.addObject(objects,object)
-        callback(null,objects)
+        callback(err,objects)
       else
-        if not ObjectIDs
-          return callback(null,null)
-        object = @_objectFromContextCache(context,ObjectIDs)
-        if not object
-          subclass = @objectModel.subclassForEntity(relationship.destinationEntity.name);
-          object = new subclass(relationship.destinationEntity,context)
-          object._objectID = ObjectIDs
-        callback(null,object)
+        callback(err,objects[0] or null)
+    )
+#    store = @persistentStores[0]
+#    store.valuesForRelationship relationship,ObjectID,context,(err,ObjectIDs)=>
+#      return callback(err) if err
+#      if relationship.toMany
+#        objects = []
+#        for objID in ObjectIDs
+#          object = @_objectFromContextCache(context,objID)
+#          if not object
+#            subclass = @objectModel.subclassForEntity(relationship.destinationEntity.name);
+#            object = new subclass(relationship.destinationEntity,context)
+#            object._objectID = objID
+#          ac.addObject(objects,object)
+#        callback(null,objects)
+#      else
+#        if not ObjectIDs
+#          return callback(null,null)
+#        object = @_objectFromContextCache(context,ObjectIDs)
+#        if not object
+#          subclass = @objectModel.subclassForEntity(relationship.destinationEntity.name);
+#          object = new subclass(relationship.destinationEntity,context)
+#          object._objectID = ObjectIDs
+#        callback(null,object)
 
   temporaryObjectID: (object)->
     id = @persistentStores[0].newObjectID(object.entity,@temporaryId++)

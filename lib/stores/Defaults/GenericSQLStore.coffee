@@ -4,6 +4,7 @@ GenericPool = require('generic-pool')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
+SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
 AttributeTransformer = require('../../Helpers/AttributeTransformer')
@@ -18,7 +19,7 @@ class GenericSQLStore extends IncrementalStore
   constructor: (@storeCoordinator,@URL,@globals)->
     if @storeCoordinator
       @connection = @createConnection()
-    @fetchedObjectValuesCache = {}
+#    @fetchedObjectValuesCache = {}
     @permanentIDsCache = {}
 
   createConnection: ()->
@@ -93,6 +94,7 @@ class GenericSQLStore extends IncrementalStore
       @connection.sendRawQuery(@sqlForFetchRequest(request),(err,rows)=>
         ids = []
         return callback(err) if err
+        objectValues = {}
         for row in rows
           _row = {}
           for attribute in request.entity.attributes
@@ -102,9 +104,10 @@ class GenericSQLStore extends IncrementalStore
               columnName = _.singularize(relationship.name) + '_id'
               _row[columnName] = row[columnName]
           objectID = @_permanentIDForRecord(request.entity,row._id)
-          @fetchedObjectValuesCache[objectID.toString()] = _row;
+#          @fetchedObjectValuesCache[objectID.toString()] = _row;
+          objectValues[objectID.toString()] = _row;
           ids.push(objectID)
-        callback(null,ids)
+        callback(null,ids,objectValues)
       )
 
   numberOfObjectsForFetchRequest:(request,callback)->
@@ -277,58 +280,6 @@ class GenericSQLStore extends IncrementalStore
             data[relation.name + '_id'] = null
     return data;
 
-  valuesForObject:(ObjectID,context) ->
-#    console.log('fetching data',ObjectID.toString(),@fetchedObjectValuesCache[ObjectID.toString()])
-    @fetchedObjectValuesCache[ObjectID.toString()] or {}
-
-  valuesForRelationship:(relationship,ObjectID,context,callback) ->
-    inversedRelationship = relationship.inverseRelationship()
-    sql = null
-    columns = ['`_id` as _id']
-    for attribute in relationship.destinationEntity.attributes
-      columns.push('`' + attribute.name + '` as ' + attribute.name)
-    mainRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-#    console.log(relationship.name,'=>',relationship.toMany,' ',mainRelationship.name,inversedRelationship.name)
-    if relationship.toMany and inversedRelationship.toMany
-      if mainRelationship is relationship
-        sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `_id` IN (SELECT `' + relationship.name + '_id` FROM `' + @_formatTableName(relationship.entity.name) + '_' + relationship.name + '` WHERE `reflexive` = ' + @_recordIDForObjectID(ObjectID) + ')'
-      else
-        sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `_id` IN (SELECT `reflexive` FROM `' + @_formatTableName(inversedRelationship.entity.name) + '_' + inversedRelationship.name + '` WHERE `' + inversedRelationship.name + '_id` = ' + @_recordIDForObjectID(ObjectID) + ')'
-#      console.log('sql!!??',relationship.name,sql)
-    else
-#      if mainRelationship is relationship
-        if inversedRelationship.toMany
-          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `_id` IN (SELECT `' + relationship.name + '_id` FROM `' + @_formatTableName(relationship.entity.name) + '` WHERE `_id` = ' + @_recordIDForObjectID(ObjectID) + ') LIMIT 1'
-        else
-          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `' + inversedRelationship.name + '_id` = ' + @_recordIDForObjectID(ObjectID)
-#      else
-#        if relationship.toMany
-#          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTablxeName(relationship.destinationEntity.name) + '` WHERE `' + inversedRelationship.name + '_id` = ' + mysql.escape(@_recordIDForObjectID(ObjectID))
-#        else
-#          sql = 'SELECT ' + columns.join(',') + ' FROM `' + @_formatTableName(relationship.destinationEntity.name) + '` WHERE `_id` IN (SELECT `' + relationship.name + '_id` FROM `' + @_formatTableName(relationship.entity.name) + '` WHERE `_id` = ' + mysql.escape(@_recordIDForObjectID(ObjectID)) + ')'
-#      console.log('sql!!',relationship.name,sql)
-
-    @connection.sendRawQuery sql,(err,rows)=>
-      ids = []
-      return callback(err) if err
-      for row in rows
-        _row = {}
-        for attribute in relationship.destinationEntity.attributes
-          _row[attribute.name] = row[attribute.name]
-        for rel in relationship.destinationEntity.relationships
-          if not rel.toMany
-            columnName = _.singularize(rel.name) + '_id'
-            _row[columnName] = row[columnName]
-        objectID = @_permanentIDForRecord(relationship.destinationEntity,row._id)
-        @fetchedObjectValuesCache[objectID.toString()] = _row;
-        ids.push(objectID)
-      if relationship.toMany
-        callback(null,ids)
-      else
-        callback(null,ids[0])
-#    throw new Error('valuesForObjet method not implemented')
-
-
   permanentIDsForObjects:(objects,callback) ->
     ids = []
     for object in objects
@@ -346,7 +297,7 @@ class GenericSQLStore extends IncrementalStore
 #    if id
 #      return id
 #    console.log(@permanentIDsCache,objectID.toString())
-    objectID.recordId()
+    return objectID.recordId()
 #    components = objectID.toString().split('/')
 #    components[components.length - 1].replace(/^[pt]/,'')
 
