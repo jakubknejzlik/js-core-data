@@ -35,18 +35,15 @@ class ManagedObject extends Object
     else
       @_data = @managedObjectContext.storeCoordinator.valuesForObject(this)
     @_isFault = no
-#    console.log('fetched data',@_data)
 
   validateValueForKey:(value,key)->
     attributeDescription = @entity.attributesByName()[key]
     AttributeValidator.validateValueForAttribute(value,attributeDescription)
 
-  setValues:(values)->
+  setValues:(values,allowedAttributes)->
     for attributeDescription in @entity.attributes
       setterFnName = 'set'+capitalizedString(attributeDescription.name)
-#      console.log(setterFnName,@[setterFnName])
-      if values[attributeDescription.name]?
-#        console.log('set',setterFnName,values[attributeDescription.name],values)
+      if values[attributeDescription.name]? and (not allowedAttributes or attributeDescription.name in allowedAttributes)
         @[setterFnName](values[attributeDescription.name])
 
   getValues:(options = {})->
@@ -54,7 +51,6 @@ class ManagedObject extends Object
     values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
       getterFnName = 'get'+capitalizedString(attributeDescription.name)
-#      console.log(getterFnName,@[getterFnName])
       value = @[getterFnName]()
       if value?
         values[attributeDescription.name] = value
@@ -64,7 +60,6 @@ class ManagedObject extends Object
       for relationship in @entity.relationships
         if not relationship.toMany
           getterFnName = 'get' + capitalizedString(_.singularize(relationship.name)) + 'ID'
-  #        console.log(getterFnName,@[getterFnName])
           value = @[getterFnName]()
           if value?
             values[_.singularize(relationship.name) + '_id'] = value
@@ -117,9 +112,7 @@ class ManagedObject extends Object
         deferred = Q.defer()
         @fetchData() if @isFault
         if @_data[relationshipDescription.name] is undefined
-#          console.log('getting!',@_data[relationshipDescription.name])
           @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
-#            console.log('got!',@_data[relationshipDescription.name])
             if err
               deferred.reject(err)
             else
@@ -127,27 +120,19 @@ class ManagedObject extends Object
         else deferred.resolve(@_data[relationshipDescription.name]);
         return deferred.promise.nodeify(callback)
       @prototype['set' + capitalizedName] = (object)->
-#        console.log('set',capitalizedName,object)
 #        @fetchData() if @isFault
         @_setObjectToRelation(object,relationshipDescription,inverseRelationship)
     else
-#      console.log('add' + capitalizedSingularizedName)
-#      console.log('add' + capitalizedName + 'Objects')
-#      console.log('get' + capitalizedName + 'Objects')
       @prototype['get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
         if not @_data[relationshipDescription.name]
-#          console.log('get',capitalizedName,@_data[relationshipDescription.name])
           @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
             return deferred.reject(err) if err
-#            console.log('got objects',objects.length)
             if @_relationChanges
               for item in @_relationChanges['added_' + relationshipDescription.name]?
                 ac.addObject(objects,item)
               for item in @_relationChanges['removed_' + relationshipDescription.name]?
-#                for subitem in objects
-#                  console.log('removing objects',item.objectID.toString() ,subitem.objectID.toString(),item == subitem)
                 ac.removeObject(objects,item)
             @_data[relationshipDescription.name] = objects
             deferred.resolve(@_data[relationshipDescription.name])
@@ -182,9 +167,7 @@ class ManagedObject extends Object
 
   _setObjectToRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion) ->
     @fetchData() if @isFault
-#    console.log('set',relationshipDescription.name)
     if object isnt @_data[relationshipDescription.name]
-#      console.log('settings object',object)
       prevObject = @_data[relationshipDescription.name];
       @_data[relationshipDescription.name] = object
       @_relationChanges = @_relationChanges || {}
@@ -204,7 +187,6 @@ class ManagedObject extends Object
   _addObjectToRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion) ->
     @fetchData() if @isFault
     if not @_data[relationshipDescription.name] or object not in @_data[relationshipDescription.name]
-#      console.log('adding xxx',relationshipDescription.name,inversedRelationshipDescription?.name);
       @_relationChanges = @_relationChanges || {}
       @_relationChanges['added_' + relationshipDescription.name] = @_relationChanges['added_' + relationshipDescription.name] || []
       @_relationChanges['removed_' + relationshipDescription.name] = @_relationChanges['removed_' + relationshipDescription.name] || []
@@ -220,15 +202,12 @@ class ManagedObject extends Object
           object._setObjectToRelation(@,inversedRelationshipDescription)
         else
           object._addObjectToRelation(@,inversedRelationshipDescription,relationshipDescription,true)
-#      console.log('add',@objectID.toString());
       @_didUpdateValues();
 
   _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion,fireEvent = yes) ->
     @fetchData() if @isFault
-#    console.log('remove',object.objectID.toString(),relationshipDescription.name,'=>',inversedRelationshipDescription.name)
     if not @_data[relationshipDescription.name] or object in @_data[relationshipDescription.name]
       @_relationChanges = @_relationChanges || {}
-#      console.log('remove',@_data,@objectID.toString());
       @_relationChanges['added_' + relationshipDescription.name] = @_relationChanges['added_' + relationshipDescription.name] || []
       @_relationChanges['removed_' + relationshipDescription.name] = @_relationChanges['removed_' + relationshipDescription.name] || []
       if @_data[relationshipDescription.name]
