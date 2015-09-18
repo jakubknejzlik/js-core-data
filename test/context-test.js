@@ -92,12 +92,21 @@ describe('Context', function(){
                 })
             })
 
-            it('should set toOne relation',function(){
+            it('should set toOne relation',function(done){
+                var tempContext = coreData.createContext();
                 var car = context.createObjectWithName('Car');
                 var owner = context.createObjectWithName('Owner');
                 car.setOwner(owner);
                 var values = car.getValues();
                 assert.notEqual(values.owner_id,null)
+                context.save().then(function(){
+                    return context.getObjectWithObjectID(car.objectID).then(function(tempCar){
+                        values = tempCar.getValues();
+                        assert.equal(values.owner_id,car.getOwnerID());
+                        assert.equal(values.owner_id,tempCar.getOwnerID());
+                        done();
+                    })
+                }).catch(done)
             })
 
             it('shouldn\'t insert object before save is completed',function(done){

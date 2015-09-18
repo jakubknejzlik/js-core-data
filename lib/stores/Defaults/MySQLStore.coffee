@@ -131,6 +131,8 @@ class Transaction extends Object
     if @started
       return callback()
     @started = true
+    if @store?.globals?.logging
+      @store.globals.logging('BEGIN')
     @connection.query 'BEGIN',(err)->
       callback(err)
 
@@ -156,9 +158,13 @@ class Transaction extends Object
 
 
   commit: (callback)->
+    if @store?.globals?.logging
+      @store.globals.logging('COMMIT')
     @connection.query('COMMIT',callback);
 
   rollback: (callback)->
+    if @store?.globals?.logging
+      @store.globals.logging('ROLLBACK')
     @connection.query('ROLLBACK',callback);
 
 

@@ -76,8 +76,12 @@ class SQLiteConnection extends Object
   constructor: (url,@store,settings)->
     @pool = GenericPool.Pool({
       name     : "sqlite",
-      create   : (callback)->
-        connection = new sqlite.Database(url.replace('sqlite://',''),(err)->
+      create   : (callback)=>
+        connection = new sqlite.Database(url.replace('sqlite://',''),(err)=>
+          connection.on('trace',(query)=>
+            if @store?.globals?.logging
+              @store.globals.logging(query)
+          )
           callback(err,connection)
         )
       destroy  : (connection)->
@@ -99,7 +103,7 @@ class SQLiteConnection extends Object
           @pool.release(conn)
           callback?(err,results)
         )
-        @store.globals.logging(query) if @store.globals?.logging
+#        @store.globals.logging(query) if @store.globals?.logging
       catch error
         @pool.release(conn)
         callback?(error)
@@ -152,8 +156,8 @@ class Transaction extends Object
             callback(err)
         else return callback(err)
 
-      if @store?.globals?.logging
-        @store.globals.logging(q)
+#      if @store?.globals?.logging
+#        @store.globals.logging(q)
 
       params = params or {}
       @connection.run(q,params,(err,results)->
