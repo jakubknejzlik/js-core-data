@@ -92,6 +92,14 @@ describe('Context', function(){
                 })
             })
 
+            it('should set toOne relation',function(){
+                var car = context.createObjectWithName('Car');
+                var owner = context.createObjectWithName('Owner');
+                car.setOwner(owner);
+                var values = car.getValues();
+                assert.notEqual(values.owner_id,null)
+            })
+
             it('shouldn\'t insert object before save is completed',function(done){
                 var car = context.createObjectWithName('Car');
                 context.save().then(function(){

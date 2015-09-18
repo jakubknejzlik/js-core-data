@@ -7,6 +7,7 @@ AttributeTransformer = require('./Helpers/AttributeTransformer')
 
 ac = require('array-control')
 Q = require('q')
+async = require('async')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -107,17 +108,19 @@ class ManagedObject extends Object
     if not relationshipDescription.toMany
       @prototype['get' + capitalizedSingularizedName + 'ID'] = ()->
         @fetchData() if @isFault
-        return @_data[singularizedName + '_id']
+        return @_data[singularizedName + '_id'] or @_data[relationshipDescription.name]?.objectID?.recordId()
       @prototype['get' + capitalizedName] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
-        if @_data[relationshipDescription.name] is undefined
-          @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
-            if err
-              deferred.reject(err)
-            else
-              deferred.resolve(object)
-        else deferred.resolve(@_data[relationshipDescription.name]);
+        async.nextTick(()=>
+          if @_data[relationshipDescription.name] is undefined
+            @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
+              if err
+                deferred.reject(err)
+              else
+                deferred.resolve(object)
+          else deferred.resolve(@_data[relationshipDescription.name]);
+        )
         return deferred.promise.nodeify(callback)
       @prototype['set' + capitalizedName] = (object)->
 #        @fetchData() if @isFault
