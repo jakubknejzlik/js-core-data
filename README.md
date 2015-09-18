@@ -22,8 +22,7 @@ var Company = db.define('Company',{name:'string'});
 db.defineRelationship(User,Company,'company',{inverse:'users'});
 db.defineRelationship(Company,User,'users',{inverse:'company',toMany:true});
 
-db.syncSchema({force:true},function(err){
-    if(err) throw err;
+db.syncSchema({force:true}).then(function(){
     console.log('schema synced')
 
     var context = db.createContext();
@@ -36,8 +35,7 @@ db.syncSchema({force:true},function(err){
     user1.setCompany(company);
     company.addUser(user2);
 
-    context.save(function(err){
-        if(err) throw err;
+    context.save().then(function(){
         context.destroy();
     })
 })
@@ -54,9 +52,10 @@ db.defineRelationship(Company,User,'users',{inverse:'company',toMany:true});
 
 var context = db.createContext();
 context.getObjects('User',{
-		where:['SELF.company.name = %s','test company'],
-		sort:'username'
-	},function(err,users){
+    where:['SELF.company.name = %s','test company'],
+    sort:'username'
+}).then(function(users){
+    console.log(users)
 })
 
 ```
@@ -73,10 +72,9 @@ var app = new express();
 app.use(db.middleware());
 
 app.get('/users',function(req,res,next){
-    req.context.getObjects('User',function(err,users){
-        if(err)return next(err);
+    req.context.getObjects('User').then(function(users){
         res.send(users);
-    })
+    }).catch(next)
 })
 
 app.listen(process.env.PORT)
