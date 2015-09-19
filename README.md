@@ -1,9 +1,11 @@
 # js-core-data
-==============
+
 
 [![Build Status](https://travis-ci.org/jakubknejzlik/js-core-data.svg)](https://travis-ci.org/jakubknejzlik/js-core-data)
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
+
+==============
 
 CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by helper methods. Providing easy interface for defining data model, working with entities and persisting data to persistent store (MySQL and SQLite are currently supported).
 
