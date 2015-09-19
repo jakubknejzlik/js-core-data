@@ -40,6 +40,9 @@ class MySQLStore extends GenericSQLStore
         else
           return callback(new Error('unknown attribute type ' + attribute.type))
 
+      for index in @_indexesForEntity(entity)
+        parts.push('KEY `'+index.name+'` (`'+index.columns.join('`,`')+'`)')
+
       for relationship in entity.relationships
         if not relationship.toMany
           parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')

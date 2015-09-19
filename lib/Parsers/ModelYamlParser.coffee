@@ -22,18 +22,9 @@ class ModelYamlParser extends Object
       entitiesArray = []
       _entities = yaml.safeLoad(yamlSource)
       for entityName,info of _entities
-        entity = new EntityDescription(entityName);
-        if info.class
-          entity.objectClassName = info.class
+        entity = new EntityDescription(entityName,info)
         entities[entityName] = entity
         entitiesArray.push(entity)
-        for attributeKey,attributeInfo of info.columns
-          if attributeInfo not instanceof Object
-            attributeInfo = {type:attributeInfo}
-          attr = new AttributeDescription(attributeInfo.type,attributeInfo,attributeKey,null);
-          if attributeInfo.options
-            attr.options = attributeInfo.options
-          entity.addAttribute(attr)
 
       for entityName,info of _entities
         for relationshipName,relationshipInfo of (info.relationships or info.relations)

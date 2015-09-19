@@ -366,5 +366,13 @@ class GenericSQLStore extends IncrementalStore
       definition += ' UNIQUE'
     return definition
 
+  _indexesForEntity:(entity)->
+    indexes = _.clone(entity.indexes)
+    for attribute in entity.attributes
+      if attribute.info.indexed
+        indexes.push({name:attribute.name,columns:[attribute.name],type:'key'})
+    return indexes
+
+
 
 module.exports = GenericSQLStore

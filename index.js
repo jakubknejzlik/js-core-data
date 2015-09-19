@@ -57,27 +57,12 @@
     };
 
     CoreData.prototype.defineEntity = function(entityName, attributes, options) {
-      var attr, attributeInfo, attributeKey, entity;
+      var entity;
       if (options == null) {
         options = {};
       }
-      entity = new EntityDescription(entityName);
-      if (options["class"]) {
-        entity.objectClass = options["class"];
-      }
-      for (attributeKey in attributes) {
-        attributeInfo = attributes[attributeKey];
-        if (!(attributeInfo instanceof Object)) {
-          attributeInfo = {
-            type: attributeInfo
-          };
-        }
-        attr = new AttributeDescription(attributeInfo.type, attributeInfo, attributeKey, null);
-        if (attributeInfo.options) {
-          attr.options = attributeInfo.options;
-        }
-        entity.addAttribute(attr);
-      }
+      options.columns = attributes;
+      entity = new EntityDescription(entityName, options);
       this.model.addEntity(entity);
       return entity;
     };

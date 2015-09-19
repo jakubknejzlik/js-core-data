@@ -13,13 +13,20 @@ describe('core module',function(){
                 unique:true
             },
             password:{
-                type:'string'
+                type:'string',
+                indexed: true
             }
         })
         assert.ok(cd.model.entities.User)
 
         cd.defineEntity('Company',{
-            name:'string'
+            name:'string',
+            identifier:'string'
+        },{
+            indexes:[
+                'name',
+                {name:'compound',columns:['name','identifier']}
+            ]
         })
 
         cd.defineRelationship('Company','User','company',{inverse:'employers'})

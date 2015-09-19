@@ -4,12 +4,31 @@ ManagedObject = require('./../ManagedObject')
 path = require('path')
 
 class EntityDescription
-  constructor:(@name) ->
+  constructor:(@name, initData) ->
     @attributes = []
     @relationships = []
+    @indexes = []
 
     @_attributesByName = {}
     @_relationshipsByName = {}
+
+    if initData
+      if typeof initData.class is 'string'
+        @objectClassName = initData.class
+      else if typeof initData.class is 'function'
+        @objectClass = initData.class
+      for attributeKey,attributeInfo of initData.columns
+        if attributeInfo not instanceof Object
+          attributeInfo = {type:attributeInfo}
+        attr = new AttributeDescription(attributeInfo.type,attributeInfo,attributeKey,null);
+        if attributeInfo.options
+          attr.options = attributeInfo.options
+        @addAttribute(attr)
+      if initData.indexes
+        for index in initData.indexes
+          if typeof index is 'string'
+            index = {name:index,columns:[index]}
+          @addIndex(index.name,index.type,index.columns)
 
   addAttribute : (attribute) ->
     if attribute instanceof AttributeDescription
@@ -28,6 +47,9 @@ class EntityDescription
     else
       throw new Error 'relationship ' + relationship + ' is not AttributeDescription'
     this
+
+  addIndex:(name,type = 'key',columns)->
+    @indexes.push({name:name,type:type,columns:columns})
 
   attributesByName : ->
     @_attributesByName

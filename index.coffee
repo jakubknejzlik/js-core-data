@@ -37,18 +37,8 @@ class CoreData
     return deferred.promise.nodeify(callback)
 
   defineEntity:(entityName,attributes,options = {})->
-    entity = new EntityDescription(entityName);
-    if options.class
-      entity.objectClass = options.class
-
-    for attributeKey,attributeInfo of attributes
-      if attributeInfo not instanceof Object
-        attributeInfo = {type:attributeInfo}
-      attr = new AttributeDescription(attributeInfo.type,attributeInfo,attributeKey,null);
-      if attributeInfo.options
-        attr.options = attributeInfo.options
-      entity.addAttribute(attr)
-
+    options.columns = attributes
+    entity = new EntityDescription(entityName,options);
     @model.addEntity(entity)
 
     return entity

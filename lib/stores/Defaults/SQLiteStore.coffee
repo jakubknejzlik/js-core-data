@@ -49,6 +49,12 @@ class SQLiteStore extends GenericSQLStore
       sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
       sql += parts.join(',')
       sql += ')'
+
+      for index in @_indexesForEntity(entity)
+        sql +=";CREATE INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
+
+      console.log(sql)
+
       schema[tableName] = sql
 
       for key,relationship of entity.relationships
