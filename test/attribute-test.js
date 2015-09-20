@@ -2,7 +2,8 @@ var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
-    moment = require('moment');
+    moment = require('moment'),
+    CoreData = require('../');
 
 //var store_url = 'mysql://root@localhost/test';
 var store_url = 'sqlite://:memory:';
@@ -62,6 +63,7 @@ describe('attributes',function(){
             var context = new ManagedObjectContext(storeCoordinator)
             var obj = context.createObjectWithName('Hello')
             assert.equal(obj.name,'defVal')
+            assert.notEqual(obj.date,null)
         })
 
         it('should create object and assign all valid values',function(done){
@@ -350,5 +352,21 @@ describe('attributes',function(){
             })
             assert.strictEqual(obj.bool,true);
         })
+    })
+    describe('custom type',function(){
+        CoreData.registerType(new CoreData.AttributeType('blah','string'));
+        var db = new CoreData(store_url);
+        db.defineEntity('Blah',{
+            blahAttr:{
+                type:'blah',
+                default:'xxx'
+            }
+        })
+
+        var context = db.createContext();
+
+        var b = context.create('Blah');
+
+        assert.equal(b.blahAttr,'xxx');
     })
 })

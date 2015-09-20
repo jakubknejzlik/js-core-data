@@ -2,7 +2,7 @@ PersistentStoreRequest = require('./stores/PersistentStoreRequest')
 IncrementalStore = require('./stores/IncrementalStore')
 ManagedObject = require('./ManagedObject')
 Predicate = require('./FetchClasses/Predicate')
-AttributeTransformer = require('./Helpers/AttributeTransformer')
+#AttributeTransformer = require('./Helpers/AttributeTransformer')
 FetchRequest = require('./FetchRequest')
 async = require('async')
 url = require('url')
@@ -103,6 +103,8 @@ class PersistentStoreCoordinator extends Object
 
   _objectForID: (entity,context,objectID,objectValues = {}) ->
     subclass = @objectModel.subclassForEntity(entity.name);
+    for attribute in entity.attributes
+      objectValues[attribute.name] = attribute.decode(objectValues[attribute.name])
     object = new subclass(entity,context,objectValues)
     object._objectID = objectID
     return object
@@ -180,11 +182,11 @@ class PersistentStoreCoordinator extends Object
     id.isTemporaryID = yes
     id
 
-  valuesForObject: (object)->
-    values = @persistentStores[0].valuesForObject(object.objectID,object.context)
-    for attributeDescription in object.entity.attributes
-      values[attributeDescription.name] = AttributeTransformer.transformedValueForAttribute(values[attributeDescription.name],attributeDescription)
-    values
+#  valuesForObject: (object)->
+#    values = @persistentStores[0].valuesForObject(object.objectID,object.context)
+#    for attribute in object.entity.attributes
+#      values[attribute.name] = attribute.transform(values[attribute.name],attribute)
+#    values
 
 
   Object.defineProperties @prototype,

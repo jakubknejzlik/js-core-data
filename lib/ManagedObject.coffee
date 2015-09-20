@@ -2,9 +2,6 @@ ManagedObjectID = require('./ManagedObjectID')
 
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
 
-AttributeValidator = require('./Helpers/AttributeValidator')
-AttributeTransformer = require('./Helpers/AttributeTransformer')
-
 ac = require('array-control')
 Q = require('q')
 async = require('async')
@@ -29,8 +26,8 @@ class ManagedObject extends Object
   fetchData: ->
     data = {}
     if @_rawData
-      for attributeDescription in @entity.attributes
-        data[attributeDescription.name] = AttributeTransformer.transformedValueForAttribute(@_rawData[attributeDescription.name],attributeDescription)
+      for attribute in @entity.attributes
+        data[attribute.name] = attribute.transform(@_rawData[attribute.name])
       for relationship in @entity.relationships
         data[relationship.name + '_id'] = @_rawData[relationship.name + '_id']
     delete @_rawData
@@ -39,7 +36,7 @@ class ManagedObject extends Object
 
   validateValueForKey:(value,key)->
     attributeDescription = @entity.attributesByName()[key]
-    AttributeValidator.validateValueForAttribute(value,attributeDescription)
+    attributeDescription.validateValue(value)
 
   setValues:(values,allowedAttributes)->
     for attributeDescription in @entity.attributes
@@ -83,7 +80,7 @@ class ManagedObject extends Object
       if value isnt @_data[attributeDescription.name]
         if value
           @['validate'+capitalizedName](value)
-        value = AttributeTransformer.transformedValueForAttribute(value,attributeDescription)
+        value = attributeDescription.transform(value)
         @_data[attributeDescription.name] = value;
         @_changes = @_changes || {}
         @_changes[attributeDescription.name] = value;

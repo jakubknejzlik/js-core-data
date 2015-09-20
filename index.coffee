@@ -5,6 +5,7 @@ ManagedObject = require('./lib/ManagedObject')
 Predicate = require('./lib/FetchClasses/Predicate')
 EntityDescription = require('./lib/Descriptors/EntityDescription')
 AttributeDescription = require('./lib/Descriptors/AttributeDescription')
+AttributeType = require('./lib/Descriptors/AttributeType')
 RelationshipDescription = require('./lib/Descriptors/RelationshipDescription')
 Pool = require('generic-pool')
 url = require('url')
@@ -14,6 +15,9 @@ Q = require('q')
 
 
 class CoreData
+  @registerType:(type)->
+    AttributeDescription.registerType(type)
+
   constructor:(@storeURL,@options = {})->
     if @options.logging is undefined
       @options.logging = console.log
@@ -54,7 +58,6 @@ class CoreData
   createContext:()->
     return new ManagedObjectContext(@_persistentStoreCoordinator())
 
-
   _persistentStoreCoordinator:()->
     if not @persistentStoreCoordinator
       @persistentStoreCoordinator = new PersistentStoreCoordinator(@model,@options)
@@ -79,6 +82,7 @@ CoreData.ManagedObjectModel = ManagedObjectModel
 CoreData.ManagedObjectContext = ManagedObjectContext
 CoreData.ManagedObject = ManagedObject
 CoreData.Predicate = Predicate
+CoreData.AttributeType = AttributeType
 CoreData.debug = process.env.NOD_ENV isnt 'production'
 
 module.exports = CoreData

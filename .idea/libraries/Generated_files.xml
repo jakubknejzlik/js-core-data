@@ -2,30 +2,31 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/lib/stores/PersistentStore.js" />
         <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffeeify/main.js" />
-        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/GenericSQLStore.js" />
         <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/node_modules/resolve/test/resolver/mug.js" />
         <item url="file://$PROJECT_DIR$/lib/FetchClasses/Predicate.js" />
         <item url="file://$PROJECT_DIR$/lib/Descriptors/RelationshipDescription.js" />
         <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/node_modules/resolve/test/resolver/cup.js" />
         <item url="file://$PROJECT_DIR$/lib/FetchClasses/SortDescriptor.js" />
-        <item url="file://$PROJECT_DIR$/lib/ManagedObjectID.js" />
-        <item url="file://$PROJECT_DIR$/index.js" />
+        <item url="file://$PROJECT_DIR$/lib/Descriptors/AttributeDescription.js" />
         <item url="file://$PROJECT_DIR$/lib/Descriptors/EntityDescription.js" />
-        <item url="file://$PROJECT_DIR$/lib/ManagedObjectModel.js" />
-        <item url="file://$PROJECT_DIR$/lib/FetchRequest.js" />
         <item url="file://$PROJECT_DIR$/lib/Parsers/ModelYamlParser.js" />
-        <item url="file://$PROJECT_DIR$/lib/PersistentStoreCoordinator.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffee_bin/main.js" />
         <item url="file://$PROJECT_DIR$/index.js" />
-        <item url="file://$PROJECT_DIR$/lib/ManagedObject.js" />
         <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeTransformer.js" />
-        <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffee_bin/x.js" />
         <item url="file://$PROJECT_DIR$/lib/Helpers/AttributeValidator.js" />
-        <item url="file://$PROJECT_DIR$/lib/ManagedObjectContext.js" />
         <item url="file://$PROJECT_DIR$/lib/stores/Defaults/SQLiteStore.js" />
         <item url="file://$PROJECT_DIR$/lib/stores/Defaults/MySQLStore.js" />
+        <item url="file://$PROJECT_DIR$/lib/stores/PersistentStore.js" />
+        <item url="file://$PROJECT_DIR$/lib/stores/Defaults/GenericSQLStore.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObjectID.js" />
+        <item url="file://$PROJECT_DIR$/lib/Descriptors/AttributeDescriptionType.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObjectModel.js" />
+        <item url="file://$PROJECT_DIR$/lib/FetchRequest.js" />
+        <item url="file://$PROJECT_DIR$/lib/PersistentStoreCoordinator.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffee_bin/main.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObject.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffee_bin/x.js" />
+        <item url="file://$PROJECT_DIR$/lib/ManagedObjectContext.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
@@ -35,7 +36,7 @@
       <root url="file://$PROJECT_DIR$/lib/Descriptors/RelationshipDescription.js" />
       <root url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/node_modules/resolve/test/resolver/cup.js" />
       <root url="file://$PROJECT_DIR$/lib/FetchClasses/SortDescriptor.js" />
-      <root url="file://$PROJECT_DIR$/index.js" />
+      <root url="file://$PROJECT_DIR$/lib/Descriptors/AttributeDescription.js" />
       <root url="file://$PROJECT_DIR$/lib/Descriptors/EntityDescription.js" />
       <root url="file://$PROJECT_DIR$/lib/Parsers/ModelYamlParser.js" />
       <root url="file://$PROJECT_DIR$/index.js" />
@@ -47,6 +48,7 @@
       <root url="file://$PROJECT_DIR$/lib/stores/Defaults/GenericSQLStore.js" />
       <root url="file://$PROJECT_DIR$/lib/ManagedObjectID.js" />
       <root url="file://$PROJECT_DIR$/lib/ManagedObjectModel.js" />
+      <root url="file://$PROJECT_DIR$/lib/Descriptors/AttributeType.js" />
       <root url="file://$PROJECT_DIR$/lib/FetchRequest.js" />
       <root url="file://$PROJECT_DIR$/lib/PersistentStoreCoordinator.js" />
       <root url="file://$PROJECT_DIR$/node_modules/watchify/node_modules/browserify/test/coffee_bin/main.js" />

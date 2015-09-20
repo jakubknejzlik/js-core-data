@@ -7,7 +7,7 @@ Predicate = require('./../../FetchClasses/Predicate')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
-AttributeTransformer = require('../../Helpers/AttributeTransformer')
+#AttributeTransformer = require('../../Helpers/AttributeTransformer')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -105,6 +105,8 @@ class GenericSQLStore extends IncrementalStore
               _row[columnName] = row[columnName]
           objectID = @_permanentIDForRecord(request.entity,row._id)
 #          @fetchedObjectValuesCache[objectID.toString()] = _row;
+          for attribute in request.entity.attributes
+            _row[attribute.name] = @decodeValueForAttribute(_row[attribute.name],attribute)
           objectValues[objectID.toString()] = _row;
           ids.push(objectID)
         callback(null,ids,objectValues)
@@ -122,8 +124,13 @@ class GenericSQLStore extends IncrementalStore
     updates = []
     updateValues = []
     for key,value of values
-      updates.push('`' + key + '` = ?')
-      updateValues.push(value)
+      attribute = updatedObject.entity.getAttribute(key)
+      if attribute
+        updates.push('`' + key + '` = ?')
+        updateValues.push(attribute.encode(@encodeValueForAttribute(value,attribute)))
+      else
+        updates.push('`' + key + '` = ?')
+        updateValues.push(value)
     if updates.length > 0
       return ['UPDATE `' + formattedTableName + '` SET ' + updates.join(',') + ' WHERE `_id` = ' + id,updateValues]
     else
@@ -268,7 +275,8 @@ class GenericSQLStore extends IncrementalStore
   _valuesWithRelationshipsForObject:(object)->
     data = {}
     for key,value of object._changes
-      data[key] = AttributeTransformer.persistentValueForAttribute(value,object.entity.attributesByName()[key]);
+      attribute = object.entity.getAttribute(key)
+      data[key] = @decodeValueForAttribute(value,attribute);
 #    console.log('xxx',object.entity.name)
     for relation in object.entity.relationships
       if not relation.toMany
@@ -315,39 +323,39 @@ class GenericSQLStore extends IncrementalStore
 
   _columnDefinitionForAttribute:(attribute)->
     type = null
-    switch attribute.type
+    switch attribute.persistentType
       when 'bool','boolean'
         type = 'tinyint(1)'
       when 'string','email','url'
-        type = 'varchar(' + (attribute.options.length or 255) + ')'
+        type = 'varchar(' + (attribute.info.length or 255) + ')'
       when 'text'
-        if attribute.options.length
-          if attribute.options.length < 256
+        if attribute.info.length
+          if attribute.info.length < 256
             type = 'tinytext'
-          else if attribute.options.length < 65536
+          else if attribute.info.length < 65536
             type = 'text'
-          else if attribute.options.length < 16777216
+          else if attribute.info.length < 16777216
             type = 'mediumtext'
-          else if attribute.options.length < 4294967296
+          else if attribute.info.length < 4294967296
             type = 'longtext'
         else
           type = 'longtext'
       when 'data'
-        if attribute.options.length
-          if attribute.options.length < 256
+        if attribute.info.length
+          if attribute.info.length < 256
             type = 'tinyblob'
-          else if attribute.options.length < 65536
+          else if attribute.info.length < 65536
             type = 'blob'
-          else if attribute.options.length < 16777216
+          else if attribute.info.length < 16777216
             type = 'mediumblob'
-          else if attribute.options.length < 4294967296
+          else if attribute.info.length < 4294967296
             type = 'longblob'
         else
           type = 'longblob'
       when 'int','integer'
-        type = 'int('+(attribute.options.length or 11)+')'
+        type = 'int('+(attribute.info.length or 11)+')'
       when 'decimal'
-        type = 'decimal('+(attribute.options.digits or 20)+','+(attribute.options.decimals or 5)+')'
+        type = 'decimal('+(attribute.info.digits or 20)+','+(attribute.info.decimals or 5)+')'
       when 'float'
         type = 'float'
       when 'double'
@@ -365,6 +373,12 @@ class GenericSQLStore extends IncrementalStore
     if attribute.info.unique
       definition += ' UNIQUE'
     return definition
+
+  encodeValueForAttribute:(value,attribute)->
+    return value
+
+  decodeValueForAttribute:(value,attribute)->
+    return value
 
   _indexesForEntity:(entity)->
     indexes = _.clone(entity.indexes)

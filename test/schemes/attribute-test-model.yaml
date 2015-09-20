@@ -10,23 +10,23 @@ Hello:
     bool: bool
     decim:
       type: decimal
-      options:
-        decimals: 2
-        digits: 5
+      decimals: 2
+      digits: 5
     float: float
     double: double
     email: email
     url: url
-    date: date
+    date:
+      type: date
+      default: now
     timestamp: timestamp
     data:
       type: data
     shortString:
       type: string
-      options:
-        minLength: 2
-        maxLength: 20
-        regexp: /^(aa)+$/i
+      minLength: 2
+      maxLength: 20
+      regexp: /^(aa)+$/i
     transformable:
       type: transformable
   relations:

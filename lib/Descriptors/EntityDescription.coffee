@@ -51,8 +51,14 @@ class EntityDescription
   addIndex:(name,type = 'key',columns)->
     @indexes.push({name:name,type:type,columns:columns})
 
+  getAttribute: (name)->
+    @_attributesByName[name]
+
   attributesByName : ->
     @_attributesByName
+
+  getRelationship: (name)->
+    @_relationshipsByName[name]
 
   relationshipsByName : ->
     @_relationshipsByName

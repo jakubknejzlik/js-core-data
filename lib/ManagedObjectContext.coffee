@@ -4,7 +4,7 @@ FetchRequest = require('./FetchRequest')
 Predicate = require('./FetchClasses/Predicate')
 SortDescriptor = require('./FetchClasses/SortDescriptor')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
-AttributeTransformer = require('./Helpers/AttributeTransformer')
+#AttributeTransformer = require('./Helpers/AttributeTransformer')
 
 async = require('async')
 ac = require('array-control')
@@ -32,7 +32,7 @@ class ManagedObjectContext extends Object
       object._isFault = no
       values = {}
       for attributeDescription in object.entity.attributes
-        values[attributeDescription.name] = AttributeTransformer.defaultValueForAttribute(attributeDescription)
+        values[attributeDescription.name] = attributeDescription.defaultValue()
       object._data = {}
       object.setValues(values)
       object._isInserted = yes
