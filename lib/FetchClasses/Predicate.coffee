@@ -22,7 +22,9 @@ class Predicate extends Object
 
       args = [format]
       for variable in @variables
-        if variable instanceof Date
+        if variable is undefined or variable is null
+          variable = null
+        else if variable instanceof Date
           variable = moment(variable).format(DATE_FORMAT)
         else if variable instanceof ManagedObject
           variable = variable.objectID.recordId()

@@ -37,4 +37,8 @@ describe('Predicate',function(){
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
         assert.equal(predicate.toString(),'object_id = NaN AND objectID_id = NaN');
     })
+    it('should correctly format undefined values',function(){
+        var predicate = new Predicate('attr1 = %d AND attr2 = %s AND attr3 = %@','aa',undefined,undefined);
+        assert.equal(predicate.toString(),"attr1 = NaN AND attr2 = 'null' AND attr3_id = 0");
+    })
 })
