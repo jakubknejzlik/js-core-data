@@ -18,12 +18,14 @@ class Predicate extends Object
     if @format instanceof ManagedObjectID
       return '`_id` = ' + @format.recordId();
     else
-      format = @format.replace(/[\s]*=[\s]*%@/g,'_id = %d').replace(/%s/g,'\'%s\'')
+      format = @format.replace(/[\s]*=[\s]*%@/g,'_id = %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s')
 
       args = [format]
       for variable in @variables
         if variable is undefined or variable is null
           variable = null
+        else if util.isArray(variable)
+          variable = JSON.stringify(variable)
         else if variable instanceof Date
           variable = moment(variable).format(DATE_FORMAT)
         else if variable instanceof ManagedObject
@@ -33,6 +35,8 @@ class Predicate extends Object
         else if variable._isAMomentObject
           variable = variable.format(DATE_FORMAT)
         args.push(variable)
-      util.format.apply(util.format,args);
+      format = util.format.apply(util.format,args);
+
+      return format
 
 module.exports = Predicate

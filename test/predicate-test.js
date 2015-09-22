@@ -41,4 +41,8 @@ describe('Predicate',function(){
         var predicate = new Predicate('attr1 = %d AND attr2 = %s AND attr3 = %@','aa',undefined,undefined);
         assert.equal(predicate.toString(),"attr1 = NaN AND attr2 = 'null' AND attr3_id = 0");
     })
+    it('should correctly format undefined arrays',function(){
+        var predicate = new Predicate('attr1 IN %a AND attr2 IN %a AND attr3 IN %a',['a','b'],[1,2],['aa',1]);
+        assert.equal(predicate.toString(),"attr1 IN [\"a\",\"b\"] AND attr2 IN [1,2] AND attr3 IN [\"aa\",1]");
+    })
 })
