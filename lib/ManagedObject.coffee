@@ -44,16 +44,20 @@ class ManagedObject extends Object
       if values[attributeDescription.name]? and (not allowedAttributes or attributeDescription.name in allowedAttributes)
         @[setterFnName](values[attributeDescription.name])
 
-  getValues:(options = {})->
+  getValues:(allowedAttributes,options = {})->
+    if not Array.isArray(allowedAttributes)
+      options = allowedAttributes or {}
+      allowedAttributes = null
     @fetchData() if @isFault
     values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
-      getterFnName = 'get'+capitalizedString(attributeDescription.name)
-      value = @[getterFnName]()
-      if value?
-        values[attributeDescription.name] = value
-      else
-        values[attributeDescription.name] = null
+      if not allowedAttributes or attributeDescription.name in allowedAttributes
+        getterFnName = 'get'+capitalizedString(attributeDescription.name)
+        value = @[getterFnName]()
+        if value?
+          values[attributeDescription.name] = value
+        else
+          values[attributeDescription.name] = null
     if not options.noRelations
       for relationship in @entity.relationships
         if not relationship.toMany

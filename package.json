@@ -27,6 +27,7 @@
     "yaml-config": "^0.3.0"
   },
   "devDependencies": {
+    "memwatch-next": "^0.2.9",
     "mocha": "^2.3.2",
     "mysql": "^2.8.0",
     "sqlite3": "^3.0.9"

@@ -66,6 +66,30 @@ describe('attributes',function(){
             assert.notEqual(obj.date,null)
         })
 
+
+        it('should assign only allowed attributes',function(){
+            var context = new ManagedObjectContext(storeCoordinator)
+            var obj = context.createObjectWithName('Hello')
+            obj.setValues({
+                int:123,
+                bool:true
+            },['int'])
+            assert.equal(obj.int,123)
+            assert.equal(obj.bool,null)
+        })
+
+        it('should assign only allowed attributes',function(){
+            var context = new ManagedObjectContext(storeCoordinator)
+            var obj = context.createObjectWithName('Hello')
+            obj.setValues({
+                int:123,
+                bool:true
+            })
+            var values = obj.getValues(['int'])
+            assert.equal(values.int,123)
+            assert.equal(values.bool,null)
+        })
+
         it('should create object and assign all valid values',function(done){
             var context = new ManagedObjectContext(storeCoordinator)
             var obj = context.createObjectWithName('Hello')
