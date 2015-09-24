@@ -25,7 +25,7 @@ describe('core module',function(){
         },{
             indexes:[
                 'name',
-                {name:'compound',columns:['name','identifier']}
+                {columns:['name','identifier']}
             ]
         })
 

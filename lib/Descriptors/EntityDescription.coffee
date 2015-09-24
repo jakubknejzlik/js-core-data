@@ -49,6 +49,8 @@ class EntityDescription
     this
 
   addIndex:(name,type = 'key',columns)->
+    if not name
+      name = columns.join('_')
     @indexes.push({name:name,type:type,columns:columns})
 
   getAttribute: (name)->
