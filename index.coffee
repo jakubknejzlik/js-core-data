@@ -55,6 +55,22 @@ class CoreData
     relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
     entity.addRelationship(relationship)
 
+  defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})
+
+  defineRelationshipToOne:(entity,destinationEntity,name,inverse)->
+    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:no})
+
+  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+    @defineRelationshipToOne(destinationEntity,entity,inverse,name)
+  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+
   createContext:()->
     return new ManagedObjectContext(@_persistentStoreCoordinator())
 

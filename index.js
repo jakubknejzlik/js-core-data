@@ -88,6 +88,35 @@
       return entity.addRelationship(relationship);
     };
 
+    CoreData.prototype.defineRelationshipToMany = function(entity, destinationEntity, name, inverse) {
+      return this.defineRelationship(entity, destinationEntity, name, {
+        inverse: inverse,
+        toMany: true
+      });
+    };
+
+    CoreData.prototype.defineRelationshipToOne = function(entity, destinationEntity, name, inverse) {
+      return this.defineRelationship(entity, destinationEntity, name, {
+        inverse: inverse,
+        toMany: false
+      });
+    };
+
+    CoreData.prototype.defineRelationshipOneToMany = function(entity, destinationEntity, name, inverse) {
+      this.defineRelationshipToOne(entity, destinationEntity, name, inverse);
+      return this.defineRelationshipToMany(destinationEntity, entity, inverse, name);
+    };
+
+    CoreData.prototype.defineRelationshipManyToOne = function(entity, destinationEntity, name, inverse) {
+      this.defineRelationshipToMany(entity, destinationEntity, name, inverse);
+      return this.defineRelationshipToOne(destinationEntity, entity, inverse, name);
+    };
+
+    CoreData.prototype.defineRelationshipManyToMany = function(entity, destinationEntity, name, inverse) {
+      this.defineRelationshipToMany(entity, destinationEntity, name, inverse);
+      return this.defineRelationshipToMany(destinationEntity, entity, inverse, name);
+    };
+
     CoreData.prototype.createContext = function() {
       return new ManagedObjectContext(this._persistentStoreCoordinator());
     };
