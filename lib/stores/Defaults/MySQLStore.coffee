@@ -29,8 +29,6 @@ class MySQLStore extends GenericSQLStore
     schema = {}
     sqls = []
 
-    schema['_meta'] = 'CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8'
-
     for key,entity of objectModel.entities
       tableName = @_formatTableName(entity.name)
       parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']
@@ -68,11 +66,26 @@ class MySQLStore extends GenericSQLStore
 
     for key,sql of schema
       sqls.push(sql);
-    async.forEachSeries(sqls,(sql,cb)=>
-        @connection.sendRawQuery(sql,cb)
-      ,(err)->
-        if callback
-          callback(err)
+
+    sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
+    sqls.push('INSERT INTO `_meta` VALUES(\'model_version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
+
+    @connection.createTransaction((transaction)=>
+      async.forEachSeries(sqls,(sql,cb)=>
+        transaction.sendQuery(sql,cb)
+      ,(err)=>
+        if err
+          transaction.rollback(()=>
+            if callback
+              callback(err)
+            @connection.releaseTransaction(transaction)
+          )
+        else
+          transaction.commit(()=>
+            callback()
+            @connection.releaseTransaction(transaction)
+          )
+      )
     )
 
 

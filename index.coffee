@@ -19,9 +19,11 @@ class CoreData
     AttributeDescription.registerType(type)
 
   constructor:(@storeURL,@options = {})->
+    @modelVersion = 'default'
     if @options.logging is undefined
       @options.logging = console.log
-    @model = new ManagedObjectModel(@options.modelFile, @options.modelClasses)
+    @models = {}
+    @model = @models[@modelVersion] = new ManagedObjectModel(@options.modelFile, @options.modelClasses, @modelVersion)
 
   syncSchema:(options,callback)->
     deferred = Q.defer()
@@ -39,6 +41,14 @@ class CoreData
         deferred.resolve()
     )
     return deferred.promise.nodeify(callback)
+
+  setModelVersion:(version)->
+    @modelVersion = version
+    @model = @models[@modelVersion]
+
+  createModel:(modelVersion)->
+    @models[modelVersion] = new ManagedObjectModel(null, null, @modelVersion)
+    return @models[modelVersion]
 
   defineEntity:(entityName,attributes,options = {})->
     return @model.defineEntity(entityName,attributes,options)

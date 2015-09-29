@@ -29,8 +29,6 @@ class SQLiteStore extends GenericSQLStore
     schema = {}
     sqls = []
 
-    schema['_meta'] = 'CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))'
-
     for key,entity of objectModel.entities
       tableName = @_formatTableName(entity.name)
       parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
@@ -55,8 +53,6 @@ class SQLiteStore extends GenericSQLStore
       for index in @_indexesForEntity(entity)
         sql +=";CREATE INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
 
-      console.log(sql)
-
       schema[tableName] = sql
 
       for key,relationship of entity.relationships
@@ -71,11 +67,26 @@ class SQLiteStore extends GenericSQLStore
 
     for key,sql of schema
       sqls.push(sql);
-    async.forEachSeries(sqls,(sql,cb)=>
-      @connection.sendRawQuery(sql,cb)
-    ,(err)->
-      if callback
-        callback(err)
+
+    sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
+    sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'model_version\',\'' + objectModel.version + '\')')
+
+    @connection.createTransaction((transaction)=>
+      async.forEachSeries(sqls,(sql,cb)=>
+        transaction.sendQuery(sql,cb)
+      ,(err)=>
+        if err
+          transaction.rollback(()=>
+            if callback
+              callback(err)
+            @connection.releaseTransaction(transaction)
+          )
+        else
+          transaction.commit(()=>
+            callback()
+            @connection.releaseTransaction(transaction)
+          )
+      )
     )
 
 

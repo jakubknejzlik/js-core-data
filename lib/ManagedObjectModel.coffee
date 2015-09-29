@@ -62,8 +62,12 @@ class ManagedObjectModel extends Object
 
     Subclass
 
-  createMigration:(targetModel)->
+  createMigrationTo:(targetModel)->
     migration = new MigrationDescription(@,targetModel)
+    @migrations.push(migration)
+    return migration
+  createMigrationFrom:(sourceModel)->
+    migration = new MigrationDescription(sourceModel,@)
     @migrations.push(migration)
     return migration
 

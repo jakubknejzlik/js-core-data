@@ -15,11 +15,11 @@ class MigrationDescription
   removeEntity:(name)->
 
 
-  addColumn:(entityName,name)->
+  addAttribute:(entityName,name)->
 
-  renameColumn:(entityName,oldName,newName)->
+  renameAttribute:(entityName,oldName,newName)->
 
-  removeColumn:(entityName,name)->
+  removeAttribute:(entityName,name)->
 
 
 
