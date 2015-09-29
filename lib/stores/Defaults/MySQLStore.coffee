@@ -29,6 +29,8 @@ class MySQLStore extends GenericSQLStore
     schema = {}
     sqls = []
 
+    schema['_meta'] = 'CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8'
+
     for key,entity of objectModel.entities
       tableName = @_formatTableName(entity.name)
       parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']

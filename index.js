@@ -63,29 +63,17 @@
     };
 
     CoreData.prototype.defineEntity = function(entityName, attributes, options) {
-      var entity;
       if (options == null) {
         options = {};
       }
-      options.columns = attributes;
-      entity = new EntityDescription(entityName, options);
-      this.model.addEntity(entity);
-      return entity;
+      return this.model.defineEntity(entityName, attributes, options);
     };
 
     CoreData.prototype.defineRelationship = function(entity, destinationEntity, name, options) {
-      var relationship;
       if (options == null) {
         options = {};
       }
-      if (typeof entity === 'string') {
-        entity = this.model.entities[entity];
-      }
-      if (typeof destinationEntity === 'string') {
-        destinationEntity = this.model.entities[destinationEntity];
-      }
-      relationship = new RelationshipDescription(name, destinationEntity, options.toMany, options.inverse, entity);
-      return entity.addRelationship(relationship);
+      return this.model.defineRelationship(entity, destinationEntity, name, options);
     };
 
     CoreData.prototype.defineRelationshipToMany = function(entity, destinationEntity, name, inverse) {

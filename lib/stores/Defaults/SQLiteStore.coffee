@@ -29,6 +29,8 @@ class SQLiteStore extends GenericSQLStore
     schema = {}
     sqls = []
 
+    schema['_meta'] = 'CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))'
+
     for key,entity of objectModel.entities
       tableName = @_formatTableName(entity.name)
       parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']

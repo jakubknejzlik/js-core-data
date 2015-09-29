@@ -1,13 +1,16 @@
 EntityDescription = require('./Descriptors/EntityDescription')
+RelationshipDescription = require('./Descriptors/RelationshipDescription')
+MigrationDescription = require('./Descriptors/MigrationDescription')
 ManagedObject = require('./ManagedObject')
 path = require('path')
 fs = require('fs')
 util = require('util')
 
 class ManagedObjectModel extends Object
-  constructor:(scheme = null,modelClasses) ->
+  constructor:(scheme = null,modelClasses, @version = 'unknown') ->
     @entities = {}
     @classes = {}
+    @migrations = []
     @modelClasses = modelClasses or {}
     if scheme
       if fs.existsSync(scheme)
@@ -59,6 +62,11 @@ class ManagedObjectModel extends Object
 
     Subclass
 
+  createMigration:(targetModel)->
+    migration = new MigrationDescription(@,targetModel)
+    @migrations.push(migration)
+    return migration
+
   _entityObjectClass:(entity)->
     if entity.objectClass
       return entity.objectClass
@@ -94,5 +102,39 @@ class ManagedObjectModel extends Object
     context.insertObject(object)
 
     object
+
+
+
+
+  defineEntity:(entityName,attributes,options = {})->
+    options.columns = attributes
+    entity = new EntityDescription(entityName,options);
+    @addEntity(entity)
+
+    return entity
+
+  defineRelationship:(entity,destinationEntity,name,options = {})->
+    if typeof entity is 'string'
+      entity = @entities[entity]
+    if typeof destinationEntity is 'string'
+      destinationEntity = @entities[destinationEntity]
+    relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
+    entity.addRelationship(relationship)
+
+  defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})
+
+  defineRelationshipToOne:(entity,destinationEntity,name,inverse)->
+    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:no})
+
+  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+    @defineRelationshipToOne(destinationEntity,entity,inverse,name)
+  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
 
 module.exports = ManagedObjectModel;

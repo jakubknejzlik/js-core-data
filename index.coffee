@@ -41,19 +41,10 @@ class CoreData
     return deferred.promise.nodeify(callback)
 
   defineEntity:(entityName,attributes,options = {})->
-    options.columns = attributes
-    entity = new EntityDescription(entityName,options);
-    @model.addEntity(entity)
-
-    return entity
+    return @model.defineEntity(entityName,attributes,options)
 
   defineRelationship:(entity,destinationEntity,name,options = {})->
-    if typeof entity is 'string'
-      entity = @model.entities[entity]
-    if typeof destinationEntity is 'string'
-      destinationEntity = @model.entities[destinationEntity]
-    relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
-    entity.addRelationship(relationship)
+    @model.defineRelationship(entity,destinationEntity,name,options)
 
   defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
     @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})
