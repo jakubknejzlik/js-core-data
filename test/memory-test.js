@@ -8,7 +8,7 @@ var memwatch = require('memwatch-next');
 
 describe('memory',function(){
 
-    var cd = new CoreData('sqlite://:memory:')
+    var cd = new CoreData('sqlite://:memory:',{logging:false})
 
     before(function(done){
         cd.defineEntity('MemoryTest',{
@@ -21,7 +21,7 @@ describe('memory',function(){
         var hd = new memwatch.HeapDiff();
         var context = cd.createContext();
 
-        for(var i = 0;i < 9999;i++){
+        for(var i = 0;i < 999;i++){
             var obj = context.create('MemoryTest');
             obj.attr1 = 'test ' + i;
         }
@@ -34,7 +34,7 @@ describe('memory',function(){
     it('should release memory on context destroy (saved context)',function(done){
         var context = cd.createContext();
 
-        for(var i = 0;i < 9999;i++){
+        for(var i = 0;i < 999;i++){
             var obj = context.create('MemoryTest');
             obj.attr1 = 'test ' + i;
         }
