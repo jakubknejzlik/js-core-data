@@ -5,7 +5,7 @@ var assert = require("assert"),
     CoreData = require('../index');
 
 describe('SQL Store',function(){
-    var cd = new CoreData('sqlite://:memory:')
+    var cd = new CoreData('sqlite://:memory:',{logging:false})
 
     var User = cd.defineEntity('User',{username:'string'})
     var Company = cd.defineEntity('Company',{name:'string'})

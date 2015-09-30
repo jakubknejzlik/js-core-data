@@ -5,7 +5,7 @@ var CoreData = require('../index');
 //STORE_URL = 'sqlite://:memory:'
 STORE_URL = 'mysql://root@localhost/test'
 
-describe.only('migrations',function(){
+describe('migrations',function(){
 
     var db = new CoreData(STORE_URL)
 
@@ -39,8 +39,8 @@ describe.only('migrations',function(){
         db.syncSchema({ignoreVersion:true},done);
     })
 
-    it('should sync schema from 0.1 to 0.2',function(done){
-        db.setModelVersion('0.2');
-        db.syncSchema(done);
-    })
+//    it('should sync schema from 0.1 to 0.2',function(done){
+//        db.setModelVersion('0.2');
+//        db.syncSchema(done);
+//    })
 })

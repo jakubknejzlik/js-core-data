@@ -7,7 +7,7 @@ STORE_URL = 'mysql://root@localhost/test'
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(STORE_URL)
+    var db = new CoreData(STORE_URL,{logging:false})
 
     before(function(done){
         var User = db.defineEntity('User',{

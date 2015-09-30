@@ -28,7 +28,8 @@ describe('Context', function(){
 
         before(function(done){
             coreData = new CoreData(mysql_store_url,{
-                modelFile:__dirname + '/schemes/car-model.yaml'
+                modelFile:__dirname + '/schemes/car-model.yaml',
+                logging:false
             })
             coreData.syncSchema({force:true}).then(done,done);
         })
