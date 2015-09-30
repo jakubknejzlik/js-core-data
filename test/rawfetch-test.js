@@ -2,8 +2,8 @@ var assert = require('assert');
 
 var CoreData = require('../index');
 
-//STORE_URL = 'sqlite://:memory:'
-STORE_URL = 'mysql://root@localhost/test'
+STORE_URL = 'sqlite://:memory:'
+//STORE_URL = 'mysql://root@localhost/test'
 
 describe('raw fetch',function(){
 
@@ -40,7 +40,7 @@ describe('raw fetch',function(){
 
     it('fetch entity',function(done){
         context = db.createContext()
-        context.fetch('User',{group:'SELF.firstname',fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'CONCAT(SELF.firstname,\' \',SELF.lastname)'},order:'SELF.firstname'}).then(function(data){
+        context.fetch('User',{group:'SELF.firstname',fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname || \' \' || SELF.lastname'},order:'SELF.firstname'}).then(function(data){
             assert.equal(data.length,2);
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');

@@ -2,8 +2,8 @@ var assert = require('assert');
 
 var CoreData = require('../index');
 
-//STORE_URL = 'sqlite://:memory:'
-STORE_URL = 'mysql://root@localhost/test'
+STORE_URL = 'sqlite://:memory:'
+//STORE_URL = 'mysql://root@localhost/test'
 
 describe('migrations',function(){
 
