@@ -43,6 +43,8 @@ class CoreData
     return deferred.promise.nodeify(callback)
 
   setModelVersion:(version)->
+    if not @models[version]
+      throw new Error('unknown model version ' + version)
     @modelVersion = version
     @model = @models[@modelVersion]
 
@@ -57,20 +59,19 @@ class CoreData
     @model.defineRelationship(entity,destinationEntity,name,options)
 
   defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})
+    @model.defineRelationshipToMany(entity,destinationEntity,name,inverse)
 
   defineRelationshipToOne:(entity,destinationEntity,name,inverse)->
-    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:no})
+    @model.defineRelationshipToOne(entity,destinationEntity,name,inverse)
 
   defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
-    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+    @model.defineRelationshipOneToMany(entity,destinationEntity,name,inverse)
+
   defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
-    @defineRelationshipToOne(destinationEntity,entity,inverse,name)
+    @model.defineRelationshipManyToOne(entity,destinationEntity,name,inverse)
+
   defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
-    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+    @model.defineRelationshipManyToMany(entity,destinationEntity,name,inverse)
 
   createContext:()->
     return new ManagedObjectContext(@_persistentStoreCoordinator())

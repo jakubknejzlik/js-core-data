@@ -94,7 +94,7 @@ class ManagedObjectContext extends Object
       callback = options
       options = undefined
 
-    @storeCoordinator.execute(@_getFetchRequestRequest(entityName,options),@,(err,objects)=>
+    @storeCoordinator.execute(@_getFetchRequest(entityName,options),@,(err,objects)=>
       if err
         deferred.reject(err)
       else
@@ -103,7 +103,23 @@ class ManagedObjectContext extends Object
     )
     return deferred.promise.nodeify(callback)
 
-  _getFetchRequestRequest:(entityName,options)->
+  fetch: (entityName,options,callback)->
+    deferred = Q.defer()
+    if typeof options is 'function'
+      callback = options
+      options = undefined
+
+    request = @_getFetchRequest(entityName,options)
+    request.resultType = FetchRequest.RESULT_TYPE.VALUES
+    @storeCoordinator.execute(request,@,(err,values)=>
+      if err
+        deferred.reject(err)
+      else
+        deferred.resolve(values)
+    )
+    return deferred.promise.nodeify(callback)
+
+  _getFetchRequest:(entityName,options)->
     options = options or {}
     predicate = null
     sortDescriptors = []
@@ -115,7 +131,7 @@ class ManagedObjectContext extends Object
       where.unshift(null)
       predicate = new (Function.prototype.bind.apply(Predicate, where))
 
-    sort = options.sort
+    sort = options.sort or options.order
     if typeof sort is 'string'
       sort = [sort]
     if Array.isArray(sort)
@@ -136,6 +152,9 @@ class ManagedObjectContext extends Object
 
     request.setLimit(options.limit) if options.limit
     request.setOffset(options.offset) if options.offset
+
+    request.fields = options.fields
+    request.group = options.group
 
     return request
 
@@ -177,7 +196,7 @@ class ManagedObjectContext extends Object
       callback = options
       options = undefined
 
-    @storeCoordinator.numberOfObjectsForFetchRequest(@_getFetchRequestRequest(entityName,options),(err,count)->
+    @storeCoordinator.numberOfObjectsForFetchRequest(@_getFetchRequest(entityName,options),(err,count)->
       if err
         deferred.reject(err)
       else

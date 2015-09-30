@@ -2,9 +2,12 @@ var assert = require('assert');
 
 var CoreData = require('../index');
 
-describe.only('migrations',function(){
+STORE_URL = 'sqlite://:memory:'
+//STORE_URL = 'mysql://root@localhost/test'
 
-    var db = new CoreData('sqlite://:memory:')
+describe('migrations',function(){
+
+    var db = new CoreData(STORE_URL)
 
     before(function(){
         model1 = db.createModel('0.1');
@@ -32,6 +35,11 @@ describe.only('migrations',function(){
     })
 
     it('should sync schema to 0.1',function(done){
+        db.setModelVersion('0.1');
+        db.syncSchema({ignoreVersion:true},done);
+    })
+
+    it('should sync schema from 0.1 to 0.2',function(done){
         db.setModelVersion('0.2');
         db.syncSchema(done);
     })

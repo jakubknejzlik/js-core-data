@@ -79,10 +79,12 @@ class PersistentStoreCoordinator extends Object
         return @_requestCompleted(callback,null,[obj])
 
     store = @persistentStores[0]
-    store.execute(request,context,(err,ObjectIDs,objectValues = {})=>
+    store.execute(request,context,(err,ObjectIDsOrValues,objectValues = {})=>
       return @_requestCompleted(callback,err) if err
+      if request.resultType is FetchRequest.RESULT_TYPE.VALUES
+        return callback(null,ObjectIDsOrValues)
       objects = []
-      for objectID in ObjectIDs
+      for objectID in ObjectIDsOrValues
         obj = @_objectFromContextCache(context,objectID)
         if obj
           objects.push(obj)

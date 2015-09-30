@@ -14,7 +14,7 @@ describe('memory',function(){
         cd.defineEntity('MemoryTest',{
             attr1:'string'
         })
-        cd.syncSchema(done);
+        cd.syncSchema({force:true},done);
     })
 
     it('should release memory on context destroy',function(){

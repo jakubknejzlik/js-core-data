@@ -20,11 +20,7 @@ class SQLiteStore extends GenericSQLStore
   createConnection:()->
     return new SQLiteConnection(@URL,this)
 
-  syncSchema: (options,callback)->
-    if typeof options is 'function'
-      callback = options
-      options = null
-    options = options or {}
+  createSchemaQueries: (options = {})->
     objectModel = @storeCoordinator.objectModel
     schema = {}
     sqls = []
@@ -38,7 +34,7 @@ class SQLiteStore extends GenericSQLStore
         if columnDefinition
           parts.push(columnDefinition);
         else
-          return callback(new Error('unknown attribute type ' + attribute.type))
+          throw new Error('unknown attribute type ' + attribute.type)
 
       for relationship in entity.relationships
         if not relationship.toMany
@@ -69,25 +65,9 @@ class SQLiteStore extends GenericSQLStore
       sqls.push(sql);
 
     sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
-    sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'model_version\',\'' + objectModel.version + '\')')
+    sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
 
-    @connection.createTransaction((transaction)=>
-      async.forEachSeries(sqls,(sql,cb)=>
-        transaction.sendQuery(sql,cb)
-      ,(err)=>
-        if err
-          transaction.rollback(()=>
-            if callback
-              callback(err)
-            @connection.releaseTransaction(transaction)
-          )
-        else
-          transaction.commit(()=>
-            callback()
-            @connection.releaseTransaction(transaction)
-          )
-      )
-    )
+    return sqls
 
 
 

@@ -20,11 +20,7 @@ class MySQLStore extends GenericSQLStore
   createConnection:()->
     return new MySQLConnection(@URL,this)
 
-  syncSchema: (options,callback)->
-    if typeof options is 'function'
-      callback = options
-      options = null
-    options = options or {}
+  createSchemaQueries: (options = {})->
     objectModel = @storeCoordinator.objectModel
     schema = {}
     sqls = []
@@ -38,7 +34,7 @@ class MySQLStore extends GenericSQLStore
         if columnDefinition
           parts.push(columnDefinition);
         else
-          return callback(new Error('unknown attribute type ' + attribute.type))
+          throw new Error('unknown attribute type ' + attribute.type)
 
       for index in @_indexesForEntity(entity)
         parts.push('KEY `'+index.name+'` (`'+index.columns.join('`,`')+'`)')
@@ -68,25 +64,9 @@ class MySQLStore extends GenericSQLStore
       sqls.push(sql);
 
     sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
-    sqls.push('INSERT INTO `_meta` VALUES(\'model_version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
+    sqls.push('INSERT INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
 
-    @connection.createTransaction((transaction)=>
-      async.forEachSeries(sqls,(sql,cb)=>
-        transaction.sendQuery(sql,cb)
-      ,(err)=>
-        if err
-          transaction.rollback(()=>
-            if callback
-              callback(err)
-            @connection.releaseTransaction(transaction)
-          )
-        else
-          transaction.commit(()=>
-            callback()
-            @connection.releaseTransaction(transaction)
-          )
-      )
-    )
+    return sqls
 
 
 class MySQLConnection extends Object

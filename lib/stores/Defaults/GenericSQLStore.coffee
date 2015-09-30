@@ -4,6 +4,7 @@ GenericPool = require('generic-pool')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
+FetchRequest = require('./../../FetchRequest')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
@@ -94,6 +95,10 @@ class GenericSQLStore extends IncrementalStore
       @connection.sendRawQuery(@sqlForFetchRequest(request),(err,rows)=>
         ids = []
         return callback(err) if err
+
+        if request.resultType is FetchRequest.RESULT_TYPE.VALUES
+          return callback(null,rows)
+
         objectValues = {}
         for row in rows
           _row = {}
@@ -147,13 +152,26 @@ class GenericSQLStore extends IncrementalStore
   sqlForFetchRequest: (request) ->
     query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
 
-    query.field(@tableAlias + '._id','_id')
-    for attribute in request.entity.attributes
-      query.field(@tableAlias + '.' + attribute.name,attribute.name)
-    for relationship in request.entity.relationships
-      if not relationship.toMany
-        columnName = _.singularize(relationship.name) + '_id'
-        query.field(@tableAlias + '.' + columnName,columnName)
+    if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
+      query.group('SELF._id')
+      query.field(@tableAlias + '._id','_id')
+      for attribute in request.entity.attributes
+        query.field(@tableAlias + '.' + attribute.name,attribute.name)
+      for relationship in request.entity.relationships
+        if not relationship.toMany
+          columnName = _.singularize(relationship.name) + '_id'
+          query.field(@tableAlias + '.' + columnName,columnName)
+    else
+      if not request.fields
+        query.field(@tableAlias + '.*')
+      else
+        for name,field of request.fields
+          query.field(field,name)
+      if request.group
+        query.group(request.group)
+
+
+
     if request.predicate
       query.where(request.predicate.toString())
 
@@ -168,7 +186,6 @@ class GenericSQLStore extends IncrementalStore
           column = @tableAlias + '.' + column
         query.order(column,descriptor.ascending)
 
-    query.group('SELF._id')
 
     return @_getRawTranslatedQueryWithJoins(query,request)
 
@@ -309,10 +326,6 @@ class GenericSQLStore extends IncrementalStore
 #    components = objectID.toString().split('/')
 #    components[components.length - 1].replace(/^[pt]/,'')
 
-
-  syncSchema: (options,callback)->
-    throw new Error('createConnection must be overriden')
-
   _relationshipByPriority: (relationship,inversedRelationship)->
     if relationship.name > inversedRelationship.name
       return relationship
@@ -380,12 +393,62 @@ class GenericSQLStore extends IncrementalStore
   decodeValueForAttribute:(value,attribute)->
     return value
 
+
   _indexesForEntity:(entity)->
     indexes = _.clone(entity.indexes)
     for attribute in entity.attributes
       if attribute.info.indexed
         indexes.push({name:attribute.name,columns:[attribute.name],type:'key'})
     return indexes
+
+
+
+# schema synchronization
+  syncSchema: (options,callback)->
+    if typeof options is 'function'
+      callback = options
+      options = null
+    options = options or {}
+
+    @getCurrentVersion((err,version)=>
+      if not version and not options.ignoreVersion and not options.force
+        callback(new Error('current version not found, rerun syncSchema with enabled option ignoreVersion'))
+      else if version isnt @storeCoordinator.objectModel.version or options.ignoreVersion or options.force
+        try
+          queries = @createSchemaQueries(options)
+        catch err
+          return callback(err)
+
+        @_runRawQueriesInTransaction(queries,callback)
+      else
+        callback(new Error('migrations not implemented'))
+    )
+
+  getCurrentVersion:(callback)->
+    query = squel.select().from('_meta').field('value').where('`key` = ?','version').limit(1)
+    @connection.sendRawQuery(query.toString(),(err,rows)->
+      return callback(err) if err
+      callback(null,rows[0]?.value)
+    )
+
+  _runRawQueriesInTransaction:(sqls,callback)->
+    @connection.createTransaction((transaction)=>
+      async.forEachSeries(sqls,(sql,cb)=>
+        transaction.sendQuery(sql,cb)
+      ,(err)=>
+        if err
+          transaction.rollback(()=>
+            if callback
+              callback(err)
+            @connection.releaseTransaction(transaction)
+          )
+        else
+          transaction.commit(()=>
+            callback()
+            @connection.releaseTransaction(transaction)
+          )
+      )
+    )
 
 
 

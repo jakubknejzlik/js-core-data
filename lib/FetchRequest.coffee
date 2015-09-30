@@ -8,6 +8,9 @@ class FetchRequest extends PersistentStoreRequest
     assert(@entity instanceof EntityDescription,'entity must be instance of EntityDescription')
     @limit = 0
     @offset = 0
+    @resultType = FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
+    @fields = null
+    @groupBy = null
 
   setLimit: (value)->
     @limit = value;
@@ -20,6 +23,11 @@ class FetchRequest extends PersistentStoreRequest
     @
   getOffset: ->
     @offset
+
+  @RESULT_TYPE = {
+    MANAGED_OBJECTS:1,
+    VALUES:2
+  }
 
 
 

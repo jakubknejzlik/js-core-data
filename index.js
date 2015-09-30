@@ -65,6 +65,9 @@
     };
 
     CoreData.prototype.setModelVersion = function(version) {
+      if (!this.models[version]) {
+        throw new Error('unknown model version ' + version);
+      }
       this.modelVersion = version;
       return this.model = this.models[this.modelVersion];
     };
@@ -89,32 +92,23 @@
     };
 
     CoreData.prototype.defineRelationshipToMany = function(entity, destinationEntity, name, inverse) {
-      return this.defineRelationship(entity, destinationEntity, name, {
-        inverse: inverse,
-        toMany: true
-      });
+      return this.model.defineRelationshipToMany(entity, destinationEntity, name, inverse);
     };
 
     CoreData.prototype.defineRelationshipToOne = function(entity, destinationEntity, name, inverse) {
-      return this.defineRelationship(entity, destinationEntity, name, {
-        inverse: inverse,
-        toMany: false
-      });
+      return this.model.defineRelationshipToOne(entity, destinationEntity, name, inverse);
     };
 
     CoreData.prototype.defineRelationshipOneToMany = function(entity, destinationEntity, name, inverse) {
-      this.defineRelationshipToOne(entity, destinationEntity, name, inverse);
-      return this.defineRelationshipToMany(destinationEntity, entity, inverse, name);
+      return this.model.defineRelationshipOneToMany(entity, destinationEntity, name, inverse);
     };
 
     CoreData.prototype.defineRelationshipManyToOne = function(entity, destinationEntity, name, inverse) {
-      this.defineRelationshipToMany(entity, destinationEntity, name, inverse);
-      return this.defineRelationshipToOne(destinationEntity, entity, inverse, name);
+      return this.model.defineRelationshipManyToOne(entity, destinationEntity, name, inverse);
     };
 
     CoreData.prototype.defineRelationshipManyToMany = function(entity, destinationEntity, name, inverse) {
-      this.defineRelationshipToMany(entity, destinationEntity, name, inverse);
-      return this.defineRelationshipToMany(destinationEntity, entity, inverse, name);
+      return this.model.defineRelationshipManyToMany(entity, destinationEntity, name, inverse);
     };
 
     CoreData.prototype.createContext = function() {
