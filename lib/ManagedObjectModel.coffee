@@ -122,7 +122,7 @@ class ManagedObjectModel extends Object
       entity = @entities[entity]
     if typeof destinationEntity is 'string'
       destinationEntity = @entities[destinationEntity]
-    console.log(entity.name,'=>',name,'=>',destinationEntity.name,'toMany:',options.toMany,'inverse:',options.inverse)
+#    console.log(entity.name,'=>',name,'=>',destinationEntity.name,'toMany:',options.toMany,'inverse:',options.inverse)
     relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
     entity.addRelationship(relationship)
 

@@ -30,6 +30,7 @@ describe('raw fetch',function(){
             var company = context.create('Company',{name:'John\'s company'});
             company.addUsers([user1,user2]);
             user1.addFriend(user2);
+            user3.addFriends([user1,user2]);
             return context.save().then(function(){
                 context.destroy();
                 done();
