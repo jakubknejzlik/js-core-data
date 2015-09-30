@@ -68,6 +68,9 @@ class MySQLStore extends GenericSQLStore
 
     return sqls
 
+  createMigrationQueries:(migration)->
+    return ['blah']
+
 
 class MySQLConnection extends Object
   constructor: (url,@store,settings)->

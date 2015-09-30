@@ -47,9 +47,10 @@ class CoreData
       throw new Error('unknown model version ' + version)
     @modelVersion = version
     @model = @models[@modelVersion]
+    @persistentStoreCoordinator = null
 
   createModel:(modelVersion)->
-    @models[modelVersion] = new ManagedObjectModel(null, null, @modelVersion)
+    @models[modelVersion] = new ManagedObjectModel(null, null, modelVersion)
     return @models[modelVersion]
 
   defineEntity:(entityName,attributes,options = {})->

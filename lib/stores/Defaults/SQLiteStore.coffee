@@ -69,6 +69,9 @@ class SQLiteStore extends GenericSQLStore
 
     return sqls
 
+  createMigrationQueries:(migration)->
+    return ['blah']
+
 
 
 class SQLiteConnection extends Object

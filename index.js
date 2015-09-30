@@ -69,11 +69,12 @@
         throw new Error('unknown model version ' + version);
       }
       this.modelVersion = version;
-      return this.model = this.models[this.modelVersion];
+      this.model = this.models[this.modelVersion];
+      return this.persistentStoreCoordinator = null;
     };
 
     CoreData.prototype.createModel = function(modelVersion) {
-      this.models[modelVersion] = new ManagedObjectModel(null, null, this.modelVersion);
+      this.models[modelVersion] = new ManagedObjectModel(null, null, modelVersion);
       return this.models[modelVersion];
     };
 

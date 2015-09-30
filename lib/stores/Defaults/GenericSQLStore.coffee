@@ -410,10 +410,14 @@ class GenericSQLStore extends IncrementalStore
       options = null
     options = options or {}
 
-    @getCurrentVersion((err,version)=>
-      if not version and not options.ignoreVersion and not options.force
+    objectModel = @storeCoordinator.objectModel
+
+    @getCurrentVersion((err,currentVersion)=>
+      if currentVersion is objectModel.version
+        callback()
+      else if not currentVersion and not options.ignoreVersion and not options.force
         callback(new Error('current version not found, rerun syncSchema with enabled option ignoreVersion'))
-      else if version isnt @storeCoordinator.objectModel.version or options.ignoreVersion or options.force
+      else if (currentVersion isnt objectModel.version and options.ignoreVersion) or options.force
         try
           queries = @createSchemaQueries(options)
         catch err
@@ -421,7 +425,15 @@ class GenericSQLStore extends IncrementalStore
 
         @_runRawQueriesInTransaction(queries,callback)
       else
-        callback(new Error('migrations not implemented'))
+        migration = objectModel.getMigrationFrom(currentVersion)
+        if not migration
+          throw new Error('migration ' + currentVersion + '=>' + objectModel.version + ' not found')
+        try
+          queries = @createMigrationQueries(migration)
+        catch err
+          return callback(err)
+
+        @_runRawQueriesInTransaction(queries,callback)
     )
 
   getCurrentVersion:(callback)->
