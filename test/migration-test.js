@@ -39,8 +39,8 @@ describe('migrations',function(){
         db.syncSchema({ignoreVersion:true},done);
     })
 
-    it('should sync schema from 0.1 to 0.2',function(done){
-        db.setModelVersion('0.2');
-        db.syncSchema(done);
-    })
+//    it('should sync schema from 0.1 to 0.2',function(done){
+//        db.setModelVersion('0.2');
+//        db.syncSchema(done);
+//    })
 })

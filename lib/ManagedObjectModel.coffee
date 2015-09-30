@@ -122,6 +122,7 @@ class ManagedObjectModel extends Object
       entity = @entities[entity]
     if typeof destinationEntity is 'string'
       destinationEntity = @entities[destinationEntity]
+    console.log(entity.name,'=>',name,'=>',destinationEntity.name,'toMany:',options.toMany,'inverse:',options.inverse)
     relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
     entity.addRelationship(relationship)
 
@@ -132,11 +133,13 @@ class ManagedObjectModel extends Object
     @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:no})
 
   defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
-    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
-  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
     @defineRelationshipToOne(destinationEntity,entity,inverse,name)
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+
+  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
+
   defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
     @defineRelationshipToMany(entity,destinationEntity,name,inverse)
     @defineRelationshipToMany(destinationEntity,entity,inverse,name)
