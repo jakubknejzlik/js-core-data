@@ -129,7 +129,10 @@ class GenericSQLStore extends IncrementalStore
     updates = []
     updateValues = []
     for key,value of values
-      attribute = updatedObject.entity.getAttribute(key)
+      try
+        attribute = updatedObject.entity.getAttribute(key)
+      catch e
+
       if attribute
         updates.push('`' + key + '` = ?')
         updateValues.push(attribute.encode(@encodeValueForAttribute(value,attribute)))
@@ -334,6 +337,11 @@ class GenericSQLStore extends IncrementalStore
   _formatTableName: (name)->
     return _.pluralize(name).toLowerCase()
 
+  _formatManyToManyRelationshipTableName: (relationship)->
+    inverseRelationship = relationship.inverseRelationship()
+    reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+    return @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+
   _columnDefinitionForAttribute:(attribute)->
     type = null
     switch attribute.persistentType
@@ -435,6 +443,7 @@ class GenericSQLStore extends IncrementalStore
 
         @_runRawQueriesInTransaction(queries,callback)
     )
+
 
   getCurrentVersion:(callback)->
     query = squel.select().from('_meta').field('value').where('`key` = ?','version').limit(1)

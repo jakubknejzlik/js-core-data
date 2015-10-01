@@ -22,55 +22,119 @@ class SQLiteStore extends GenericSQLStore
 
   createSchemaQueries: (options = {})->
     objectModel = @storeCoordinator.objectModel
-    schema = {}
+#    schema = {}
     sqls = []
 
     for key,entity of objectModel.entities
-      tableName = @_formatTableName(entity.name)
-      parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
-
-      for attribute in entity.attributes
-        columnDefinition = @_columnDefinitionForAttribute(attribute)
-        if columnDefinition
-          parts.push(columnDefinition);
-        else
-          throw new Error('unknown attribute type ' + attribute.type)
-
-      for relationship in entity.relationships
-        if not relationship.toMany
-          parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
-
-      if options.force
-        sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
-      sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
-      sql += parts.join(',')
-      sql += ')'
-
-      for index in @_indexesForEntity(entity)
-        sql +=";CREATE INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
-
-      schema[tableName] = sql
-
-      for key,relationship of entity.relationships
-        if relationship.toMany
-          inversedRelationship = relationship.inverseRelationship()
-          if inversedRelationship.toMany
-            reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-            reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
-            if options.force
-              sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
-            schema[reflexiveTableName] = 'CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))'
-
-    for key,sql of schema
-      sqls.push(sql);
+      sqls = sqls.concat(@createEntityQueries(entity,options.force))
+#    for key,sql of schema
+#      sqls.push(sql);
 
     sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
     sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
 
     return sqls
 
+  createEntityQueries:(entity,force = no)->
+    sqls = []
+    tableName = @_formatTableName(entity.name)
+    parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
+
+    for attribute in entity.attributes
+      columnDefinition = @_columnDefinitionForAttribute(attribute)
+      if columnDefinition
+        parts.push(columnDefinition);
+      else
+        throw new Error('unknown attribute type ' + attribute.type)
+
+    for relationship in entity.relationships
+      if not relationship.toMany
+        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
+
+    if force
+      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
+    sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
+    sql += parts.join(',')
+    sql += ')'
+
+    for index in @_indexesForEntity(entity)
+      sql +=";CREATE INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
+
+    sqls.push(sql)
+
+    for key,relationship of entity.relationships
+      if relationship.toMany
+        inversedRelationship = relationship.inverseRelationship()
+        if inversedRelationship.toMany
+          reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+          reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+          if force
+            sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+          sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
+
+    return sqls
+
+
   createMigrationQueries:(migration)->
-    return ['blah']
+#    console.log('migration',migration)
+    sqls = []
+    modelTo = migration.modelTo
+    modelFrom = migration.modelFrom
+
+    for entityName,change of migration.entitiesChanges
+      switch change
+        when '+'
+          sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
+        when '-'
+          sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entityName) + '`')
+        else
+          sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entityName) + '`')
+
+
+    for entityName,attributes of migration.attributesChanges
+      entity = modelTo.getEntity(entityName)
+      for attributeName,change of attributes
+        attribute = entity.getAttribute(attributeName)
+        switch change
+          when '+'
+            sqls.push('ALTER TABLE `' + @_formatTableName(entityName) + '` ADD COLUMN ' + @_columnDefinitionForAttribute(attribute))
+          when '-'
+            throw new Error('drop column not implemented in sqlite3')
+#            sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entity.name) + '`')
+          else
+            throw new Error('rename column not implemented in sqlite3')
+#            sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entity.name) + '`')
+
+    for entityName,relationships of migration.relationshipsChanges
+      entity = modelTo.getEntity(entityName)
+      oldEntity = modelFrom.getEntity(entityName)
+      for relationshipName,change of relationships
+        relationship = entity.getRelationship(relationshipName)
+        inverseRelationship = relationship.inverseRelationship()
+        if inverseRelationship.toMany
+          [relationship,inverseRelationship] = [inverseRelationship,relationship]
+        if relationship.toMany and inverseRelationship.toMany
+          reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+          reflexiveTableName = @_formatManyToManyRelationshipTableName(relationship)
+          switch change
+            when '+'
+              sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
+            when '-'
+              sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+            else
+              oldRelationship = oldEntity.getRelationship(change)
+              oldReflexiveTableName = @_formatManyToManyRelationshipTableName(oldRelationship)
+              sqls.push('ALTER TABLE `' + oldReflexiveTableName+ '` RENAME TO `' + reflexiveTableName + '`')
+        else if relationship.toMany
+          switch change
+            when '+'
+              sqls.push('ALTER TABLE `' + @_formatTableName(entity.name) + '` ADD COLUMN `'+relationship.name+'_id` int(11) DEFAULT NULL')
+            when '-'
+              throw new Error('drop relationship oneToMany not implemented in sqlite3')
+            else
+              throw new Error('rename relationship oneToMany not implemented in sqlite3')
+
+    return sqls
 
 
 

@@ -54,13 +54,19 @@ class EntityDescription
     @indexes.push({name:name,type:type,columns:columns})
 
   getAttribute: (name)->
-    @_attributesByName[name]
+    attribute = @_attributesByName[name]
+    if not attribute
+      throw new Error('attribute ' + @name + '=>' + name + ' not found')
+    return attribute
 
   attributesByName : ->
     @_attributesByName
 
   getRelationship: (name)->
-    @_relationshipsByName[name]
+    relationship = @_relationshipsByName[name]
+    if not relationship
+      throw new Error('relationship ' + @name + '=>' + name + ' not found')
+    return relationship
 
   relationshipsByName : ->
     @_relationshipsByName

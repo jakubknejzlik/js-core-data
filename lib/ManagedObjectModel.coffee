@@ -63,29 +63,6 @@ class ManagedObjectModel extends Object
     Subclass
 
 
-  createMigrationFrom:(sourceModel)->
-    migration = new MigrationDescription(sourceModel,@)
-    @migrations.push(migration)
-    return migration
-  createMigrationTo:(targetModel)->
-    migration = new MigrationDescription(@,targetModel)
-    @migrations.push(migration)
-    return migration
-
-
-  getMigrationFrom:(version)->
-    console.log(@findMigrations(version))
-#  getMigrationTo:(version)->
-#    console.log(@findMigrations(version))
-
-
-  findMigrations:(version,migrations = [])->
-    for migration in @migrations
-      migrationArray = migrations.slice()
-      migrationArray.push(migration)
-    return null
-
-
   _entityObjectClass:(entity)->
     if entity.objectClass
       return entity.objectClass
@@ -158,5 +135,30 @@ class ManagedObjectModel extends Object
   defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
     @defineRelationshipToMany(entity,destinationEntity,name,inverse)
     @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+
+
+
+  createMigrationFrom:(sourceModel)->
+    migration = new MigrationDescription(sourceModel,@)
+    @migrations.push(migration)
+    return migration
+
+  createMigrationTo:(targetModel)->
+    migration = new MigrationDescription(@,targetModel)
+    @migrations.push(migration)
+    return migration
+
+
+  getMigrationFrom:(version)->
+    for migration in @migrations
+      if @version is migration.modelTo.version and version is migration.modelFrom.version
+        return migration
+      else if @version is migration.modelFrom.version and version is migration.modelTo.version
+        return migration.getInverseMigration()
+    return null
+#    console.log(@findMigrations(version))
+#  getMigrationTo:(version)->
+#    console.log(@findMigrations(version))
+
 
 module.exports = ManagedObjectModel;

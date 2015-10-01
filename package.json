@@ -30,7 +30,8 @@
     "memwatch-next": "^0.2.9",
     "mocha": "^2.3.2",
     "mysql": "^2.8.0",
-    "sqlite3": "^3.0.9"
+    "sqlite3": "^3.0.9",
+    "tmp": "0.0.28"
   },
   "scripts": {
     "deploy": "./node_modules/.bin/watchify -e index.js -t partialify -o dist/bundle.js",

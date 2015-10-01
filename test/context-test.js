@@ -597,7 +597,7 @@ describe('Context', function(){
 //                        console.log('getting owner')
                         _car.getOwner(function(err,_owner){
                             if(err)return done(err);
-                            console.log('owner get..',_owner)
+//                            console.log('owner get..',_owner)
                             assert.equal(!!_owner,false);
                             done();
                         })

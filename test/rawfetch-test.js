@@ -18,8 +18,8 @@ describe('raw fetch',function(){
             name:'string'
         });
 
-//        db.defineRelationshipManyToOne(User,Company,'users','company');
-        db.defineRelationshipOneToMany(Company,User,'users','company');
+        db.defineRelationshipManyToOne(User,Company,'company','users');
+//        db.defineRelationshipOneToMany(Company,User,'users','company');
         db.defineRelationshipManyToMany(User,User,'friends','friends');
 
         db.syncSchema({force:true}).then(function(){
