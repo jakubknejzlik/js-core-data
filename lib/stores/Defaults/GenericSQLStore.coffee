@@ -147,13 +147,13 @@ class GenericSQLStore extends IncrementalStore
   sqlForFetchRequest: (request) ->
     query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
 
-    query.field(@tableAlias + '._id','_id')
+    query.field(@tableAlias + '.`_id`','_id')
     for attribute in request.entity.attributes
-      query.field(@tableAlias + '.' + attribute.name,attribute.name)
+      query.field(@tableAlias + '.`' + attribute.name + '`',attribute.name)
     for relationship in request.entity.relationships
       if not relationship.toMany
         columnName = _.singularize(relationship.name) + '_id'
-        query.field(@tableAlias + '.' + columnName,columnName)
+        query.field(@tableAlias + '.`' + columnName + '`',columnName)
     if request.predicate
       query.where(request.predicate.toString())
 
