@@ -157,13 +157,13 @@ class GenericSQLStore extends IncrementalStore
 
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
       query.group('SELF._id')
-      query.field(@tableAlias + '._id','_id')
+      query.field(@tableAlias + '.`_id`','_id')
       for attribute in request.entity.attributes
-        query.field(@tableAlias + '.' + attribute.name,attribute.name)
+        query.field(@tableAlias + '.`' + attribute.name + '`',attribute.name)
       for relationship in request.entity.relationships
         if not relationship.toMany
           columnName = _.singularize(relationship.name) + '_id'
-          query.field(@tableAlias + '.' + columnName,columnName)
+          query.field(@tableAlias + '.`' + columnName + '`',columnName)
     else
       if not request.fields
         query.field(@tableAlias + '.*')
