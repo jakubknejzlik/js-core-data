@@ -38,11 +38,10 @@ class ManagedObject extends Object
     attributeDescription = @entity.attributesByName()[key]
     attributeDescription.validateValue(value)
 
-  setValues:(values,allowedAttributes)->
+  setValues:(values = {},allowedAttributes)->
     for attributeDescription in @entity.attributes
-      setterFnName = 'set'+capitalizedString(attributeDescription.name)
       if values[attributeDescription.name]? and (not allowedAttributes or attributeDescription.name in allowedAttributes)
-        @[setterFnName](values[attributeDescription.name])
+        @[attributeDescription.name] = values[attributeDescription.name]
 
   getValues:(allowedAttributes,options = {})->
     if not Array.isArray(allowedAttributes)
@@ -52,8 +51,7 @@ class ManagedObject extends Object
     values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
       if not allowedAttributes or attributeDescription.name in allowedAttributes
-        getterFnName = 'get'+capitalizedString(attributeDescription.name)
-        value = @[getterFnName]()
+        value = @[attributeDescription.name]
         if value?
           values[attributeDescription.name] = value
         else
