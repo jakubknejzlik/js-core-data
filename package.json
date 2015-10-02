@@ -33,8 +33,7 @@
     "sqlite3": "^3.0.9"
   },
   "scripts": {
-    "deploy": "./node_modules/.bin/watchify -e index.js -t partialify -o dist/bundle.js",
-    "prepublish": "git push;git push --tags",
+    "deploy": "git push;git push --tags;npm run publish",
     "test": "mocha test"
   },
   "repository": {
