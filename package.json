@@ -33,7 +33,7 @@
     "sqlite3": "^3.0.9"
   },
   "scripts": {
-    "deploy": "git push;git push --tags;npm run publish",
+    "deploy": "git push;git push --tags;npm publish",
     "test": "mocha test"
   },
   "repository": {
