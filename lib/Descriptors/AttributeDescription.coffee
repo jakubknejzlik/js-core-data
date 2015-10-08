@@ -133,6 +133,10 @@ AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).t
       return yes
     if value instanceof Date or (moment(new Date(value)).isValid())
       return yes
+  ).encodeFn((value)->
+    return value.getTime()
+  ).decodeFn((value)->
+    return new Date(value)
   )
 )
 AttributeDescription.registerType((new AttributeType('boolean','boolean')).transformFn((value)->
