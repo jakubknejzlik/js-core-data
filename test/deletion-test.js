@@ -4,8 +4,7 @@ var assert = require("assert"),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
     moment = require('moment');
 
-//var store_url = 'mysql://root@localhost/test';
-var store_url = 'sqlite://:memory:';
+var store_url = require('./get_storage_url');
 
 describe('delete rules',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/deletion-test.yaml');

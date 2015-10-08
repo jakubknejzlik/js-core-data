@@ -4,8 +4,10 @@ var assert = require("assert"),
     SortDescriptor = require('./../lib/FetchClasses/SortDescriptor'),
     CoreData = require('../index');
 
+var store_url = require('./get_storage_url');
+
 describe('SQL Store',function(){
-    var cd = new CoreData('sqlite://:memory:')
+    var cd = new CoreData(store_url)
 
     var User = cd.defineEntity('User',{username:'string'})
     var Company = cd.defineEntity('Company',{name:'string'})

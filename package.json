@@ -34,7 +34,7 @@
   },
   "scripts": {
     "deploy": "git push;git push --tags;npm publish",
-    "test": "mocha test"
+    "test": "env STORAGE=mysql mocha test;"
   },
   "repository": {
     "type": "git",

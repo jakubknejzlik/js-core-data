@@ -10,8 +10,7 @@ var assert = require("assert"),
     SortDescriptor= require('./../lib/FetchClasses/SortDescriptor'),
     CoreData = require('../index');
 
-//var mysql_store_url = 'mysql://root@localhost/test';
-var mysql_store_url = 'sqlite://:memory:';
+var store_url = require('./get_storage_url');
 
 describe('Context', function(){
     describe('store stuff',function(){
@@ -27,7 +26,7 @@ describe('Context', function(){
         var coreData;
 
         before(function(done){
-            coreData = new CoreData(mysql_store_url,{
+            coreData = new CoreData(store_url,{
                 modelFile:__dirname + '/schemes/car-model.yaml'
             })
             coreData.syncSchema({force:true}).then(done,done);

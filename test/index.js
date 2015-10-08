@@ -2,9 +2,11 @@ var assert = require('assert');
 
 var CoreData = require('../index');
 
+var store_url = require('./get_storage_url');
+
 describe('core module',function(){
 
-    var cd = new CoreData('sqlite://:memory:')
+    var cd = new CoreData(store_url)
 
     it('should should successfuly define entities',function(){
         cd.defineEntity('User',{
