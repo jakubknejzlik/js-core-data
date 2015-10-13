@@ -3,7 +3,7 @@ var tmp = require('tmp')
 
 var CoreData = require('../index');
 
-var store_url = require('./get_storage_url');
+var store_url = require('./get_storage_url').replace(':memory:',tmp.tmpNameSync());
 
 describe.only('migrations',function(){
 
