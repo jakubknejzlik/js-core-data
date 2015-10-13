@@ -5,12 +5,12 @@ var assert = require("assert"),
     CoreData = require('../index');
 
 describe('SQL Store',function(){
-    var cd = new CoreData('sqlite://:memory:',{logging:false})
+    var cd = new CoreData('sqlite://:memory:')
 
     var User = cd.defineEntity('User',{username:'string'})
     var Company = cd.defineEntity('Company',{name:'string'})
     var Team = cd.defineEntity('Team',{name:'string'})
-    cd.defineRelationshipManyToOne('User','Company','company','users')
+    cd.defineRelationshipOneToMany('User','Company','company','users')
 //    cd.defineRelationship('Company','User','users',{toMany:true,inverse:'company'})
     cd.defineRelationshipManyToMany('User','Team','teams','users')
 //    cd.defineRelationship('Team','User','users',{toMany:true,inverse:'teams'})

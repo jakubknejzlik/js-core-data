@@ -59,10 +59,9 @@ class ManagedObjectContext extends Object
   createObjectWithName: (entityName)->
     @storeCoordinator.objectModel.insertObjectIntoContext(entityName,this)
 
-  create:(entityName, data)->
+  create:(entityName, data, allowedAttributes)->
     object = @createObjectWithName(entityName)
-    for key,value of data
-      object[key] = value
+    object.setValues(data,allowedAttributes)
     return object
 
   getObjectWithId: (entityName,id,callback)->

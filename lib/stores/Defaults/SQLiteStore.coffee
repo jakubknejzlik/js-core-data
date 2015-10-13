@@ -22,13 +22,10 @@ class SQLiteStore extends GenericSQLStore
 
   createSchemaQueries: (options = {})->
     objectModel = @storeCoordinator.objectModel
-#    schema = {}
     sqls = []
 
     for key,entity of objectModel.entities
       sqls = sqls.concat(@createEntityQueries(entity,options.force))
-#    for key,sql of schema
-#      sqls.push(sql);
 
     sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
     sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')

@@ -5,10 +5,10 @@ var assert = require("assert"),
     moment = require('moment'),
     CoreData = require('../');
 
-//var store_url = 'mysql://root@localhost/test';
-var store_url = 'sqlite://:memory:';
 
-describe('attributes',function(){
+var store_url = require('./get_storage_url');
+
+describe('Object attributes',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-test-model.yaml');
     var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
     it('should throw error for invalid model',function(done){
@@ -25,7 +25,7 @@ describe('attributes',function(){
         })
     })
     it('shouldn\'t throw error for valid model',function(done){
-        storeCoordinator = new PersistentStoreCoordinator(objectModel,{logging:console.log});
+        storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
         storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
@@ -34,8 +34,8 @@ describe('attributes',function(){
         })
     })
     describe('validation',function(){
-        var storeCoordinator,timestamp = Math.round(Date.now() / 1000);
-        var date = new Date(timestamp*1000);
+        var storeCoordinator,timestamp = Date.now();
+        var date = new Date(Math.round(timestamp/1000)*1000);
         var transformableObject = {aa:'bb',date:(new Date())}
         function deleteAll(storeCoordinator,done){
             var context = new ManagedObjectContext(storeCoordinator)

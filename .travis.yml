@@ -1,5 +1,7 @@
 language: node_js
 node_js:
   - "0.12"
-before_install: npm install -g mocha
-script: mocha test
+before_script:
+  - npm install -g mocha
+  - mysql -e "create database IF NOT EXISTS test;" -uroot
+script: npm test

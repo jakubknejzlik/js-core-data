@@ -3,12 +3,11 @@ var tmp = require('tmp')
 
 var CoreData = require('../index');
 
-//STORE_URL = 'sqlite://' + tmp.tmpNameSync();
-STORE_URL = 'mysql://root@localhost/test'
+var store_url = require('./get_storage_url');
 
 describe.only('migrations',function(){
 
-    var db = new CoreData(STORE_URL)
+    var db = new CoreData(store_url)
 
     before(function(){
         model1 = db.createModel('0.1');
@@ -24,7 +23,7 @@ describe.only('migrations',function(){
         model1.defineRelationshipManyToMany('User','User','friends','friends')
 
         model2 = db.createModel('0.2');
-        var User2 = model2.defineEntity('User',{
+        model2.defineEntity('User',{
             firstname:'string',
             password:'string',
             testNew:'string',

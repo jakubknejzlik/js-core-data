@@ -1,7 +1,7 @@
 {
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
-  "version": "0.6.14",
+  "version": "0.6.17",
   "license": "MIT",
   "keywords": [
     "ORM",
@@ -34,8 +34,8 @@
     "tmp": "0.0.28"
   },
   "scripts": {
-    "deploy": "./node_modules/.bin/watchify -e index.js -t partialify -o dist/bundle.js",
-    "test": "mocha test"
+    "deploy": "git push;git push --tags;npm publish",
+    "test": "env STORAGE=mysql mocha test;env STORAGE=sqlite mocha test"
   },
   "repository": {
     "type": "git",
