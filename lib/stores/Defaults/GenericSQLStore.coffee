@@ -15,6 +15,7 @@ _.mixin(require('underscore.inflections'));
 
 class GenericSQLStore extends IncrementalStore
   @::tableAlias = 'SELF'
+  @::quoteSymbol = '"'
 
   constructor: (@storeCoordinator,@URL,@globals)->
     if @storeCoordinator
@@ -38,7 +39,7 @@ class GenericSQLStore extends IncrementalStore
 #              inserts = ['`_id` = NULL']
 #              for key,value of values
 #                inserts.push('`' + key + '` = ' + mysql.escape(value))
-              sql = 'INSERT INTO ' + formattedTableName + ' (`_id`) VALUES (?)'
+              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (?)'
               transaction.sendQuery(sql,[null],(err,result)=>
                 if err
                   return cb(err)
@@ -75,7 +76,7 @@ class GenericSQLStore extends IncrementalStore
             (deletedObject,cb)=>
               formattedTableName = @_formatTableName(deletedObject.entity.name)
               id = @_recordIDForObjectID(deletedObject.objectID);
-              sql = 'DELETE FROM `' + formattedTableName + '` WHERE `_id` = ' + id
+              sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
               transaction.sendQuery sql,(err)->
                 cb(err)
             ,(err)=>
@@ -126,13 +127,13 @@ class GenericSQLStore extends IncrementalStore
     for key,value of values
       attribute = updatedObject.entity.getAttribute(key)
       if attribute
-        updates.push('`' + key + '` = ?')
+        updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
         updateValues.push(attribute.encode(@encodeValueForAttribute(value,attribute)))
       else
-        updates.push('`' + key + '` = ?')
+        updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
         updateValues.push(value)
     if updates.length > 0
-      return ['UPDATE `' + formattedTableName + '` SET ' + updates.join(',') + ' WHERE `_id` = ' + id,updateValues]
+      return ['UPDATE ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' SET ' + updates.join(',') + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id,updateValues]
     else
       return [null,null]
 
@@ -147,13 +148,13 @@ class GenericSQLStore extends IncrementalStore
   sqlForFetchRequest: (request) ->
     query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
 
-    query.field(@tableAlias + '.`_id`','_id')
+    query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,'_id')
     for attribute in request.entity.attributes
-      query.field(@tableAlias + '.`' + attribute.name + '`',attribute.name)
+      query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,attribute.name)
     for relationship in request.entity.relationships
       if not relationship.toMany
         columnName = _.singularize(relationship.name) + '_id'
-        query.field(@tableAlias + '.`' + columnName + '`',columnName)
+        query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,columnName)
     if request.predicate
       query.where(request.predicate.toString())
 
@@ -255,7 +256,7 @@ class GenericSQLStore extends IncrementalStore
         if addedObjects
           for addedObject in addedObjects
 #          console.log('xxxxx',object.relationChanges);
-            sql = 'INSERT INTO `' + @_getMiddleTableNameForManyToManyRelation(relationship) + '` (reflexive,`' + relationship.name + '_id`) VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
+            sql = 'INSERT INTO ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' (reflexive,' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ') VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
             sqls.push(sql)
 
         removedObjects = object._relationChanges?['removed_' + relationship.name]
@@ -263,7 +264,7 @@ class GenericSQLStore extends IncrementalStore
         if removedObjects
           for removedObject in removedObjects
 #          console.log('xxxxx',object.relationChanges);
-            sql = 'DELETE FROM `' + @_getMiddleTableNameForManyToManyRelation(relationship) + '` WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND `' + relationship.name + '_id` = ' + @_recordIDForObjectID(removedObject.objectID)
+            sql = 'DELETE FROM ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ' = ' + @_recordIDForObjectID(removedObject.objectID)
             sqls.push(sql)
     async.forEachSeries sqls,(sql,cb)->
       transaction.sendQuery(sql,cb)
@@ -369,7 +370,7 @@ class GenericSQLStore extends IncrementalStore
       when 'transformable'
         type = 'mediumtext'
       else return null
-    definition = '`'+attribute.name+'` '+type+' DEFAULT NULL'
+    definition = @quoteSymbol + attribute.name + @quoteSymbol + ' '+type+' DEFAULT NULL'
     if attribute.info.unique
       definition += ' UNIQUE'
     return definition
