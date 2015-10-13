@@ -1,7 +1,7 @@
 # js-core-data
 
 
-[![Build Status](https://travis-ci.org/jakubknejzlik/js-core-data.svg)](https://travis-ci.org/jakubknejzlik/js-core-data)
+[![Build Status](https://travis-ci.org/jakubknejzlik/js-core-data.svg?branch=master)](https://travis-ci.org/jakubknejzlik/js-core-data)
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 

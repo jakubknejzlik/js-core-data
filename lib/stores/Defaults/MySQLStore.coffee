@@ -17,6 +17,8 @@ _.mixin(require('underscore.inflections'));
 
 
 class MySQLStore extends GenericSQLStore
+  @::quoteSymbol = '`'
+
   createConnection:()->
     return new MySQLConnection(@URL,this)
 
