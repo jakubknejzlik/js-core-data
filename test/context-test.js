@@ -12,7 +12,7 @@ var assert = require("assert"),
 
 var store_url = require('./get_storage_url');
 
-describe('Context', function(){
+describe.only('Context', function(){
     describe('store stuff',function(){
 
         it('should throw error when creating coordinator with null object model',function(){
@@ -606,6 +606,11 @@ describe('Context', function(){
             describe('toMany',function(){
                 it('should add object to relation',function(){
                     owner.addCar(car);
+                });
+                it('shouldn\'t add anything else than object to relation',function(){
+                    assert.throws(function(){
+                        owner.addCar(null);
+                    })
                 });
                 it('should assign inversed relation',function(done){
                     car.getOwner(function(err,_owner){
