@@ -5,7 +5,7 @@ var CoreData = require('../index');
 
 var store_url = require('./get_storage_url').replace(':memory:',tmp.tmpNameSync());
 
-describe.only('migrations',function(){
+describe('migrations',function(){
 
     var db = new CoreData(store_url)
 

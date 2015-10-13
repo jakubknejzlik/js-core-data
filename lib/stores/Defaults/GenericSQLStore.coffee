@@ -4,6 +4,7 @@ GenericPool = require('generic-pool')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
+FetchRequest = require('./../../FetchRequest')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
@@ -94,6 +95,10 @@ class GenericSQLStore extends IncrementalStore
       @connection.sendRawQuery(@sqlForFetchRequest(request),(err,rows)=>
         ids = []
         return callback(err) if err
+
+        if request.resultType is FetchRequest.RESULT_TYPE.VALUES
+          return callback(null,rows)
+
         objectValues = {}
         for row in rows
           _row = {}
@@ -104,7 +109,7 @@ class GenericSQLStore extends IncrementalStore
               columnName = _.singularize(relationship.name) + '_id'
               _row[columnName] = row[columnName]
           objectID = @_permanentIDForRecord(request.entity,row._id)
-#          @fetchedObjectValuesCache[objectID.toString()] = _row;
+          #          @fetchedObjectValuesCache[objectID.toString()] = _row;
           for attribute in request.entity.attributes
             _row[attribute.name] = @decodeValueForAttribute(_row[attribute.name],attribute)
           objectValues[objectID.toString()] = _row;
@@ -124,7 +129,10 @@ class GenericSQLStore extends IncrementalStore
     updates = []
     updateValues = []
     for key,value of values
-      attribute = updatedObject.entity.getAttribute(key)
+      try
+        attribute = updatedObject.entity.getAttribute(key)
+      catch e
+
       if attribute
         updates.push('`' + key + '` = ?')
         updateValues.push(attribute.encode(@encodeValueForAttribute(value,attribute)))
@@ -147,13 +155,26 @@ class GenericSQLStore extends IncrementalStore
   sqlForFetchRequest: (request) ->
     query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
 
-    query.field(@tableAlias + '._id','_id')
-    for attribute in request.entity.attributes
-      query.field(@tableAlias + '.' + attribute.name,attribute.name)
-    for relationship in request.entity.relationships
-      if not relationship.toMany
-        columnName = _.singularize(relationship.name) + '_id'
-        query.field(@tableAlias + '.' + columnName,columnName)
+    if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
+      query.group('SELF._id')
+      query.field(@tableAlias + '.`_id`','_id')
+      for attribute in request.entity.attributes
+        query.field(@tableAlias + '.`' + attribute.name + '`',attribute.name)
+      for relationship in request.entity.relationships
+        if not relationship.toMany
+          columnName = _.singularize(relationship.name) + '_id'
+          query.field(@tableAlias + '.`' + columnName + '`',columnName)
+    else
+      if not request.fields
+        query.field(@tableAlias + '.*')
+      else
+        for name,field of request.fields
+          query.field(field,name)
+      if request.group
+        query.group(request.group)
+
+
+
     if request.predicate
       query.where(request.predicate.toString())
 
@@ -168,7 +189,6 @@ class GenericSQLStore extends IncrementalStore
           column = @tableAlias + '.' + column
         query.order(column,descriptor.ascending)
 
-    query.group('SELF._id')
 
     return @_getRawTranslatedQueryWithJoins(query,request)
 

@@ -2,12 +2,11 @@ var assert = require('assert');
 
 var CoreData = require('../index');
 
-STORE_URL = 'sqlite://:memory:'
-//STORE_URL = 'mysql://root@localhost/test'
+var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(STORE_URL,{logging:false})
+    var db = new CoreData(store_url)//,{logging:false})
 
     before(function(done){
         var User = db.defineEntity('User',{
