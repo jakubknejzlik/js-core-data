@@ -12,7 +12,7 @@ var assert = require("assert"),
 
 var store_url = require('./get_storage_url');
 
-describe.only('Context', function(){
+describe('Context', function(){
     describe('store stuff',function(){
 
         it('should throw error when creating coordinator with null object model',function(){
@@ -523,8 +523,16 @@ describe.only('Context', function(){
             describe('toOne',function(){
                 it('should set single object for relation',function(done){
                     car.setOwner(owner);
+                    car2.setOwner(null);
                     car2.setOwner(owner);
                     done();
+                })
+                it('shouldn\'t set anything else for relation',function(){
+                    [undefined,'adfa',134].forEach(function(value){
+                        assert.throws(function(){
+                            car.setOwner(value);
+                        },/only ManagedObject instances or null/)
+                    })
                 })
                 it('should return array of assigned objects',function(done){
                     owner.getCars(function(err,cars){
@@ -609,9 +617,15 @@ describe.only('Context', function(){
                 it('shouldn\'t add anything else than object to relation',function(){
                     assert.throws(function(){
                         owner.addCar(null);
-                    })
+                    },/only ManagedObject instances/);
+                    assert.throws(function(){
+                        owner.addCars(null);
+                    },/array must be specified in addObjects/)
+                    assert.throws(function(){
+                        owner.addCars([null]);
+                    },/only ManagedObject instances can be added/)
                 });
-                it('should assign inversed relation',function(done){
+                it('given object; Owner=>cars',function(done){
                     car.getOwner(function(err,_owner){
                         if(err)return done(err);
                         assert.ok(_owner == owner);
