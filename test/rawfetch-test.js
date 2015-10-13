@@ -39,11 +39,11 @@ describe('raw fetch',function(){
 
     it('fetch entity',function(done){
         context = db.createContext()
-        context.fetch('User',{group:'SELF.firstname',fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname || \' \' || SELF.lastname'},order:'SELF.firstname'}).then(function(data){
+        context.fetch('User',{group:'SELF.firstname',fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
             assert.equal(data.length,2);
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');
-            assert.equal(data[0].name,'John Doe');
+            assert.equal(data[0].name,'John');
             assert.equal(data[0].companyName,'John\'s company');
             assert.equal(data[1].firstname,'John2');
             context.destroy();

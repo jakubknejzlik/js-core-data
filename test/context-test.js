@@ -26,7 +26,6 @@ describe.only('Context', function(){
         var coreData;
 
         before(function(done){
-            console.log(store_url)
             coreData = new CoreData(store_url,{
                 modelFile:__dirname + '/schemes/car-model.yaml'
             })

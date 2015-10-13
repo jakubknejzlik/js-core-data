@@ -16,6 +16,7 @@ describe('Object attributes',function(){
 
         storeCoordinator.addStore(store_url);
         storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
+            console.log(err)
             assert.throws(function(){
                 if(err)throw err;
             },function(err){
