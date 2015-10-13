@@ -134,7 +134,8 @@ class ManagedObjectModel extends Object
 
   defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
     @defineRelationshipToMany(entity,destinationEntity,name,inverse)
-    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+    if inverse isnt name
+      @defineRelationshipToMany(destinationEntity,entity,inverse,name)
 
 
 

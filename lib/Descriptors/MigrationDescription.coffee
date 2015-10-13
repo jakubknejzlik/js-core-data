@@ -1,6 +1,6 @@
 class MigrationDescription
   constructor:(@modelFrom,@modelTo)->
-    @entitiesChanges = {}
+    @entitiesChanges = []
     @attributesChanges = {}
     @relationshipsChanges = {}
     @indexesChanges = {}
@@ -11,13 +11,13 @@ class MigrationDescription
 
 
   addEntity:(name)->
-    @entitiesChanges[name] = '+'
+    @entitiesChanges.push({entity:name,change:'+'})
 
   renameEntity:(oldName,newName)->
-    @entitiesChanges[oldName] = newName
+    @entitiesChanges.push({entity:oldName,change:newName})
 
   removeEntity:(name)->
-    @entitiesChanges[name] = '-'
+    @entitiesChanges.push({entity:name,change:'-'})
 
 
   addAttribute:(entityName,name)->

@@ -438,6 +438,7 @@ class GenericSQLStore extends IncrementalStore
           throw new Error('migration ' + currentVersion + '=>' + objectModel.version + ' not found')
         try
           queries = @createMigrationQueries(migration)
+          queries.push('UPDATE `_meta` SET `value` = \'' + objectModel.version + '\' WHERE `key` = \'version\'')
         catch err
           return callback(err)
 
@@ -451,6 +452,88 @@ class GenericSQLStore extends IncrementalStore
       return callback(err) if err
       callback(null,rows[0]?.value)
     )
+
+  createMigrationQueries:(migration)->
+    sqls = []
+    modelTo = migration.modelTo
+    modelFrom = migration.modelFrom
+
+    for change in migration.entitiesChanges
+      entityName = change.entityName
+      switch change.change
+        when '+'
+          sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
+        when '-'
+          sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entityName) + '`')
+        else
+          sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entityName) + '`')
+
+    updatedEntities = _.uniq(Object.keys(migration.attributesChanges).concat(Object.keys(migration.relationshipsChanges)))
+
+
+    for entityName in updatedEntities
+      entityTo = modelTo.getEntity(entityName)
+      entityFrom = modelFrom.getEntity(entityName)
+
+      oldColumnNames = ['_id']
+      newColumnNames = ['_id']
+
+
+      for attribute in entityTo.attributes
+        change = migration.attributesChanges[entityName][attribute.name]
+        if change
+          if change not in ['-','+']
+            newColumnNames.push(attribute.name)
+            oldColumnNames.push(change)
+        else
+          try
+            oldAttribute = entityFrom.getAttribute(attribute.name)
+            newColumnNames.push(attribute.name)
+            oldColumnNames.push(oldAttribute.name)
+          catch e
+            console.error('attribute ' + attribute.name + ' not found in version ' + modelFrom.version)
+
+      for relationship in entityTo.relationships
+        if not relationship.toMany
+          change = migration.relationshipsChanges[entityName][relationship.name]
+          if change
+            if change not in ['-','+']
+              newColumnNames.push(relationship.name + '_id')
+              oldColumnNames.push(change + '_id')
+          else
+            try
+              oldRelationship = entityFrom.getRelationship(relationship.name)
+              newColumnNames.push(relationship.name + '_id')
+              oldColumnNames.push(oldRelationship.name + '_id')
+            catch e
+              console.error('relationship ' + relationship.name + ' not found in version ' + modelFrom.version)
+
+      tableName = @_formatTableName(entityName)
+      sqls.push('ALTER TABLE `' + tableName + '` RENAME TO `' + tableName + '_tmp`')
+      sqls = sqls.concat(@createEntityQueries(entityTo,no,{ignoreRelationships:yes}))
+      sqls.push('INSERT INTO `' + tableName + '` (`' + newColumnNames.join('`,`') + '`) SELECT `' + oldColumnNames.join('`,`') + '` FROM `' + tableName + '_tmp`')
+      sqls.push('DROP TABLE `' + tableName + '_tmp`')
+
+    for relationship in entityTo.relationships
+      inversedRelationship = relationship.inverseRelationship()
+      if relationship.toMany and inversedRelationship.toMany
+        change = migration.relationshipsChanges[entityName][relationship.name]
+        if change
+          if change not in ['+','-']
+            oldRelationship = entityFrom.getRelationship(change)
+            oldInversedRelationship = oldRelationship.inverseRelationship()
+            oldReflexiveRelationship = @_relationshipByPriority(oldRelationship,oldInversedRelationship)
+            reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+            oldReflexiveTableName = @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name
+            reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+
+            sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName + '`')
+            sqls.push('ALTER TABLE `' + oldReflexiveTableName + '` RENAME TO `' + reflexiveTableName + '`')
+        else
+          sqls.push(@createEntityRelationshipQueries(entityTo))
+
+
+    return sqls
 
   _runRawQueriesInTransaction:(sqls,callback)->
     @connection.createTransaction((transaction)=>

@@ -22,54 +22,59 @@ class MySQLStore extends GenericSQLStore
 
   createSchemaQueries: (options = {})->
     objectModel = @storeCoordinator.objectModel
-    schema = {}
     sqls = []
 
     for key,entity of objectModel.entities
-      tableName = @_formatTableName(entity.name)
-      parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']
-
-      for attribute in entity.attributes
-        columnDefinition = @_columnDefinitionForAttribute(attribute)
-        if columnDefinition
-          parts.push(columnDefinition);
-        else
-          throw new Error('unknown attribute type ' + attribute.type)
-
-      for index in @_indexesForEntity(entity)
-        parts.push('KEY `'+index.name+'` (`'+index.columns.join('`,`')+'`)')
-
-      for relationship in entity.relationships
-        if not relationship.toMany
-          parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
-
-      if options.force
-        sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
-      sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
-      sql += parts.join(',')
-      sql += ') ENGINE=InnoDB  DEFAULT CHARSET=utf8;'
-      schema[tableName] = sql
-
-      for key,relationship of entity.relationships
-        if relationship.toMany
-          inversedRelationship = relationship.inverseRelationship()
-          if inversedRelationship.toMany
-            reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-            reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
-            if options.force
-              sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
-            schema[reflexiveTableName] = 'CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))'
-
-    for key,sql of schema
-      sqls.push(sql);
+      sqls = sqls.concat(@createEntityQueries(entity,options.force))
 
     sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
     sqls.push('INSERT INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
 
     return sqls
 
-  createMigrationQueries:(migration)->
-    return ['blah']
+  createEntityQueries:(entity,force,options = {})->
+    sqls = []
+    tableName = @_formatTableName(entity.name)
+    parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']
+
+    for attribute in entity.attributes
+      columnDefinition = @_columnDefinitionForAttribute(attribute)
+      if columnDefinition
+        parts.push(columnDefinition);
+      else
+        throw new Error('unknown attribute type ' + attribute.type)
+
+    for index in @_indexesForEntity(entity)
+      parts.push('KEY `'+index.name+'` (`'+index.columns.join('`,`')+'`)')
+
+    for relationship in entity.relationships
+      if not relationship.toMany
+        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
+
+    if force
+      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
+    sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
+    sql += parts.join(',')
+    sql += ') ENGINE=InnoDB  DEFAULT CHARSET=utf8;'
+    sqls.push(sql)
+
+    if not options.ignoreRelationships
+      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
+
+    return sqls
+
+  createEntityRelationshipQueries:(entity,force)->
+    sqls = []
+    for key,relationship of entity.relationships
+      if relationship.toMany
+        inversedRelationship = relationship.inverseRelationship()
+        if inversedRelationship.toMany
+          reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+          reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+          if force
+            sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+          sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
+    return sqls
 
 
 class MySQLConnection extends Object

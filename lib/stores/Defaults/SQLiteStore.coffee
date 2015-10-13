@@ -35,7 +35,7 @@ class SQLiteStore extends GenericSQLStore
 
     return sqls
 
-  createEntityQueries:(entity,force = no)->
+  createEntityQueries:(entity,force = no,options = {})->
     sqls = []
     tableName = @_formatTableName(entity.name)
     parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
@@ -62,6 +62,13 @@ class SQLiteStore extends GenericSQLStore
 
     sqls.push(sql)
 
+    if not options.ignoreRelationships
+      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
+
+    return sqls
+
+  createEntityRelationshipQueries:(entity,force)->
+    sqls = []
     for key,relationship of entity.relationships
       if relationship.toMany
         inversedRelationship = relationship.inverseRelationship()
@@ -71,69 +78,6 @@ class SQLiteStore extends GenericSQLStore
           if force
             sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
           sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
-
-    return sqls
-
-
-  createMigrationQueries:(migration)->
-#    console.log('migration',migration)
-    sqls = []
-    modelTo = migration.modelTo
-    modelFrom = migration.modelFrom
-
-    for entityName,change of migration.entitiesChanges
-      switch change
-        when '+'
-          sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
-        when '-'
-          sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entityName) + '`')
-        else
-          sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entityName) + '`')
-
-
-    for entityName,attributes of migration.attributesChanges
-      entity = modelTo.getEntity(entityName)
-      for attributeName,change of attributes
-        attribute = entity.getAttribute(attributeName)
-        switch change
-          when '+'
-            sqls.push('ALTER TABLE `' + @_formatTableName(entityName) + '` ADD COLUMN ' + @_columnDefinitionForAttribute(attribute))
-          when '-'
-            throw new Error('drop column not implemented in sqlite3')
-#            sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entity.name) + '`')
-          else
-            throw new Error('rename column not implemented in sqlite3')
-#            sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entity.name) + '`')
-
-    for entityName,relationships of migration.relationshipsChanges
-      entity = modelTo.getEntity(entityName)
-      oldEntity = modelFrom.getEntity(entityName)
-      for relationshipName,change of relationships
-        relationship = entity.getRelationship(relationshipName)
-        inverseRelationship = relationship.inverseRelationship()
-        if inverseRelationship.toMany
-          [relationship,inverseRelationship] = [inverseRelationship,relationship]
-        if relationship.toMany and inverseRelationship.toMany
-          reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
-          reflexiveTableName = @_formatManyToManyRelationshipTableName(relationship)
-          switch change
-            when '+'
-              sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
-            when '-'
-              sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
-            else
-              oldRelationship = oldEntity.getRelationship(change)
-              oldReflexiveTableName = @_formatManyToManyRelationshipTableName(oldRelationship)
-              sqls.push('ALTER TABLE `' + oldReflexiveTableName+ '` RENAME TO `' + reflexiveTableName + '`')
-        else if relationship.toMany
-          switch change
-            when '+'
-              sqls.push('ALTER TABLE `' + @_formatTableName(entity.name) + '` ADD COLUMN `'+relationship.name+'_id` int(11) DEFAULT NULL')
-            when '-'
-              throw new Error('drop relationship oneToMany not implemented in sqlite3')
-            else
-              throw new Error('rename relationship oneToMany not implemented in sqlite3')
-
     return sqls
 
 
