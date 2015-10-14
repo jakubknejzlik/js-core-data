@@ -527,13 +527,6 @@ describe('Context', function(){
                     car2.setOwner(owner);
                     done();
                 })
-                it('shouldn\'t set anything else for relation',function(){
-                    [undefined,'adfa',134].forEach(function(value){
-                        assert.throws(function(){
-                            car.setOwner(value);
-                        },/only ManagedObject instances or null/)
-                    })
-                })
                 it('should return array of assigned objects',function(done){
                     owner.getCars(function(err,cars){
                         if(err)return done(err);
@@ -613,17 +606,6 @@ describe('Context', function(){
             describe('toMany',function(){
                 it('should add object to relation',function(){
                     owner.addCar(car);
-                });
-                it('shouldn\'t add anything else than object to relation',function(){
-                    assert.throws(function(){
-                        owner.addCar(null);
-                    },/only ManagedObject instances/);
-                    assert.throws(function(){
-                        owner.addCars(null);
-                    },/array must be specified in addObjects/)
-                    assert.throws(function(){
-                        owner.addCars([null]);
-                    },/only ManagedObject instances can be added/)
                 });
                 it('given object; Owner=>cars',function(done){
                     car.getOwner(function(err,_owner){

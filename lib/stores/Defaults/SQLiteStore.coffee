@@ -5,6 +5,8 @@ async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
 
+
+
 try
   require('sqlite3')
 catch e
@@ -139,12 +141,13 @@ class Transaction extends Object
   constructor:(@connection,@store)->
     @started = false;
     @autoRollback = true;
-    @debug = no
 
   ensureBegin: (callback)->
     if @started
       return callback()
     @started = true
+    if @store?.globals?.logging
+      @store.globals.logging('BEGIN')
     @connection.run 'BEGIN',(err)->
       callback(err)
 

@@ -7,7 +7,7 @@ var assert = require("assert"),
 var store_url = require('./get_storage_url');
 
 describe('serialization',function(){
-    var objectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-test-model.yaml');
+    var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
     describe('json',function(){
         var storeCoordinator,timestamp = Math.round(Date.now() / 1000);
         var date = new Date(timestamp*1000);

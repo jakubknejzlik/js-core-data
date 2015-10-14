@@ -5,6 +5,7 @@ RelationshipDescription = require('./Descriptors/RelationshipDescription')
 ac = require('array-control')
 Q = require('q')
 async = require('async')
+util = require('util')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -124,7 +125,7 @@ class ManagedObject extends Object
       @prototype['set' + capitalizedName] = (object)->
 #        @fetchData() if @isFault
         if object isnt null and object not instanceof ManagedObject
-          throw new Error('only ManagedObject instances or null can be set to relationship (given ' + (typeof object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+          throw new Error('only ManagedObject instances or null can be set to relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @_setObjectToRelation(object,relationshipDescription,inverseRelationship)
     else
       @prototype['get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
@@ -144,15 +145,16 @@ class ManagedObject extends Object
         return deferred.promise.nodeify(callback)
       @prototype['add' + capitalizedSingularizedName] = (object)->
         if object not instanceof ManagedObject
-          throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + (typeof object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+          console.log(object)
+          throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @['add' + capitalizedName]([object])
       @prototype['add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
         if not Array.isArray(objects)
-          throw new Error('array must be specified in addObjects method (given ' + (typeof objects) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+          throw new Error('array must be specified in addObjects method (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         for object in objects
           if object not instanceof ManagedObject
-            throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + (typeof object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+            throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         for object in objects
           @_addObjectToRelation(object,relationshipDescription,inverseRelationship)
       @prototype['remove' + capitalizedSingularizedName] = (object)->
