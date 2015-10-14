@@ -213,6 +213,12 @@ class ManagedObjectContext extends Object
       callback(err,objects)
 
 
+  saveAndDestroy:(callback)->
+    @save().then(()=>
+      @destroy()
+      callback() if callback
+    ).catch(callback)
+
   save: (callback)->
     deferred = Q.defer()
 #    callback = callback or (err)->

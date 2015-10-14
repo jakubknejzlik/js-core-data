@@ -150,13 +150,15 @@ class ManagedObjectModel extends Object
     return migration
 
 
-  getMigrationFrom:(version)->
+  getMigrationsFrom:(version)->
+    array = []
     for migration in @migrations
       if @version is migration.modelTo.version and version is migration.modelFrom.version
-        return migration
-      else if @version is migration.modelFrom.version and version is migration.modelTo.version
-        return migration.getInverseMigration()
-    return null
+        array.push(migration)
+        break
+#      else if @version is migration.modelFrom.version and version is migration.modelTo.version
+#        return migration.getInverseMigration()
+    return array
 #    console.log(@findMigrations(version))
 #  getMigrationTo:(version)->
 #    console.log(@findMigrations(version))

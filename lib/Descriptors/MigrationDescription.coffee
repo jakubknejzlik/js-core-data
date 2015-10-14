@@ -3,10 +3,9 @@ class MigrationDescription
     @entitiesChanges = []
     @attributesChanges = {}
     @relationshipsChanges = {}
-    @indexesChanges = {}
-
-  appendMigration:(migration)->
-
+#    @indexesChanges = {}
+    @scriptsBefore = []
+    @scriptsAfter = []
 
 
 
@@ -48,21 +47,26 @@ class MigrationDescription
 
 
 
-  addIndex:(entityName,name)->
-    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
-    @indexesChanges[entityName][name] = '+'
+#  addIndex:(entityName,name)->
+#    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
+#    @indexesChanges[entityName][name] = '+'
+#
+#  renameIndex:(entityName,oldName,newName)->
+#    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
+#    @indexesChanges[entityName][newName] = oldName
+#
+#  removeIndex:(entityName,name)->
+#    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
+#    @indexesChanges[entityName][name] = '-'
 
-  renameIndex:(entityName,oldName,newName)->
-    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
-    @indexesChanges[entityName][newName] = oldName
+  addScriptBefore:(script)->
+    @scriptsBefore.push(script)
 
-  removeIndex:(entityName,name)->
-    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
-    @indexesChanges[entityName][name] = '-'
+  addScriptAfter:(script)->
+    @scriptsAfter.push(script)
 
-
-  createInverseMigration:()->
-    return null
+#  createInverseMigration:()->
+#    return null
 
 
 module.exports = MigrationDescription
