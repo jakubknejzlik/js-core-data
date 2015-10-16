@@ -16,7 +16,7 @@ class Predicate extends Object
 
   toString:->
     if @format instanceof ManagedObjectID
-      return '`_id` = ' + @format.recordId();
+      return '_id = ' + @format.recordId();
     else
       format = @format.replace(/[\s]*=[\s]*%@/g,'_id = %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s')
 
@@ -36,6 +36,7 @@ class Predicate extends Object
           variable = variable.format(DATE_FORMAT)
         args.push(variable)
 
+#      console.log(args)
       return util.format.apply(util.format,args);
 
 module.exports = Predicate

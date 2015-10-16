@@ -145,7 +145,7 @@ class ManagedObject extends Object
         return deferred.promise.nodeify(callback)
       @prototype['add' + capitalizedSingularizedName] = (object)->
         if object not instanceof ManagedObject
-          console.log(object)
+#          console.log(object)
           throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @['add' + capitalizedName]([object])
       @prototype['add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->

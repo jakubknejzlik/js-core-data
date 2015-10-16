@@ -39,8 +39,8 @@ describe('raw fetch',function(){
 
     it('fetch entity',function(done){
         context = db.createContext()
-        context.fetch('User',{group:'SELF.firstname',fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
-            assert.equal(data.length,2);
+        context.fetch('User',{fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
+            assert.equal(data.length,3);
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');
             assert.equal(data[0].name,'John');

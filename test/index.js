@@ -38,7 +38,10 @@ describe('core module',function(){
     })
 
     it('should sync database scheme',function(done){
-        cd.syncSchema({force:true},done)
+        cd.syncSchema({force:true},function(err){
+            assert.ifError(err);
+            done();
+        })
     })
 
     it('should create context',function(done){
@@ -50,7 +53,7 @@ describe('core module',function(){
 
     it('should load data from store',function(done){
         var context = cd.createContext();
-        context.getObject('User',{where:'SELF.username = "test"'},function(err,user){
+        context.getObject('User',{where:['SELF.username = %s','test']},function(err,user){
             assert.ifError(err);
             assert.equal(user.username,'test');
             context.save(done);
@@ -60,12 +63,12 @@ describe('core module',function(){
     it('should load objects',function(done){
         var context = cd.createContext();
         context.getObjects('User',function(err,users){
-            user = users[0]
             assert.ifError(err);
+            user = users[0]
             context.deleteObject(user);
             context.save(function(err){
                 assert.ifError(err);
-                context.getObject('User',{where:'SELF.username = "test"'},function(err,user){
+                context.getObject('User',{where:['SELF.username = %s','test']},function(err,user){
                     assert.ifError(err);
                     assert.ok(!user);
                     done();

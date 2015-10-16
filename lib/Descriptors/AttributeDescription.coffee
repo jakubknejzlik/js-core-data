@@ -9,7 +9,7 @@ attributeTypes = {}
 
 class AttributeDescription extends PropertyDescription
   constructor:(@type,@info,name,entity) ->
-    @persistentType = @info.persistentType or @type
+    @persistentType = @getAttributeType(@info.persistentType or @type).persistentStoreType
     super(name,entity)
 
   @registerType:(type,aliases = [])->
@@ -122,6 +122,11 @@ AttributeDescription.registerType((new AttributeType('date','date')).transformFn
       return yes
     if value instanceof Date or (typeof value is 'string' and moment(new Date(value)).isValid())
       return yes
+  ).encodeFn((value)->
+    return moment(value).toDate()
+  ).decodeFn((value)->
+#    console.log('decode',value instanceof Date,'=>',moment(value).toDate().toISOString())
+    return moment(value).toDate()
   )
 )
 AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).transformFn((value)->
@@ -136,7 +141,7 @@ AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).t
   ).encodeFn((value)->
     return value.getTime()
   ).decodeFn((value)->
-    return new Date(value)
+    return moment(Number(value)).toDate()
   )
 )
 AttributeDescription.registerType((new AttributeType('boolean','boolean')).transformFn((value)->

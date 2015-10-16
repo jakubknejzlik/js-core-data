@@ -1,6 +1,6 @@
 IncrementalStore = require('./../IncrementalStore')
 PersistentStoreRequest = require('./../PersistentStoreRequest')
-GenericPool = require('generic-pool')
+#GenericPool = require('generic-pool')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
@@ -9,7 +9,7 @@ SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
 #AttributeTransformer = require('../../Helpers/AttributeTransformer')
-
+SQLConnectionPool = require('./SQLConnectionPool')
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
 
@@ -20,11 +20,14 @@ class GenericSQLStore extends IncrementalStore
 
   constructor: (@storeCoordinator,@URL,@globals)->
     if @storeCoordinator
-      @connection = @createConnection()
+      @connectionPool = new SQLConnectionPool(@URL,(url)=>
+        return @createConnection(url)
+      ,@,@globals)
+#      @connection = @createConnection()
 #    @fetchedObjectValuesCache = {}
     @permanentIDsCache = {}
 
-  createConnection: ()->
+  createConnection: (url)->
     throw new Error('createConnection must be overriden')
 
   execute:(request,context,callback,afterInsertCallback) ->
@@ -32,7 +35,8 @@ class GenericSQLStore extends IncrementalStore
       throw new Error('request ' + request + ' is not instance of PersistentStoreRequest')
 
     if request.type is 'save'
-      @connection.createTransaction (transaction)=>
+      @connectionPool.createTransaction (err,transaction)=>
+        return callback(err) if err
         async.series [
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
@@ -40,11 +44,11 @@ class GenericSQLStore extends IncrementalStore
 #              inserts = ['`_id` = NULL']
 #              for key,value of values
 #                inserts.push('`' + key + '` = ' + mysql.escape(value))
-              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (?)'
-              transaction.sendQuery(sql,[null],(err,result)=>
+#              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (' + @DEFAULT_PRIMARY_KEY_VALUE + ') RETURNING "_id"'
+              transaction.createRow(formattedTableName,(err,rowId)=>
                 if err
                   return cb(err)
-                @permanentIDsCache[insertedObject.objectID.toString()] = result.insertId
+                @permanentIDsCache[insertedObject.objectID.toString()] = rowId
                 cb()
               )
             ,(err)=>
@@ -54,7 +58,7 @@ class GenericSQLStore extends IncrementalStore
             (insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
               if sql
-                transaction.sendQuery(sql,updateValues,(err,result)=>
+                transaction.query(sql,updateValues,(err,result)=>
                   if err
                     return cb(err)
                   @_updateRelationsForObject(transaction,insertedObject,cb)
@@ -65,35 +69,33 @@ class GenericSQLStore extends IncrementalStore
             (updatedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(updatedObject)
               if sql
-                transaction.sendQuery(sql,updateValues,(err)=>
+                transaction.query(sql,updateValues,(err)=>
                   if err
                     return cb(err)
                   @_updateRelationsForObject(transaction,updatedObject,cb)
                 )
               else @_updateRelationsForObject(transaction,updatedObject,cb)
-            ,(err)=>
-              seriesCallback(err)
+            ,seriesCallback
           (seriesCallback)=> async.forEach request.deletedObjects,
             (deletedObject,cb)=>
               formattedTableName = @_formatTableName(deletedObject.entity.name)
               id = @_recordIDForObjectID(deletedObject.objectID);
               sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
-              transaction.sendQuery sql,(err)->
+              transaction.query sql,(err)->
                 cb(err)
-            ,(err)=>
-              seriesCallback(err)
+            ,seriesCallback
           ],(err)=>
             if err
-              return transaction.rollback (rollbackError)=>
-                @connection.releaseTransaction(transaction)
-                callback(err)
-            transaction.commit (err)=>
-              @connection.releaseTransaction(transaction)
+              @connectionPool.releaseTransaction(transaction)
+              return callback(err)
+            transaction.commit((err)=>
+              @connectionPool.releaseTransaction(transaction)
               callback(err)
+            )
 
     if request.type is 'fetch'
 #      console.log('sql fetch',@_sqlForFetchRequest(request))
-      @connection.sendRawQuery(@sqlForFetchRequest(request),(err,rows)=>
+      @connectionPool.query(@sqlForFetchRequest(request),(err,rows)=>
         ids = []
         return callback(err) if err
 
@@ -119,7 +121,7 @@ class GenericSQLStore extends IncrementalStore
       )
 
   numberOfObjectsForFetchRequest:(request,callback)->
-    @connection.sendRawQuery(@countSqlForFetchRequest(request),(err,result)=>
+    @connectionPool.query(@countSqlForFetchRequest(request),(err,result)=>
       callback(err,result[0].count)
     )
 
@@ -147,30 +149,30 @@ class GenericSQLStore extends IncrementalStore
 
 
   countSqlForFetchRequest:(request)->
-    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
+    query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT SELF._id)','count')
     if request.predicate
       query.where(request.predicate.toString())
     return @_getRawTranslatedQueryWithJoins(query,request)
 
   sqlForFetchRequest: (request) ->
-    query = squel.select().from(@_formatTableName(request.entity.name),@tableAlias)
+    query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
 
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
       query.group('SELF._id')
-      query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,'_id')
+      query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,@quoteSymbol + '_id' + @quoteSymbol)
       for attribute in request.entity.attributes
-        query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,attribute.name)
+        query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,@quoteSymbol + attribute.name + @quoteSymbol)
       for relationship in request.entity.relationships
         if not relationship.toMany
           columnName = _.singularize(relationship.name) + '_id'
-          query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,columnName)
+          query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,@quoteSymbol + columnName + @quoteSymbol)
     else
       if not request.fields
         query.field(@tableAlias + '.*')
       else
         for name,field of request.fields
-          query.field(field,name)
+          query.field(field,@quoteSymbol + name + @quoteSymbol)
       if request.group
         query.group(request.group)
 
@@ -255,7 +257,7 @@ class GenericSQLStore extends IncrementalStore
     sqlString = query.toString()
     for i of replaceNameSorted
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
-      sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "`", "g"), replaceNames[replaceNameSorted[i]] + "`")
+      sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + @quoteSymbol, "g"), replaceNames[replaceNameSorted[i]] + @quoteSymbol)
 
     return sqlString
 
@@ -285,17 +287,19 @@ class GenericSQLStore extends IncrementalStore
             sql = 'DELETE FROM ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ' = ' + @_recordIDForObjectID(removedObject.objectID)
             sqls.push(sql)
     async.forEachSeries sqls,(sql,cb)->
-      transaction.sendQuery(sql,cb)
+      transaction.query(sql,cb)
     ,callback
 
   _getMiddleTableNameForManyToManyRelation:(relationship)->
-    return @_formatTableName(relationship.entity.name) + '_' + relationship.name
+    inversedRelationship = relationship.inverseRelationship()
+    reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship);
+    return @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name.toLowerCase()
 
   _valuesWithRelationshipsForObject:(object)->
     data = {}
     for key,value of object._changes
       attribute = object.entity.getAttribute(key)
-      data[key] = @decodeValueForAttribute(value,attribute);
+      data[key] = value;
 #    console.log('xxx',object.entity.name)
     for relation in object.entity.relationships
       if not relation.toMany
@@ -336,7 +340,7 @@ class GenericSQLStore extends IncrementalStore
   _formatTableName: (name)->
     return _.pluralize(name).toLowerCase()
 
-  _columnDefinitionForAttribute:(attribute)->
+  columnTypeForAttribute:(attribute)->
     type = null
     switch attribute.persistentType
       when 'bool','boolean'
@@ -384,6 +388,11 @@ class GenericSQLStore extends IncrementalStore
       when 'transformable'
         type = 'mediumtext'
       else return null
+
+  _columnDefinitionForAttribute:(attribute)->
+    type = @columnTypeForAttribute(attribute)
+    if not type
+      return null
     definition = @quoteSymbol + attribute.name + @quoteSymbol + ' '+type+' DEFAULT NULL'
     if attribute.info.unique
       definition += ' UNIQUE'
@@ -433,7 +442,7 @@ class GenericSQLStore extends IncrementalStore
           throw new Error('migration ' + currentVersion + '=>' + objectModel.version + ' not found')
         try
           queries = @createMigrationQueries(migration)
-          queries.push('UPDATE `_meta` SET `value` = \'' + objectModel.version + '\' WHERE `key` = \'version\'')
+          queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol +  ' = \'version\'')
         catch err
           return callback(err)
 
@@ -442,8 +451,8 @@ class GenericSQLStore extends IncrementalStore
 
 
   getCurrentVersion:(callback)->
-    query = squel.select().from('_meta').field('value').where('`key` = ?','version').limit(1)
-    @connection.sendRawQuery(query.toString(),(err,rows)->
+    query = squel.select().from('_meta').field('value').where(@quoteSymbol + 'key' + @quoteSymbol + ' = ?','version').limit(1)
+    @connectionPool.query(query.toString(),(err,rows)->
       return callback(err) if err
       callback(null,rows[0]?.value)
     )
@@ -459,9 +468,9 @@ class GenericSQLStore extends IncrementalStore
         when '+'
           sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
         when '-'
-          sqls.push('DROP TABLE IF EXISTS `' + @_formatTableName(entityName) + '`')
+          sqls.push('DROP TABLE IF EXISTS ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
         else
-          sqls.push('ALTER TABLE `' + @_formatTableName(change) + '` RENAME TO `' + @_formatTableName(entityName) + '`')
+          sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(change) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
 
     updatedEntities = _.uniq(Object.keys(migration.attributesChanges).concat(Object.keys(migration.relationshipsChanges)))
 
@@ -503,29 +512,29 @@ class GenericSQLStore extends IncrementalStore
             catch e
               console.error('relationship ' + relationship.name + ' not found in version ' + modelFrom.version)
 
-      tableName = @_formatTableName(entityName)
-      sqls.push('DROP TABLE IF EXISTS `' + tableName + '_tmp`')
-      sqls.push('ALTER TABLE `' + tableName + '` RENAME TO `' + tableName + '_tmp`')
+      tableName = @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol
+      tmpTableName = @quoteSymbol + @_formatTableName(entityName) + '_tmp' + @quoteSymbol
+      sqls.push('DROP TABLE IF EXISTS ' + tmpTableName)
+      sqls.push('ALTER TABLE ' + tableName + ' RENAME TO ' + tmpTableName)
       sqls = sqls.concat(@createEntityQueries(entityTo,no,{ignoreRelationships:yes}))
-      sqls.push('INSERT INTO `' + tableName + '` (`' + newColumnNames.join('`,`') + '`) SELECT `' + oldColumnNames.join('`,`') + '` FROM `' + tableName + '_tmp`')
-      sqls.push('DROP TABLE `' + tableName + '_tmp`')
+      sqls.push('INSERT INTO ' + tableName + ' (' + @quoteSymbol + newColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ') SELECT ' + @quoteSymbol + oldColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ' FROM ' + tmpTableName)
+      sqls.push('DROP TABLE ' + tmpTableName)
 
     for relationship in entityTo.relationships
       inversedRelationship = relationship.inverseRelationship()
       if relationship.toMany and inversedRelationship.toMany
         change = migration.relationshipsChanges[entityName][relationship.name]
-        console.log('!!',relationship.name,change)
         if change
           if change not in ['+','-']
             oldRelationship = entityFrom.getRelationship(change)
             oldInversedRelationship = oldRelationship.inverseRelationship()
             oldReflexiveRelationship = @_relationshipByPriority(oldRelationship,oldInversedRelationship)
             reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-            oldReflexiveTableName = @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name
-            reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+            oldReflexiveTableName = @quoteSymbol + @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name + @quoteSymbol
+            reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
 
-            sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName + '`')
-            sqls.push('ALTER TABLE `' + oldReflexiveTableName + '` RENAME TO `' + reflexiveTableName + '`')
+            sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
+            sqls.push('ALTER TABLE ' + oldReflexiveTableName + ' RENAME TO ' + reflexiveTableName)
         else
           sqls.push(@createEntityRelationshipQueries(entityTo))
 
@@ -533,20 +542,21 @@ class GenericSQLStore extends IncrementalStore
     return sqls
 
   _runRawQueriesInTransaction:(sqls,callback)->
-    @connection.createTransaction((transaction)=>
+    @connectionPool.createTransaction((err,transaction)=>
+      return callback(err) if err
       async.forEachSeries(sqls,(sql,cb)=>
-        transaction.sendQuery(sql,cb)
+        transaction.query(sql,cb)
       ,(err)=>
         if err
           transaction.rollback(()=>
             if callback
               callback(err)
-            @connection.releaseTransaction(transaction)
+            @connectionPool.releaseTransaction(transaction)
           )
         else
           transaction.commit(()=>
             callback()
-            @connection.releaseTransaction(transaction)
+            @connectionPool.releaseTransaction(transaction)
           )
       )
     )

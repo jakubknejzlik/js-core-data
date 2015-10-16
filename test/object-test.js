@@ -10,21 +10,24 @@ var store_url = require('./get_storage_url');
 describe('ManagedObject',function(){
     describe('attributes',function(){
         var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
-        var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
+//        var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
 
-        it('should throw error for invalid model',function(done){
-            storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel,{logging:console.log});
-
-            storeCoordinator.addStore(store_url);
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                console.log(err)
-                assert.throws(function(){
-                    if(err)throw err;
-                },function(err){
-                    return err.message == 'unknown attribute type blah';
-                })
-                done()
-            })
+        it('should throw error for invalid model',function(){
+            assert.throws(function(){
+                new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
+            },/unknown attribute type/)
+//            storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel,{logging:console.log});
+//
+//            storeCoordinator.addStore(store_url);
+//            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
+//                console.log(err)
+//                assert.throws(function(){
+//                    if(err)throw err;
+//                },function(err){
+//                    return err.message == 'unknown attribute type blah';
+//                })
+//                done()
+//            })
         })
         it('shouldn\'t throw error for valid model',function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);

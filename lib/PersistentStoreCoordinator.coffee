@@ -10,12 +10,14 @@ ac = require('array-control')
 
 _knownStoreProtocols = {
   'sqlite:':'SQLiteStore',
-  'mysql:':'MySQLStore'
+  'mysql:':'MySQLStore',
+  'postgres:':'PostgreSQLStore'
 }
 
 class PersistentStoreCoordinator extends Object
   @STORE_TYPE_MYSQL = 'MySQLStore'
   @STORE_TYPE_SQLITE = 'SQLiteStore'
+  @STORE_TYPE_POSTGRES = 'PostgreSQLStore'
 
   registeredStoreTypes = {}
 

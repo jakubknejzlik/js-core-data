@@ -85,6 +85,7 @@ describe('Context', function(){
                 tempContext.save().then(function(){
                     done(new Error('should not save successfuly'))
                 }).catch(function(err){
+//                    console.log(err)
                     assert.equal(car1.objectID.isTemporaryID,true);
                     assert.equal(car2.objectID.isTemporaryID,true);
                     done()
@@ -192,7 +193,7 @@ describe('Context', function(){
                     context2.insertObject(object);
                 })
             });
-            it('should fail to object object from another context',function(){
+            it('should fail to delete object from another context',function(){
                 assert.throws(function(){
                     context2.deleteObject(object);
                 })
@@ -223,7 +224,7 @@ describe('Context', function(){
                 context.save(function(err){
                     if(err)return done(err);
                     context.deleteObject(object);
-                    context.save(done);
+                    context.saveAndDestroy(done);
                 })
             })
 
@@ -596,7 +597,7 @@ describe('Context', function(){
 //                        console.log('getting owner')
                         _car.getOwner(function(err,_owner){
                             if(err)return done(err);
-                            console.log('owner get..',_owner)
+//                            console.log('owner get..',_owner)
                             assert.equal(!!_owner,false);
                             done();
                         })
