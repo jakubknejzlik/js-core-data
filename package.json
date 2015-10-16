@@ -1,7 +1,7 @@
 {
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
-  "version": "0.6.17",
+  "version": "0.7.0",
   "license": "MIT",
   "keywords": [
     "ORM",
@@ -36,7 +36,7 @@
   },
   "scripts": {
     "deploy": "git push;git push --tags;npm publish",
-    "test": "env STORAGE=mysql mocha test;env STORAGE=sqlite mocha test"
+    "test": "env STORAGE=mysql mocha test;env STORAGE=sqlite mocha test;env STORAGE_URL=postgres://postgres@localhost/test mocha test"
   },
   "repository": {
     "type": "git",

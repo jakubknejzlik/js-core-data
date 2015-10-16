@@ -8,6 +8,9 @@ FetchRequest = require('./../../FetchRequest')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
 
+PersistentStoreCoordinator = require('../../PersistentStoreCoordinator')
+ManagedObjectContext = require('../../ManagedObjectContext')
+
 #AttributeTransformer = require('../../Helpers/AttributeTransformer')
 SQLConnectionPool = require('./SQLConnectionPool')
 _ = require('underscore');
@@ -435,19 +438,46 @@ class GenericSQLStore extends IncrementalStore
         catch err
           return callback(err)
 
-        @_runRawQueriesInTransaction(queries,callback)
+        @_runRawQueriesInSingleTransaction(queries,callback)
       else
-        migration = objectModel.getMigrationFrom(currentVersion)
-        if not migration
+        migrations = objectModel.getMigrationsFrom(currentVersion)
+        if not migrations or migrations.length is 0
           throw new Error('migration ' + currentVersion + '=>' + objectModel.version + ' not found')
-        try
-          queries = @createMigrationQueries(migration)
-          queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol +  ' = \'version\'')
-        catch err
-          return callback(err)
-
-        @_runRawQueriesInTransaction(queries,callback)
+        async.forEachSeries(migrations,@runMigration.bind(@),callback)
     )
+
+  runMigration:(migration,callback)->
+    objectModel = @storeCoordinator.objectModel
+    async.forEachSeries(migration.scriptsBefore,(script,cb)=>
+      @_runMigrationScript(migration.modelFrom,script,cb)
+    ,(err)=>
+      console.log('err',err)
+      return callback(err) if err
+      try
+        queries = @createMigrationQueries(migration)
+        queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
+      catch err
+        return callback(err)
+
+      @_runRawQueriesInSingleTransaction(queries,(err)=>
+        return callback(err) if err
+        async.forEachSeries(migration.scriptsAfter,(script,cb)=>
+          @_runMigrationScript(migration.modelTo,script,cb)
+        ,callback)
+      )
+    )
+
+  _runMigrationScript:(model,script,callback)->
+    persistentStoreCoordinator = new PersistentStoreCoordinator(model,@storeCoordinator.globals)
+    persistentStoreCoordinator.addStore(@)
+    context = new ManagedObjectContext(persistentStoreCoordinator)
+    script(context,(err)=>
+      if err
+        context.destroy()
+        return callback(err)
+      context.saveAndDestroy(callback)
+    )
+
 
 
   getCurrentVersion:(callback)->
@@ -541,7 +571,7 @@ class GenericSQLStore extends IncrementalStore
 
     return sqls
 
-  _runRawQueriesInTransaction:(sqls,callback)->
+  _runRawQueriesInSingleTransaction:(sqls,callback)->
     @connectionPool.createTransaction((err,transaction)=>
       return callback(err) if err
       async.forEachSeries(sqls,(sql,cb)=>

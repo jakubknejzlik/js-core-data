@@ -35,17 +35,24 @@ class PersistentStoreCoordinator extends Object
     registeredStoreTypes[storeType] = storeClass
     this
 
-  addStore: (storeType,URL,callback)->
-    if URL is undefined
-      URL = storeType
-      parsedURL = url.parse(URL)
-      storeType = _knownStoreProtocols[parsedURL.protocol]
-    if not storeType
-      throw new Error('unknown store for url ' + URL)
-    storeClass = registeredStoreTypes[storeType]
-    if not storeClass
-      storeClass = require('./stores/Defaults/'+storeType)
-    store = new (storeClass)(this,URL,@globals);
+  addStore: (storeTypeOrStore,URL,callback)->
+    store = null
+    if storeTypeOrStore instanceof IncrementalStore
+      store = storeTypeOrStore
+    else
+      if URL is undefined
+        URL = storeTypeOrStore
+        parsedURL = url.parse(URL)
+        storeTypeOrStore = _knownStoreProtocols[parsedURL.protocol]
+      if not storeTypeOrStore
+        throw new Error('unknown store for url ' + URL)
+      storeClass = registeredStoreTypes[storeTypeOrStore]
+      if not storeClass
+        storeClass = require('./stores/Defaults/'+storeTypeOrStore)
+      store = new (storeClass)(this,URL,@globals);
+
+    if not store
+      throw new Error('could not identify store')
     if callback
       console.error('adding store with callback is deprecated')
       store.syncSchema((err)=>
