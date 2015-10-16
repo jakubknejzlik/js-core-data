@@ -138,6 +138,7 @@ class GenericSQLStore extends IncrementalStore
       try
         attribute = updatedObject.entity.getAttribute(key)
       catch e
+        attribute = null
 
       if attribute
         updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
