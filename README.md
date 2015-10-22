@@ -20,17 +20,14 @@
 
 ==============
 
-CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by helper methods. Providing easy interface for defining data model, working with entities and persisting data to persistent store (MySQL and SQLite are currently supported).
+CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by helper methods. Providing easy interface for defining data model, working with entities and persisting data to persistent store.
+
+Currently supported persistent stores: MySQL, PostgreSQL, SQLite
+
 
 # Important
 
 Although this library is used in few projects, it's still considered as *beta*!
-
-# Context
-
-When you create/update/access/delete data you always use context. Every time you create or fetch some object (entity instance) it's stored in context. Every updated attribute or relationship is stored in memory. After everything is ready, you just save the context.
-
-The *best* thing about the context is that all changes are stored in memory until you save them into persistent store in ***one transaction***.
 
 
 # Example
@@ -65,6 +62,35 @@ db.syncSchema({force:true}).then(function(){
 })
 ```
 
+For more examples see */examples*, especially TODO list REST backend example.
+
+
+# Context
+
+When you create/update/access/delete data you always use context. Every time you create or fetch some object (entity instance) it's stored in context. Every updated attribute or relationship is stored in memory. After everything is ready, you just save the context.
+
+The *best* thing about the context is that all changes are stored in memory until you save them into persistent store in ***one transaction***.
+
+
+# Working with objects
+
+Objects are created in contexts. Every object exists in one instance per context (every time you fetch object twice, it's still the same instance).
+
+```
+var db = new CoreData(...);
+var context = db.createContext();
+var userId = 123;
+context.getObjectWithId('User',userid).then(function(user1){
+    context.getObjectWithId('User',userid).then(function(user2){
+        console.log(user1 === user2); // true
+    })
+})
+```
+
+Every change to objects are made in memory (attributes and relationships). All changes are stored in persistent store (database) after save in one transaction.
+
+
+
 ## Fetching objects
 ```
 ...
@@ -79,12 +105,97 @@ context.getObjects('User',{
     where:['SELF.company.name = %s','test company'],
     sort:'username'
 }).then(function(users){
-    console.log(users)
+    console.log(users);
+    context.destroy();
 })
 
 ```
 
-## Express middleware
+## Relationships
+
+There are two types of relationships toMany and toOne. Every relationship should have it's inverse (only in few cases it's possible do ignore inverse relationship).
+
+Methods for accessing relationships are automaticaly defined for model.
+
+
+```
+...
+db.define('User',{username:'string'});
+db.define('Company',{name:'string'});
+
+db.defineRelationshipManyToOne('User','Company','company','users');
+
+var context = db.createContext();
+var user = context.create('User');
+var company = context.create('Company');
+
+// generated methods
+user.setCompany(company);
+
+company.addUser(user);
+company.addUsers([user,...]);
+company.removeUser(user);
+company.removeUsers([user,...]);
+
+```
+
+
+
+# Schema synchronization and migration
+
+You can specify multiple model schemas each with specific version. You can also specify schema migration from and to specific model version.
+
+When you don't need model versioning, the `default` version is used.
+
+To sync model schema use `syncSchema` method.
+
+```
+var CoreData = require('js-core-data');
+var express = require('express');
+
+var db = new CoreData(DATABASE_URL);
+
+db.defineEntity('MyEntity',{attribute1:'string',attribute2:'string'});
+
+db.syncSchema({force:true}).then(function(){ // force option drops existing tables
+    console.log('schema synced');
+});
+
+```
+
+For migrations and multiple version model use `createModel`, `createMigrationFrom` and `setVersionModel methods`
+
+```
+...
+model1 = db.createModel('0.1');
+model1.defineEntity('User',{username:{type:'string',unique:true}})
+
+model2 = db.createModel('0.2');
+model2.defineEntity('User',{username:{type:'string',unique:true},password:'string'})
+
+migration1to2 = model2.createMigrationFrom(model1);
+migration1to2.addAttribute('User','password');
+
+// build schema for version 0.1
+db.setModelVersion('0.1');
+db.syncSchema().then(function(){
+    // migrate schema to version 0.2
+    db.setModelVersion('0.2');
+    db.syncSchema().then(function(){
+        // now model version is 0.2
+    })
+});
+```
+
+Every persistent store (data) has schema version stored in table `_meta`, during syncSchema every store checks it's model version, finds migrations needed to be performed and executes them. This way you don't need to take care about model version of each store.
+
+Migrations can add/remove/rename attributes/relationships/entities.
+
+
+# Express middleware
+
+Middleware takes care about creatint, destroying and assigning context to req.context. Context is destroyed on res.once('finish')
+
 ```
 var CoreData = require('js-core-data');
 var express = require('express');
@@ -105,7 +216,9 @@ app.listen(process.env.PORT)
 
 ```
 
-For more examples see */examples*
+*Note: currently store cannot join migrations (eg. 0.1=>0.2=>...=>0.8=>0.9)*
+
+
 
 # TO-DO
 - more detailed documentation (object subclasses etc.)
