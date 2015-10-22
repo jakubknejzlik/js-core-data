@@ -50,8 +50,10 @@ class ManagedObjectModel extends Object
 
 
     if not Subclass
-      objectClass = @_entityObjectClass(entity)
-      class Subclass extends objectClass
+      ObjectClass = @_entityObjectClass(entity)
+      if typeof ObjectClass isnt 'function' or (ObjectClass.prototype not instanceof ManagedObject and ObjectClass isnt ManagedObject)
+        throw new Error('objectClass for entity ' + entityName + ' is not instance of ManagedObject (' + ObjectClass + ')')
+      class Subclass extends ObjectClass
 
       for attribute in entity.attributes
         Subclass.addAttributeDescription(attribute)
@@ -117,6 +119,13 @@ class ManagedObjectModel extends Object
 #    console.log(entity.name,'=>',name,'=>',destinationEntity.name,'toMany:',options.toMany,'inverse:',options.inverse)
     relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
     entity.addRelationship(relationship)
+    inverseRelationship = null
+    try
+      inverseRelationship = relationship.inverseRelationship()
+    catch e
+
+    if inverseRelationship and not relationship.toMany and not inverseRelationship.toMany
+      throw new Error('oneToOne relationships are not supported ' + relationship + ', ' + inverseRelationship)
 
   defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
     @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})

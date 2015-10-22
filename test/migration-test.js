@@ -1,5 +1,5 @@
 var assert = require('assert');
-var tmp = require('tmp')
+var tmp = require('tmp');
 
 var CoreData = require('../index');
 
@@ -7,7 +7,7 @@ var store_url = require('./get_storage_url').replace(':memory:',tmp.tmpNameSync(
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url)
+    var db = new CoreData(store_url,{logging:false});
 
     before(function(){
         model1 = db.createModel('0.1');
@@ -19,8 +19,8 @@ describe('migrations',function(){
         model1.defineEntity('Company',{
             name:'string'
         });
-        model1.defineRelationshipManyToOne('User','Company','company','users')
-        model1.defineRelationshipManyToMany('User','User','friends','friends')
+        model1.defineRelationshipManyToOne('User','Company','company','users');
+        model1.defineRelationshipManyToMany('User','User','friends','friends');
 
         model2 = db.createModel('0.2');
         model2.defineEntity('User',{
@@ -32,10 +32,10 @@ describe('migrations',function(){
         model2.defineEntity('Company',{
             name:'string'
         });
-        model2.defineRelationshipManyToOne('User','Company','company2','users2')
+        model2.defineRelationshipManyToOne('User','Company','company2','users2');
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
-        model2.defineRelationshipManyToMany('User','User','friends2','friends2')
-        model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends')
+        model2.defineRelationshipManyToMany('User','User','friends2','friends2');
+        model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
 
         migration1to2 = model2.createMigrationFrom(model1);
 
@@ -52,33 +52,33 @@ describe('migrations',function(){
             context.getObjects('User').then(function(users){
                 users.forEach(function(user){
                     if(user.firstname){
-                        var nameParts = user.firstname.split(' ')
+                        var nameParts = user.firstname.split(' ');
                         user.firstname = nameParts[0];
                         user.lastname = nameParts[1];
                     }
-                })
+                });
                 done();
             }).catch(done);
         })
 
-    })
+    });
 
     it('should sync schema to 0.1',function(done){
         db.setModelVersion('0.1');
         db.syncSchema({force:true},done);
-    })
+    });
 
     it('should create user object in 0.1',function(done){
         var context = db.createContext();
 
         context.create('User',{name:'John Doe'});
         context.saveAndDestroy(done);
-    })
+    });
 
     it('should sync schema from 0.1 to 0.2',function(done){
         db.setModelVersion('0.2');
         db.syncSchema(done);
-    })
+    });
 
 
     it('should validate created user object in 0.2',function(done){
@@ -92,4 +92,4 @@ describe('migrations',function(){
             done();
         }).catch(done)
     })
-})
+});

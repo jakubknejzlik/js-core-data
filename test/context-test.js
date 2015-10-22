@@ -20,17 +20,18 @@ describe('Context', function(){
                 new PersistentStoreCoordinator();
             },'Cannot create coordinator without object model')
         })
-    })
+    });
 
     describe('context',function(){
         var coreData;
 
         before(function(done){
             coreData = new CoreData(store_url,{
-                modelFile:__dirname + '/schemes/car-model.yaml'
-            })
+                modelFile:__dirname + '/schemes/car-model.yaml',
+                logging:false
+            });
             coreData.syncSchema({force:true}).then(done,done);
-        })
+        });
 
         describe('object creation', function(){
             var context;
@@ -39,17 +40,17 @@ describe('Context', function(){
             before(function(){
                 context = coreData.createContext();
                 object = context.createObjectWithName('Car');
-            })
+            });
             after(function(done){
                 context.getObjectWithObjectID(object.objectID,function(err,object){
                     context.deleteObject(object);
                     context.save(done)
                 })
-            })
+            });
 
             it('should insert object into context.insertedObject after creating', function(){
                 assert.notEqual(-1, context.insertedObjects.indexOf(object));
-            })
+            });
             it('should set flag isInserted of object to true',function(){
                 assert.equal(true,object.isInserted);
             });
@@ -58,13 +59,13 @@ describe('Context', function(){
             });
             it('should set flag hasChanges of context to true',function(){
                 assert.equal(true,context.hasChanges);
-            })
+            });
             it('shouldn\'t be fault',function(){
                 assert.equal(object.isFault,false);
-            })
+            });
             it('shouldn\'t fail saving', function(done){
                 context.save(done);
-            })
+            });
             it('should set flag isInserted of object to false after save',function(){
                 assert.equal(false,object.isInserted);
             });
@@ -73,10 +74,10 @@ describe('Context', function(){
             });
             it('should set flag hasChanges of context to false after save',function(){
                 assert.equal(false,context.hasChanges);
-            })
+            });
             it('objectID shouldn\'t be temporary after save',function(){
                 assert.equal(object.objectID.isTemporaryID,false);
-            })
+            });
 
             it('shouldn\'t assign persistent ObjectID on error save',function(done){
                 var tempContext = coreData.createContext();
@@ -85,12 +86,12 @@ describe('Context', function(){
                 tempContext.save().then(function(){
                     done(new Error('should not save successfuly'))
                 }).catch(function(err){
-//                    console.log(err)
+                    assert.ok(err);
                     assert.equal(car1.objectID.isTemporaryID,true);
                     assert.equal(car2.objectID.isTemporaryID,true);
                     done()
                 })
-            })
+            });
 
             it('should set toOne relation',function(done){
                 var tempContext = coreData.createContext();
@@ -98,7 +99,7 @@ describe('Context', function(){
                 var owner = context.createObjectWithName('Owner');
                 car.setOwner(owner);
                 var values = car.getValues();
-                assert.notEqual(values.owner_id,null)
+                assert.notEqual(values.owner_id,null);
                 context.save().then(function(){
                     return tempContext.getObjectWithObjectID(car.objectID).then(function(tempCar){
                         values = tempCar.getValues();
@@ -107,7 +108,7 @@ describe('Context', function(){
                         done();
                     })
                 }).catch(done)
-            })
+            });
 
             it('shouldn\'t insert object before save is completed',function(done){
                 var car = context.createObjectWithName('Car');
@@ -118,33 +119,33 @@ describe('Context', function(){
                 assert.throws(function(){
                     context.createObjectWithName('Car');
                 })
-            })
+            });
             it('should insert self-reflexive relation',function(done){
                 var owner = context.createObjectWithName('Owner');
                 var owner2 = context.createObjectWithName('Owner');
                 owner.addFriend(owner2);
                 context.save().then(done).catch(done);
-            })
+            });
 
             it('should insert two self-reflexive relations',function(done){
                 var owner = context.createObjectWithName('Owner');
                 var owner2 = context.createObjectWithName('Owner');
                 owner.addEmployer(owner2);
                 context.save(done);
-            })
+            });
 
             it('should store object',function(done){
                 var car = context.create('Car',{brand:'test car',timestamp:new Date(),date:new Date()});
 
                 context.save(function(err){
-                    assert.ifError(err)
-                    var context2 = coreData.createContext()
+                    assert.ifError(err);
+                    var context2 = coreData.createContext();
                     context2.getObjectWithObjectID(car.objectID).then(function(car2){
-                        assert.equal(car.timestamp.toString(),car2.timestamp.toString())
+                        assert.equal(car.timestamp.toString(),car2.timestamp.toString());
                         done();
                     }).catch(done)
                 });
-            })
+            });
 
             it('should get or create object',function(done){
                 var brand = 'this is my car';
@@ -161,7 +162,7 @@ describe('Context', function(){
                         })
                     })
                 })
-            })
+            });
 
             it('should store object with default values',function(done){
                 var car = context.create('Car');
@@ -171,14 +172,14 @@ describe('Context', function(){
                     tempContext = coreData.createContext();
                     tempContext.getObjectWithObjectID(car.objectID,function(err,car2){
                         assert.ifError(err);
-                        assert.equal(car.uid,car2.uid)
-                        tempContext.destroy()
+                        assert.equal(car.uid,car2.uid);
+                        tempContext.destroy();
                         done()
                     })
                 })
             })
 
-        })
+        });
 
         describe('intercontext stuff',function(){
             var context,context2,object;
@@ -186,7 +187,7 @@ describe('Context', function(){
                 context = coreData.createContext();
                 context2 = coreData.createContext();
                 object = context.createObjectWithName('Car');
-            })
+            });
 
             it('should fail to insert object to another context',function(){
                 assert.throws(function(){
@@ -198,7 +199,7 @@ describe('Context', function(){
                     context2.deleteObject(object);
                 })
             });
-        })
+        });
 
         describe('deletion', function(){
             var context;
@@ -218,7 +219,7 @@ describe('Context', function(){
                         done(err);
                     })
                 })
-            })
+            });
 
             after(function(done){
                 context.save(function(err){
@@ -226,21 +227,21 @@ describe('Context', function(){
                     context.deleteObject(object);
                     context.saveAndDestroy(done);
                 })
-            })
+            });
 
             it('number of objects after create should be equal to 1', function(done){
                 context.getObjects('Car',function(err,cars){
                     assert.equal(cars.length,1);
                     done();
                 })
-            })
+            });
 
             it('should set flag isDeleted of object to true',function(){
                 assert.equal(true,object.isDeleted);
             });
             it('should have _changes',function(){
                 assert.equal(true,object.hasChanges);
-            })
+            });
             it('number of objects after delete should be equal to zero', function(done){
                 context.save(function(err){
                     assert.ifError(err);
@@ -250,14 +251,14 @@ describe('Context', function(){
                     })
                 })
             })
-        })
+        });
 
         describe('error handling',function(){
             var context;
 
             before(function(){
                 context = coreData.createContext();
-            })
+            });
 
             it('should throw error when creating nonexisting object',function(){
                 var entityName = 'NonExistent';
@@ -267,7 +268,7 @@ describe('Context', function(){
                     return err.message == 'entity with name \'' + entityName + '\' doesn\'t exists';
                 })
             })
-        })
+        });
 
         describe('fetching',function(){
             var context;
@@ -288,83 +289,82 @@ describe('Context', function(){
                         })
                     })
                 })
-            })
+            });
             after(function(done){
-                return done();
                 context.getObjects('Car',function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     objects.forEach(function(car){context.deleteObject(car)});
                     context.save(done);
                 })
-            })
+            });
             it('should load limited number of objects',function(done){
                 context.getObjects('Car',{limit:1},function(err,objects){
-                    assert.ifError(err)
-                    assert.equal(objects.length,1)
+                    assert.ifError(err);
+                    assert.equal(objects.length,1);
                     done();
                 })
-            })
+            });
             it('should load offest objects',function(done){
                 context.getObjects('Car',{offset:1,limit:2},function(err,objects){
-                    assert.ifError(err)
-                    assert.equal(objects.length,1)
+                    assert.ifError(err);
+                    assert.equal(objects.length,1);
                     done();
                 })
-            })
+            });
             it('should not load offest without limit',function(){
                 assert.throws(function(){
                     context.getObjects('Car',{offset:1},function(err,objects){
                     })
                 },'limit must be supplied when fetching with offset')
-            })
+            });
             it('should add loaded objects to registered objects',function(done){
                 context.getObjects('Car',function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     objects.forEach(function(obj){
                         assert.notEqual(context.registeredObjects.indexOf(obj),-1);
-                    })
+                    });
                     done();
                 })
-            })
+            });
             it('should load all created objects',function(){
                 context.getObjects('Car',function(err,cars){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     assert.equal(cars.length,2);
                 })
-            })
+            });
 
             it('should load object by attribute(brand = \'test\')',function(done){
                 context.getObjects('Car',{where:['SELF.brand = %s','test']},function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     assert.equal(objects.length,1);
                     done();
                 })
-            })
+            });
             it('should load object by attribute(brand = \'test2\')',function(done){
                 context.getObjects('Car',{where:['SELF.brand = %s','test2']},function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     assert.equal(objects.length,1);
                     done();
                 })
-            })
+            });
             it('should load object correctly sorted',function(done){
                 context.getObjects('Car',{sort:'brand'},function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     assert.equal(objects.length,2);
                     assert.equal(objects[0].brand,'test');
                     assert.equal(objects[1].brand,'test2');
                     done();
                 })
-            })
+            });
             it('should load object correctly sorted (descendant)',function(done){
                 context.getObjects('Car',{sort:'-brand'},function(err,objects){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     assert.equal(objects.length,2);
                     assert.equal(objects[0].brand,'test2');
                     assert.equal(objects[1].brand,'test');
                     done();
                 })
-            })
+            });
             it('should load same objects(uniquely)',function(done){
                 var count = 10,loadedCount = 0;
                 var objects = [];
@@ -373,53 +373,53 @@ describe('Context', function(){
                     if(err)return done(err);
                     for(var i = 0;i<count;i++){
                         context.getObjectWithId(obj.entity.name,obj.objectID.recordId(),function(err,object){
-                            objects.push(object)
+                            objects.push(object);
                             if(++loadedCount == count){
-                                objects.forEach(function(object,i){
+                                objects.forEach(function(object){
                                     assert.ok(object === obj,'objects ('+object.objectID+' != '+obj.objectID+') aren\'t equal');
-                                })
+                                });
                                 done();
                             }
                         })
                     }
                 })
-            })
+            });
             it('should load same objects from relation(uniquely)',function(done){
                 var _context = coreData.createContext();
                 var owner = context.createObjectWithName('Owner');
-                var car = context.createObjectWithName('Car')
-                var car2 = context.createObjectWithName('Car')
-                owner.addCar(car)
+                var car = context.createObjectWithName('Car');
+                //var car2 = context.createObjectWithName('Car');
+                owner.addCar(car);
                 context.save(function(err){
-                    assert.ifError(err)
+                    assert.ifError(err);
                     _context.getObjects('Car',function(err,_cars){
-                        assert.ifError(err)
+                        assert.ifError(err);
                         _context.getObjectWithObjectID(owner.objectID,function(err,_owner){
-                            assert.ifError(err)
+                            assert.ifError(err);
                             _owner.getCars().then(function(__cars){
-                                assert.ok(__cars.length > 0,'object count')
+                                assert.ok(__cars.length > 0,'object count');
                                 var _car = __cars[0];
-                                assert.ifError(err)
+                                assert.ifError(err);
                                 _cars.forEach(function(_c){
                                     assert.ok(_car.objectID.toString() != _c.objectID.toString() || _car === _c,_car.objectID.toString()+' == '+_c.objectID.toString()+' are not identical objects');
-                                })
+                                });
                                 done()
                             }).catch(done)
                         })
                     })
                 })
-            })
+            });
             it('should load same objects in collection',function(done){
                 context.getObjects('Car',{sort:'brand'},function(err,objects){
                     context.getObjects('Car',{sort:'brand'},function(err,objects2){
                         assert.equal(objects.length,objects2.length,'colletion count is not equal');
                         objects.forEach(function(obj,i){
                             assert.ok(obj === objects2[i],'objects aren\'t equal('+i+')');
-                        })
+                        });
                         done();
                     })
                 })
-            })
+            });
             it('should avoid loading same object twice when fetching concurrently',function(done){
                 var array = [];
                 var count = 100;
@@ -428,7 +428,7 @@ describe('Context', function(){
                         for(var x=0;x<count;x++){
                             assert.ok(obj === array[x][i],'objects aren\'t equal('+i+')');
                         }
-                    })
+                    });
                     done();
                 }
                 var loadedCount = 0;
@@ -438,7 +438,7 @@ describe('Context', function(){
                         if(++loadedCount == count)loaded();
                     })
                 }
-            })
+            });
 
             it('should get objects count',function(done){
                 context.getObjects('Car',function(err,cars){
@@ -449,7 +449,7 @@ describe('Context', function(){
                         done();
                     })
                 })
-            })
+            });
             it('should get objects count with predicate',function(done){
                 context.getObjects('Car',{where:['SELF.brand = %s','test']},function(err,cars){
                     assert.ifError(err);
@@ -460,7 +460,7 @@ describe('Context', function(){
                     })
                 })
             })
-        })
+        });
 
         describe('attributes',function(){
             var context,context2,car;
@@ -469,11 +469,11 @@ describe('Context', function(){
                 context2 = coreData.createContext();
                 car = context.createObjectWithName("Car");
                 car.brand = 'test car';
-            })
+            });
             after(function(done){
                 context.deleteObject(car);
                 context.save(done);
-            })
+            });
 
             it('should set flag isUpdated of object to true',function(){
                 assert.equal(true,car.isUpdated);
@@ -483,7 +483,7 @@ describe('Context', function(){
             });
             it('should successfuly save attribute change',function(done){
                 car.managedObjectContext.save(done);
-            })
+            });
             it('should unset flag isUpdated of object to false after save',function(){
                 assert.equal(false,car.isUpdated);
             });
@@ -499,7 +499,7 @@ describe('Context', function(){
                     done();
                 })
             })
-        })
+        });
 
         describe('relationships',function(){
             var context,context2;
@@ -514,20 +514,20 @@ describe('Context', function(){
                 owner.name = 'Jackie Prudil';
 //                console.log('owner',owner);
                 context.save(done)
-            })
+            });
             after(function(done){
                 context.deleteObject(car);
                 context.deleteObject(car2);
                 context.deleteObject(owner);
                 context.save(done);
-            })
+            });
             describe('toOne',function(){
                 it('should set single object for relation',function(done){
                     car.setOwner(owner);
                     car2.setOwner(null);
                     car2.setOwner(owner);
                     done();
-                })
+                });
                 it('should return array of assigned objects',function(done){
                     owner.getCars(function(err,cars){
                         if(err)return done(err);
@@ -535,7 +535,7 @@ describe('Context', function(){
                         assert.equal(cars.length,2);
                         done();
                     })
-                })
+                });
                 it('should get objects from inversed relation',function(done){
                     owner.getCars(function(err,cars){
                         if(err)return done(err);
@@ -545,21 +545,21 @@ describe('Context', function(){
                         assert.notEqual(cars.indexOf(car2),-1);
                         done();
                     })
-                })
+                });
                 it('should get single object for relation',function(done){
                     car.getOwner(function(err,_owner){
                         if(err)return done(err);
                         owner2 = _owner;
                         done();
                     })
-                })
+                });
                 it('should return same object for relation',function(){
                     assert.equal(owner,owner2);
-                })
+                });
                 it('should save',function(done){
 //                    console.log('saving car');
                     context.save(done);
-                })
+                });
                 it('should load relation object after saving',function(done){
                     context2.getObjectWithObjectID(car.objectID,function(err,_car){
                         if(err)return done(err);
@@ -567,28 +567,28 @@ describe('Context', function(){
                             if(err)return done(err);
 //                            console.log('!!',_car)
 //                            console.log('_owner',_owner)
-                            assert.ok(_owner)
+                            assert.ok(_owner);
                             assert.equal(owner._objectID.toString(),_owner._objectID.toString());
                             done();
                         })
                     })
-                })
+                });
                 it('should set null object and save',function(done){
                     car.setOwner(null);
                     context.save(done);
-                })
+                });
                 it('should load null after setting null',function(done){
                     car.getOwner(function(err,_owner){
-                        assert.equal(_owner,null)
+                        assert.equal(_owner,null);
                         done(err);
                     })
-                })
+                });
                 it('should remove object from inversed relation after setting null',function(done){
                     owner.getCars(function(err,cars){
-                        assert.equal(cars.indexOf(car),-1)
+                        assert.equal(cars.indexOf(car),-1);
                         done(err);
                     })
-                })
+                });
                 it('should load null also from another context',function(done){
                     context2.reset();
 //                    console.log('selecting car')
@@ -603,7 +603,7 @@ describe('Context', function(){
                         })
                     })
                 })
-            })
+            });
             describe('toMany',function(){
                 it('should add object to relation',function(){
                     owner.addCar(car);
@@ -614,11 +614,11 @@ describe('Context', function(){
                         assert.ok(_owner == owner);
                         done()
                     })
-                })
+                });
                 it('should save successfuly',function(done){
 //                    console.log('saving')
                     context.save(done)
-                })
+                });
                 it('should get assigned object from another context',function(done){
                     context2.reset();
                     context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
@@ -626,19 +626,20 @@ describe('Context', function(){
 //                        console.log('getting cars');
                         _owner.getCars(function(err,_cars){
                             if(err)return done(err);
-                            var ids = []
+                            var ids = [];
                             _cars.forEach(function(car){
                                 ids.push(car.objectID.toString());
-                            })
+                            });
 //                            console.log('cars!',car.objectID.toString());
                             assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
                             done();
                         });
                     })
-                })
+                });
                 it('should get inversed assigned object from another context',function(done){
                     context2.reset();
                     context2.getObjectWithObjectID(car.objectID,function(err,_car){
+                        assert.ok(_car);
                         if(err)return done(err);
                         car.getOwner(function(err,_owner){
                             if(err)return done(err);
@@ -646,27 +647,27 @@ describe('Context', function(){
                             done();
                         });
                     })
-                })
+                });
                 it('should get assigned object from another context',function(done){
                     owner.getCars(function(err,cars){
                         if(err)return done(err);
                         assert.notEqual(cars.indexOf(car),-1);
                         done();
                     });
-                })
+                });
                 it('should remove object from relation',function(){
                     owner.removeCar(car);
-                })
+                });
                 it('should assign reversed relation to null',function(done){
                     car.getOwner(function(err,_owner){
                         if(err)return done(err);
                         assert.ok(_owner == null);
                         done()
                     })
-                })
+                });
                 it('should save successfuly',function(done){
                     context.save(done)
-                })
+                });
                 it('should get unassigned object from another context',function(done){
                     context2.reset();
                     context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
@@ -679,14 +680,14 @@ describe('Context', function(){
                         });
                     })
                 })
-            })
+            });
             describe('manyToMany',function(){
                 it('should add object to many-2-many',function(){
 //                    console.log('assign visited car')
                     owner.addVisitedCar(car);
 //                    console.log(owner._relationChanges);
 //                    console.log(car._relationChanges);
-                })
+                });
                 it('should add object to many-2-many',function(done){
                     car.getVisitors(function(err,owners){
                         if(err)return done(err);
@@ -694,89 +695,89 @@ describe('Context', function(){
                         assert.notEqual(owners.indexOf(owner),-1);
                         done();
                     });
-                })
+                });
                 it('should get assigned object',function(done){
 //                    console.log('get visited cars',owner.objectID.toString())
                     owner.getVisitedCars(function(err,visitedCars){
                         if(err)return done(err);
 //                        console.log('viscars',visitedCars)
-                        ids = []
+                        ids = [];
                         if(visitedCars)visitedCars.forEach(function(vc){
                             ids.push(vc.objectID.toString())
-                        })
+                        });
                         assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
                         done();
                     })
-                })
+                });
                 it('should save successfully',function(done){
 //                    console.log('saving')
                     context.save(done);
-                })
+                });
                 it('should get assigned objects from another context',function(done){
                     context2.reset();
                     context2.getObjectWithObjectID(owner.objectID,function(err,_owner){
                         _owner.getVisitedCars(function(err,visitedCars){
                             if(err)return done(err);
 //                        console.log('viscars',visitedCars)
-                            ids = []
+                            ids = [];
                             if(visitedCars)visitedCars.forEach(function(vc){
                                 ids.push(vc.objectID.toString())
-                            })
+                            });
                             assert.notEqual(ids.indexOf(car.objectID.toString()),-1);
                             done();
                         })
                     })
                 })
-            })
+            });
             describe('oneToOne',function(){
                 before(function(done){
                     context.getObjects('Seller',function(err,objects){
-                        assert.ifError(err)
+                        assert.ifError(err);
                         objects.forEach(function(object){
                             context.deleteObject(object);
-                        })
+                        });
                         context.getObjects('Licence',function(err,objects){
-                            assert.ifError(err)
+                            assert.ifError(err);
                             objects.forEach(function(object){
                                 context.deleteObject(object);
-                            })
+                            });
                             context.save(done);
                         })
                     })
-                })
+                });
                 var seller,licence;
                 it('should assign oneToOne',function(done){
-                    seller = context.createObjectWithName('Seller')
+                    seller = context.createObjectWithName('Seller');
                     seller.name = 'test seller';
 
-                    licence = context.createObjectWithName('Licence')
+                    licence = context.createObjectWithName('Licence');
 
-                    seller.setLicence(licence)
+                    seller.setLicence(licence);
 
                     context.save(done)
-                })
+                });
                 it('should load assigned one to one objects',function(done){
                     context2.reset();
                     context2.getObjects('Seller',function(err,sellers){
                         assert.ifError(err);
-                        var _seller = sellers[0]
-                        assert.equal(_seller.objectID.toString(),seller.objectID.toString())
+                        var _seller = sellers[0];
+                        assert.equal(_seller.objectID.toString(),seller.objectID.toString());
                         _seller.getLicence(function(err,_licence){
-                            assert.ifError(err)
-                            assert.equal(_licence.objectID.toString(),licence.objectID.toString())
+                            assert.ifError(err);
+                            assert.equal(_licence.objectID.toString(),licence.objectID.toString());
                             done();
                         })
                     })
-                })
+                });
                 it('should load assigned one to one objects',function(done){
                     context2.reset();
                     context2.getObjects('Licence',function(err,licences){
                         assert.ifError(err);
-                        var _licence = licences[0]
-                        assert.equal(_licence.objectID.toString(),licence.objectID.toString())
+                        var _licence = licences[0];
+                        assert.equal(_licence.objectID.toString(),licence.objectID.toString());
                         _licence.getSeller(function(err,_seller){
-                            assert.ifError(err)
-                            assert.equal(_seller.objectID.toString(),seller.objectID.toString())
+                            assert.ifError(err);
+                            assert.equal(_seller.objectID.toString(),seller.objectID.toString());
                             done();
                         })
                     })
@@ -784,4 +785,4 @@ describe('Context', function(){
             })
         })
     })
-})
+});

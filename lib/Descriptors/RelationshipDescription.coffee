@@ -23,6 +23,6 @@ class RelationshipDescription extends PropertyDescription
     inv
 
   toString: ->
-    @name + '(' + @entity + ')'
+    @entity.name + '=>' + @name
 
 module.exports = RelationshipDescription;

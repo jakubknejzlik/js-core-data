@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url)//,{logging:false})
+    var db = new CoreData(store_url,{logging:false});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -35,10 +35,10 @@ describe('raw fetch',function(){
                 done();
             });
         }).catch(done)
-    })
+    });
 
     it('fetch entity',function(done){
-        context = db.createContext()
+        context = db.createContext();
         context.fetch('User',{fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
             assert.equal(data.length,3);
             assert.equal(data[0].firstname,'John');
@@ -50,4 +50,4 @@ describe('raw fetch',function(){
             done();
         }).catch(done);
     })
-})
+});
