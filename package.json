@@ -19,7 +19,6 @@
     "lock": "^0.1.2",
     "moment": "^2.10.6",
     "q": "^1.4.1",
-    "request": "^2.60.0",
     "squel": "^4.0.0",
     "underscore": "^1.8.3",
     "underscore.inflections": "^0.2.1",
@@ -36,7 +35,10 @@
   },
   "scripts": {
     "deploy": "git push;git push --tags;npm publish",
-    "test": "env STORAGE=mysql mocha test;env STORAGE=sqlite mocha test;env STORAGE_URL=postgres://postgres@localhost/test mocha test"
+    "test-mysql": "env STORAGE=mysql mocha test;",
+    "test-sqlite": "env STORAGE=sqlite mocha test;",
+    "test-postgres": "env STORAGE_URL=postgres://postgres@localhost/test mocha test",
+    "test": "npm run test-sqlite;npm run test-mysql;npm run test-postgres"
   },
   "repository": {
     "type": "git",
