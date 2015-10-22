@@ -131,7 +131,6 @@ var company = context.create('Company');
 
 // generated methods
 user.setCompany(company);
-
 company.addUser(user);
 company.addUsers([user,...]);
 company.removeUser(user);
