@@ -201,6 +201,7 @@ describe('Context', function(){
             });
         });
 
+
         describe('deletion', function(){
             var context;
             var object;
@@ -296,6 +297,19 @@ describe('Context', function(){
                     objects.forEach(function(car){context.deleteObject(car)});
                     context.save(done);
                 })
+            });
+
+            it('should load same instance in context',function(done){
+                context.getObject('Car').then(function(car){
+                    return context.getObject('Car').then(function(car2){
+                        assert.ok(car === car2);
+                        var oldBrand = car.brand
+                        car.brand = 'xxx';
+                        assert.equal(car2.brand,'xxx');
+                        car.brand = oldBrand;
+                        done();
+                    });
+                }).catch(done);
             });
             it('should load limited number of objects',function(done){
                 context.getObjects('Car',{limit:1},function(err,objects){
