@@ -17,14 +17,16 @@ class SQLConnection
       callback = params
       params = undefined
     query = @escapeQuery(query,params)
-    if @store?.globals?.logging
-      @store.globals.logging(query)
+    @log(query)
     @execute(query,(err,results)=>
       if err
-        if @store?.globals?.logging
-          @store.globals.logging('error in query:',query,', error:',err.message)
+        @log('error in query:',query,', error:',err.message)
       callback(err,results)
     )
+
+  log:()->
+    if @store?.globals?.logging
+      @store.globals.logging.apply(@store.globals.logging,arguments)
 
   execute:(query,params,callback)->
     callback(new Error('not implemented'))

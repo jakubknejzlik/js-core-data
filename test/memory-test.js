@@ -8,37 +8,44 @@ var memwatch = require('memwatch-next');
 
 describe('memory',function(){
 
-    var cd = new CoreData('sqlite://:memory:',{logging:false})
+    var cd = new CoreData('sqlite://:memory:',{logging:false});
 
     before(function(done){
         cd.defineEntity('MemoryTest',{
             attr1:'string'
-        })
+        });
         cd.syncSchema({force:true},done);
-    })
+    });
 
     it('should release memory on context destroy',function(){
+        this.timeout(15000);
         var hd = new memwatch.HeapDiff();
+        console.time('without save timing');
         var context = cd.createContext();
 
-        for(var i = 0;i < 999;i++){
+        for(var i = 0;i < 9999;i++){
             var obj = context.create('MemoryTest');
             obj.attr1 = 'test ' + i;
         }
 
         context.destroy();
+        console.timeEnd('without save timing');
         var diff = hd.end();
         assert.ok(diff.before.size_bytes > diff.after.size_bytes);
-    })
+    });
 
     it('should release memory on context destroy (saved context)',function(done){
+        this.timeout(15000);
+        console.time('with save timing');
+
         var context = cd.createContext();
 
-        for(var i = 0;i < 999;i++){
+        for(var i = 0;i < 9999;i++){
             var obj = context.create('MemoryTest');
             obj.attr1 = 'test ' + i;
         }
         context.save().then(function(){
+            console.timeEnd('with save timing');
             var hd = new memwatch.HeapDiff();
             context.destroy();
             var diff = hd.end();
@@ -46,4 +53,4 @@ describe('memory',function(){
             done();
         }).catch(done);
     })
-})
+});

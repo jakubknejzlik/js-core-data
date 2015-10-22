@@ -98,7 +98,7 @@ class MySQLConnection extends SQLConnection
 
   createRow:(tableName,callback)->
     query = 'INSERT INTO ' + tableName+ ' (`_id`) VALUES (NULL)'
-    @connection.query(query,(err,result)->
+    @execute(query,(err,result)->
       return callback(err) if err
       callback(null,result.insertId)
     )

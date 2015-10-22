@@ -26,11 +26,17 @@
     "yaml-config": "^0.3.0"
   },
   "devDependencies": {
+    "body-parser": "^1.14.1",
+    "express": "^4.13.3",
+    "js-sha512": "^0.2.2",
     "memwatch-next": "^0.2.9",
     "mocha": "^2.3.2",
     "mysql": "^2.8.0",
+    "passport": "^0.3.0",
+    "passport-http-bearer": "^1.0.1",
     "pg": "^4.4.2",
     "sqlite3": "^3.0.9",
+    "supertest": "^1.1.0",
     "tmp": "0.0.28"
   },
   "scripts": {

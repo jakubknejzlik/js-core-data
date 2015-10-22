@@ -180,6 +180,8 @@ class ManagedObject extends Object
 
   _setObjectToRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion) ->
     @fetchData() if @isFault
+    if object and object.managedObjectContext isnt @managedObjectContext
+      throw new Error('cannot set object to relationship of object in different context')
     if object isnt @_data[relationshipDescription.name]
       prevObject = @_data[relationshipDescription.name];
       @_data[relationshipDescription.name] = object
@@ -199,6 +201,8 @@ class ManagedObject extends Object
 
   _addObjectToRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion) ->
     @fetchData() if @isFault
+    if object and object.managedObjectContext isnt @managedObjectContext
+      throw new Error('cannot add object to relationship of object in different context')
     if not @_data[relationshipDescription.name] or object not in @_data[relationshipDescription.name]
       @_relationChanges = @_relationChanges || {}
       @_relationChanges['added_' + relationshipDescription.name] = @_relationChanges['added_' + relationshipDescription.name] || []
@@ -219,6 +223,8 @@ class ManagedObject extends Object
 
   _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion,fireEvent = yes) ->
     @fetchData() if @isFault
+    if object.managedObjectContext isnt @managedObjectContext
+      throw new Error('cannot remove object from relationship of object in different context')
     if not @_data[relationshipDescription.name] or object in @_data[relationshipDescription.name]
       @_relationChanges = @_relationChanges || {}
       @_relationChanges['added_' + relationshipDescription.name] = @_relationChanges['added_' + relationshipDescription.name] || []
@@ -236,11 +242,8 @@ class ManagedObject extends Object
       @_didUpdateValues() if fireEvent
 
   _didUpdateValues: ->
-    if @managedObjectContext.locked
-      throw new Error('cannot update object when it\'s context is locked')
+    @managedObjectContext._didUpdateObject(@)
     @_isUpdated = yes
-    if this not in @managedObjectContext?.updatedObjects
-      ac.addObject(@managedObjectContext.updatedObjects,this)
 
 
   Object.defineProperties @prototype,

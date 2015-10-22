@@ -19,6 +19,7 @@ class ManagedObjectContext extends Object
     @registeredObjects = []
     @locked = no
     @lock = new Lock()
+    @destroyed = no
 
   hasChanges: ->
     return @insertedObjects.length > 0 or @updatedObjects.length > 0 or @deletedObjects.length > 0
@@ -213,6 +214,8 @@ class ManagedObjectContext extends Object
       callback(err,objects)
 
 
+
+
   saveAndDestroy:(callback)->
     @save().then(()=>
       @destroy()
@@ -270,8 +273,11 @@ class ManagedObjectContext extends Object
     @deletedObjects = []
 
   destroy: ->
+    if @destroyed
+      throw new Error('destroying already destroyed context')
     if @locked
       throw new Error('context is locked')
+    @destroyed = yes
     delete @registeredObjects
     delete @insertedObjects
     delete @updatedObjects
@@ -333,6 +339,14 @@ class ManagedObjectContext extends Object
               else cb()
           else return cb(new Error('not implemented ' + relationship.deleteRule))
       ,callback
+
+  _didUpdateObject:(object)->
+    if @destroyed
+      throw new Error('updating values on object on destroyed context')
+    if @locked
+      throw new Error('cannot update object when it\'s context is locked')
+    if object not in @updatedObjects
+      ac.addObject(@updatedObjects,object)
 
 
 module.exports = ManagedObjectContext;
