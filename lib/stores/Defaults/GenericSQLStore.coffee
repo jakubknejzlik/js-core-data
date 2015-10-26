@@ -7,6 +7,7 @@ Predicate = require('./../../FetchClasses/Predicate')
 FetchRequest = require('./../../FetchRequest')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
 squel = require('squel')
+moment = require('moment')
 
 PersistentStoreCoordinator = require('../../PersistentStoreCoordinator')
 ManagedObjectContext = require('../../ManagedObjectContext')
@@ -403,9 +404,21 @@ class GenericSQLStore extends IncrementalStore
     return definition
 
   encodeValueForAttribute:(value,attribute)->
-    return value
+    switch attribute.persistentType
+      when 'datetime','date'
+        return moment(new Date(value)).format('YYYY-MM-DD HH:mm:ss')
+      when 'boolean'
+        return if value then 'TRUE' else 'FALSE'
+  return value
 
   decodeValueForAttribute:(value,attribute)->
+    switch attribute.persistentType
+      when 'datetime','date'
+        return new Date(value)
+      when 'timestamp'
+        return Number(value)
+      when 'boolean'
+        return !!value
     return value
 
   _indexesForEntity:(entity)->

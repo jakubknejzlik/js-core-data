@@ -19,7 +19,9 @@ Hello:
     date:
       type: date
       default: now
-    timestamp: timestamp
+    timestamp:
+      type: timestamp
+      default: now
     data:
       type: data
     shortString:

@@ -107,23 +107,14 @@ class PostgreSQLStore extends GenericSQLStore
       else
         return super(attribute)
 
-  decodeValueForAttribute:(value,attribute)->
-    switch attribute.persistentType
-      when 'datetime','date'
-        return new Date(value)
-      when 'timestamp'
-        return Number(value)
-      when 'boolean'
-        return !!value
-    return super(value,attribute)
+#  decodeValueForAttribute:(value,attribute)->
+#    return super(value,attribute)
 
-  encodeValueForAttribute:(value,attribute)->
-    switch attribute.persistentType
-      when 'datetime','date'
-        return (new Date(value)).toISOString()
-      when 'boolean'
-        return if value then 'TRUE' else 'FALSE'
-    return super(value,attribute)
+#  encodeValueForAttribute:(value,attribute)->
+#    switch attribute.persistentType
+#      when 'boolean'
+#        return if value then 'TRUE' else 'FALSE'
+#    return super(value,attribute)
 
 
 
