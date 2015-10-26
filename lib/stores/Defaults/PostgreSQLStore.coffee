@@ -113,6 +113,7 @@ class PostgreSQLStore extends GenericSQLStore
   encodeValueForAttribute:(value,attribute)->
     switch attribute.persistentType
       when 'boolean'
+        return null if value is null
         return if value then 'yes' else 'no'
     return super(value,attribute)
 

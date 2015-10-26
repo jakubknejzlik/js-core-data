@@ -32,7 +32,7 @@ describe('ManagedObject',function(){
         it('shouldn\'t throw error for valid model',function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
-            storeCoordinator.addStore(store_url);
+            store = storeCoordinator.addStore(store_url);
             storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                 assert.ifError(err);
                 done()
@@ -55,6 +55,7 @@ describe('ManagedObject',function(){
             before(function(done){
                 storeCoordinator = new PersistentStoreCoordinator(objectModel);
                 storeCoordinator.addStore(store_url);
+                storeCoordinator.persistentStores[0].globals.logging = console.log
                 storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                     if(err)return done(err);
                     deleteAll(storeCoordinator,done);
@@ -113,6 +114,22 @@ describe('ManagedObject',function(){
                 });
                 context.save(done);
             });
+            it('should create object with all null values',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.create('Hello',{name:null,date:null,timestamp:null});
+                assert.strictEqual(obj.bool,null,'bool value');
+                assert.strictEqual(obj.name,null);
+                assert.strictEqual(obj.int,null);
+                assert.strictEqual(obj.decim,null);
+                assert.strictEqual(obj.float,null);
+                assert.strictEqual(obj.double,null);
+                assert.strictEqual(obj.email,null);
+                assert.strictEqual(obj.url,null);
+                assert.equal(obj.date,null);
+                assert.equal(obj.timestamp,null);
+                assert.equal(obj.transformable,null);
+                assert.equal(obj.getWorldID(),null);
+            });
             it('should load all attributes',function(done){
                 var context = new ManagedObjectContext(storeCoordinator);
                 context.getObjects('Hello',function(err,objects){
@@ -132,6 +149,28 @@ describe('ManagedObject',function(){
                     assert.equal(obj.getWorldID(),null);
                     done();
                 })
+            });
+            it('should load null attributes',function(done){
+                var context = new ManagedObjectContext(storeCoordinator);
+                context.create('Hello',{name:null,date:null,timestamp:null})
+                context.save().then(function(){
+                    context.getObject('Hello',{where:['SELF.bool IS NULL']}).then(function(obj){
+                        assert.strictEqual(obj.bool,null,'bool value');
+                        assert.strictEqual(obj.name,null);
+                        assert.strictEqual(obj.int,null);
+                        assert.strictEqual(obj.decim,null);
+                        assert.strictEqual(obj.float,null);
+                        assert.strictEqual(obj.double,null);
+                        assert.strictEqual(obj.email,null);
+                        assert.strictEqual(obj.url,null);
+                        assert.equal(obj.date,null);
+                        assert.equal(obj.timestamp,null);
+                        assert.equal(obj.transformable,null);
+                        assert.equal(obj.getWorldID(),null);
+                        done();
+                    }).catch(done)
+                }).catch(done)
+
             });
             it('should create object and assign all valid values from object',function(done){
                 var context = new ManagedObjectContext(storeCoordinator);
@@ -405,8 +444,9 @@ describe('ManagedObject',function(){
     describe('relationships',function(){
         before(function(done){
             coreData = new CoreData(store_url,{
-                modelFile:__dirname + '/schemes/car-model.yaml'
-            ,logging:false});
+                modelFile:__dirname + '/schemes/car-model.yaml',
+                logging:false
+            });
             coreData.syncSchema({force:true}).then(done,done);
         });
 

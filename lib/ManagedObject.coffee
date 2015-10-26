@@ -41,7 +41,7 @@ class ManagedObject extends Object
 
   setValues:(values = {},allowedAttributes)->
     for attributeDescription in @entity.attributes
-      if values[attributeDescription.name]? and (not allowedAttributes or attributeDescription.name in allowedAttributes)
+      if (values[attributeDescription.name] isnt undefined) and (not allowedAttributes or attributeDescription.name in allowedAttributes)
         @[attributeDescription.name] = values[attributeDescription.name]
 
   getValues:(allowedAttributes,options = {})->

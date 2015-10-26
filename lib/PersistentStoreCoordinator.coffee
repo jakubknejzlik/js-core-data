@@ -114,8 +114,8 @@ class PersistentStoreCoordinator extends Object
 
   _objectForID: (entity,context,objectID,objectValues = {}) ->
     subclass = @objectModel.subclassForEntity(entity.name);
-    for attribute in entity.attributes
-      objectValues[attribute.name] = attribute.decode(objectValues[attribute.name])
+#    for attribute in entity.attributes
+#      objectValues[attribute.name] = objectValues[attribute.name]
     object = new subclass(entity,context,objectValues)
     object._objectID = objectID
     return object

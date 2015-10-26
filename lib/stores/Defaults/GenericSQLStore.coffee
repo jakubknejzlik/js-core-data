@@ -404,12 +404,16 @@ class GenericSQLStore extends IncrementalStore
     return definition
 
   encodeValueForAttribute:(value,attribute)->
+    if value is null
+      return null
     switch attribute.persistentType
       when 'datetime','date'
         return moment(new Date(value)).format('YYYY-MM-DD HH:mm:ss')
     return value
 
   decodeValueForAttribute:(value,attribute)->
+    if value is null
+      return null
     switch attribute.persistentType
       when 'datetime','date'
         return new Date(value)

@@ -112,7 +112,7 @@ AttributeDescription.registerType((new AttributeType('integer','integer')).trans
   )
 ,['int'])
 AttributeDescription.registerType((new AttributeType('date','date')).transformFn((value)->
-    if not value
+    if value is null
       return null
     if value is 'now'
       value = new Date()
@@ -125,18 +125,18 @@ AttributeDescription.registerType((new AttributeType('date','date')).transformFn
     if value instanceof Date or (typeof value is 'string' and moment(new Date(value)).isValid())
       return yes
   ).encodeFn((value)->
-    if not value
+    if value is null
       return null
     return moment(value).toISOString()
   ).decodeFn((value)->
 #    console.log('decode',value instanceof Date,'=>',moment(value).toDate().toISOString())
-    if not value
+    if value is null
       return null
     return moment(value).toDate()
   )
 )
 AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).transformFn((value)->
-    if not value
+    if value is null
       return null
     if value is 'now'
       value = new Date()
@@ -149,11 +149,11 @@ AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).t
     if value instanceof Date or (moment(new Date(value)).isValid())
       return yes
   ).encodeFn((value)->
-    if not value
+    if value is null
       return null
     return value.getTime()
   ).decodeFn((value)->
-    if not value
+    if value is null
       return null
     return moment(Number(value)).toDate()
   )
