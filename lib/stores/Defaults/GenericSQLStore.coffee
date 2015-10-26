@@ -409,7 +409,7 @@ class GenericSQLStore extends IncrementalStore
         return moment(new Date(value)).format('YYYY-MM-DD HH:mm:ss')
       when 'boolean'
         return if value then 'TRUE' else 'FALSE'
-  return value
+    return value
 
   decodeValueForAttribute:(value,attribute)->
     switch attribute.persistentType

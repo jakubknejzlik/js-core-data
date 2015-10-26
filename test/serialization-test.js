@@ -49,11 +49,11 @@ describe('serialization',function(){
 
         it('should create generate valid JSON for empty object',function(){
             var context = new ManagedObjectContext(storeCoordinator)
-            var obj = context.createObjectWithName('Hello')
-            obj.date = null
-            obj.timestamp = null
+            var obj = context.createObjectWithName('Hello');
+            obj.date = null;
+            obj.timestamp = null;
             var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"defVal","int":null,"bool":null,"decim":null,"float":null,"double":null,"email":null,"url":null,"date":null,"timestamp":null,"data":null,"shortString":null,"transformable":null,"world_id":null}';
-            assert.equal(JSON.stringify(obj.toJSON()),json)
+            assert.equal(JSON.stringify(obj.toJSON()),json);
         })
     })
 })
