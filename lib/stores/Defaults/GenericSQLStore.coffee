@@ -143,7 +143,7 @@ class GenericSQLStore extends IncrementalStore
 
       if attribute
         updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
-        updateValues.push(attribute.encode(@encodeValueForAttribute(value,attribute)))
+        updateValues.push(@encodeValueForAttribute(attribute.encode(value),attribute))
       else
         updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
         updateValues.push(value)
@@ -463,7 +463,7 @@ class GenericSQLStore extends IncrementalStore
     async.forEachSeries(migration.scriptsBefore,(script,cb)=>
       @_runMigrationScript(migration.modelFrom,script,cb)
     ,(err)=>
-      console.log('err',err)
+#      console.log('err',err)
       return callback(err) if err
       try
         queries = @createMigrationQueries(migration)
