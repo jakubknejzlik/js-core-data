@@ -30,7 +30,7 @@ describe('Context', function(){
                 modelFile:__dirname + '/schemes/car-model.yaml',
                 logging:false
             });
-            coreData.syncSchema({force:true}).then(done,done);
+            coreData.syncSchema({force:true}).then(done).catch(done);
         });
 
         describe('object creation', function(){

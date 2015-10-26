@@ -39,6 +39,9 @@ Car:
     brand: string
     date: date
     timestamp: timestamp
+    fast:
+      type: boolean
+      default: 1
     uid:
       type: uuid
       default: uuidv4
