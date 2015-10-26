@@ -111,6 +111,14 @@ context.getObjects('User',{
 
 ```
 
+### Where (Predicate)
+
+Where cindition is array with format `['format',arg1,arg2,arg3]` supports joins so you can query:
+
+`['SELF.accessTokens.token = %s',req.params.token] // find user(s) with access token`
+
+`['SELF.company.name = %s','test'] // find user(s) in company named 'test'`
+
 ## Relationships
 
 There are two types of relationships toMany and toOne. Every relationship should have it's inverse (only in few cases it's possible do ignore inverse relationship).
@@ -138,6 +146,35 @@ company.removeUsers([user,...]);
 
 ```
 
+## Raw fetch
+
+You can fetch raw data from entities.
+
+```
+context.fetch('User',{
+        fields:{
+            companyName:'SELF.company.name',
+            firstname:'SELF.firstname',
+            lastname:'SELF.lastname',
+            name:'SELF.firstname'
+        },
+        order:'SELF.firstname'
+    })
+    .then(function(data){
+        console.log(data) // [{companyName:'...',firstname:'...',lastname:'...',name:'...'}]
+    })
+
+```
+
+## Counting objects
+
+When you need to count how many object of specific (with firstname John) entity you have, you can use this method.
+
+```
+context.getObjectsCount('Car',{where:['SELF.firstname = %s','John']}).then(function(count){
+    console.log(count)
+});
+```
 
 
 # Schema synchronization and migration
@@ -190,6 +227,7 @@ Every persistent store (data) has schema version stored in table `_meta`, during
 
 Migrations can add/remove/rename attributes/relationships/entities.
 
+*Note: currently store cannot join migrations (eg. 0.1=>0.2=>...=>0.8=>0.9)*
 
 # Express middleware
 
@@ -214,8 +252,6 @@ app.get('/users',function(req,res,next){
 app.listen(process.env.PORT)
 
 ```
-
-*Note: currently store cannot join migrations (eg. 0.1=>0.2=>...=>0.8=>0.9)*
 
 
 
