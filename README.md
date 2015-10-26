@@ -146,6 +146,8 @@ company.removeUsers([user,...]);
 
 ```
 
+*Note: using SQL functions in predicate is store dependent (different set of functions for each store)*
+
 ## Raw fetch
 
 You can fetch raw data from entities.
@@ -165,6 +167,8 @@ context.fetch('User',{
     })
 
 ```
+
+*Note: using SQL functions in raw fetch is store dependent (different set of functions for each store)*
 
 ## Counting objects
 
