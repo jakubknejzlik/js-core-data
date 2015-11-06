@@ -191,7 +191,7 @@ class GenericSQLStore extends IncrementalStore
       descriptors = request.sortDescriptors
       for descriptor in descriptors
         column = descriptor.attribute
-        if column.indexOf(@tableAlias + '.') isnt 0
+        if column.indexOf(@tableAlias + '.') is -1
           column = @tableAlias + '.' + column
         query.order(column,descriptor.ascending)
 
