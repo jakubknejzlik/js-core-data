@@ -57,7 +57,7 @@ class SQLiteStore extends GenericSQLStore
     sql += ')'
 
     for index in @_indexesForEntity(entity)
-      sql +=";CREATE INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
+      sql +=";CREATE " + (if index.type is 'unique' then 'UNIQUE' else '') + " INDEX IF NOT EXISTS `"+index.name+'` ON `'+tableName+'` (`'+index.columns.join('`,`')+"`)"
 
     sqls.push(sql)
 

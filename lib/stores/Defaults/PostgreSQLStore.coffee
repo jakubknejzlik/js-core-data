@@ -60,7 +60,7 @@ class PostgreSQLStore extends GenericSQLStore
     sql += ')'
 
     for index in @_indexesForEntity(entity)
-      sql +=';CREATE INDEX "'+index.name+'" ON "'+tableName+'" ("'+index.columns.join('","')+'")'
+      sql +=';CREATE ' + (if index.type is 'unique' then 'UNIQUE' else '') + ' INDEX "'+index.name+'" ON "'+tableName+'" ("'+index.columns.join('","')+'")'
 
     sqls.push(sql)
 
