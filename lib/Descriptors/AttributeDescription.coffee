@@ -169,7 +169,7 @@ AttributeDescription.registerType((new AttributeType('boolean','boolean')).trans
     if typeof value is 'string'
       value = value.toLowerCase().trim()
     switch value
-      when true,false,'true','false','on','off','1','0','yes','no'
+      when true,false,'true','false','on','off','1','0','yes','no',1,0
         return yes
   )
 ,['bool'])

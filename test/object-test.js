@@ -7,7 +7,7 @@ var assert = require("assert"),
 
 var store_url = require('./get_storage_url');
 
-describe('ManagedObject',function(){
+describe.only('ManagedObject',function(){
     describe('attributes',function(){
         var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
 //        var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
@@ -101,6 +101,7 @@ describe('ManagedObject',function(){
                 var obj = context.createObjectWithName('Hello');
                 assert.doesNotThrow(function(){
                     obj.bool = true;
+                    obj.bool = 1;
                     obj.name = 'test';
                     obj.int = 1600;
                     obj.decim = 0.55;
