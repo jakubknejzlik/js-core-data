@@ -58,6 +58,14 @@ class GenericSQLStore extends IncrementalStore
             ,(err)=>
               afterInsertCallback();
               seriesCallback(err)
+          (seriesCallback)=> async.forEach request.deletedObjects,
+            (deletedObject,cb)=>
+              formattedTableName = @_formatTableName(deletedObject.entity.name)
+              id = @_recordIDForObjectID(deletedObject.objectID);
+              sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
+              transaction.query sql,(err)->
+                cb(err)
+            ,seriesCallback
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
@@ -79,14 +87,6 @@ class GenericSQLStore extends IncrementalStore
                   @_updateRelationsForObject(transaction,updatedObject,cb)
                 )
               else @_updateRelationsForObject(transaction,updatedObject,cb)
-            ,seriesCallback
-          (seriesCallback)=> async.forEach request.deletedObjects,
-            (deletedObject,cb)=>
-              formattedTableName = @_formatTableName(deletedObject.entity.name)
-              id = @_recordIDForObjectID(deletedObject.objectID);
-              sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
-              transaction.query sql,(err)->
-                cb(err)
             ,seriesCallback
           ],(err)=>
             if err
