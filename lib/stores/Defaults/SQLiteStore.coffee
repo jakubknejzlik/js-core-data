@@ -80,13 +80,6 @@ class SQLiteStore extends GenericSQLStore
     return sqls
 
 
-  columnTypeForAttribute:(attribute)->
-    switch attribute.persistentType
-      when 'enum'
-        return 'varchar(' + (attribute.info.length or 30) + ')'
-      else
-        return super(attribute)
-
 
 class SQLiteConnection extends SQLConnection
   connect:(callback)->

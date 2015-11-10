@@ -7,7 +7,7 @@ var assert = require("assert"),
 
 var store_url = require('./get_storage_url');
 
-describe.only('ManagedObject',function(){
+describe('ManagedObject',function(){
     describe('attributes',function(){
         var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
 //        var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');

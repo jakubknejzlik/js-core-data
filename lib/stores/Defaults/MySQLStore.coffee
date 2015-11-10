@@ -80,6 +80,16 @@ class MySQLStore extends GenericSQLStore
           sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name.toLowerCase()+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name.toLowerCase()+'_id`,`reflexive`))')
     return sqls
 
+  columnTypeForAttribute:(attribute)->
+    switch attribute.persistentType
+      when 'enum'
+        validValues = attribute.info.values
+        if typeof validValues is 'string'
+          validValues = validValues.split(',')
+        return 'ENUM(\'' + validValues.join('\',\'') + '\')'
+      else
+        return super(attribute)
+
 
 
 class MySQLConnection extends SQLConnection
