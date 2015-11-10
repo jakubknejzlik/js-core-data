@@ -448,7 +448,7 @@ describe('ManagedObject',function(){
                 });
                 assert.throws(function(){
                     obj.enum = 125;
-                });
+                },/invalid value .+ for attribute enum \(possible values: a, b, c\)/);
                 assert.throws(function(){
                     obj.enum = {adg:'adf'};
                 });

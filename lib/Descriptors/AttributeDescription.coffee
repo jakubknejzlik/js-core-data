@@ -185,7 +185,9 @@ AttributeDescription.registerType((new AttributeType('enum','enum')).transformFn
   validValues = attribute.info.values
   if typeof validValues is 'string'
     validValues = validValues.split(',')
-  return value in validValues
+  if value not in validValues
+    throw new Error('invalid value \'' + value + '\' for attribute ' + attribute.name + ' (possible values: ' + validValues.join(', ') + ')')
+  return yes
 ))
 AttributeDescription.registerType((new AttributeType('transformable','text')).transformFn((value)->
     if typeof value is 'string'
