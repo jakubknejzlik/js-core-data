@@ -81,8 +81,7 @@ class ManagedObject extends Object
     @prototype['set' + capitalizedName] = (value)->
       @fetchData() if @isFault
       if value isnt @_data[attributeDescription.name]
-        if value
-          @['validate'+capitalizedName](value)
+        @['validate'+capitalizedName](value)
         value = attributeDescription.transform(value)
         @_data[attributeDescription.name] = value;
         @_changes = @_changes || {}

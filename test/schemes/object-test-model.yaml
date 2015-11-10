@@ -16,6 +16,9 @@ Hello:
     double: double
     email: email
     url: url
+    enum:
+      type: enum
+      values: a,b,c
     date:
       type: date
       default: now

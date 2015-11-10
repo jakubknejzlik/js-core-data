@@ -392,7 +392,14 @@ class GenericSQLStore extends IncrementalStore
         type = 'char(36)'
       when 'transformable'
         type = 'mediumtext'
+      when 'enum'
+        validValues = attribute.info.values
+        if typeof validValues is 'string'
+          validValues = validValues.split(',')
+        type = 'ENUM(\'' + validValues.join('\',\'') + '\')'
+        console.log(type)
       else return null
+    return type
 
   _columnDefinitionForAttribute:(attribute)->
     type = @columnTypeForAttribute(attribute)

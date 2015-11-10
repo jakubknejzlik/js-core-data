@@ -109,6 +109,9 @@ describe.only('ManagedObject',function(){
                     obj.double = 100.5054;
                     obj.email = 'jackie@gmail.com';
                     obj.url = 'http://www.google.com';
+                    obj.enum = 'a';
+                    obj.enum = 'b';
+                    obj.enum = 'c';
                     obj.date = date;
                     obj.timestamp = timestamp;
                     obj.transformable = transformableObject;
@@ -127,6 +130,7 @@ describe.only('ManagedObject',function(){
                 assert.strictEqual(obj.email,null);
                 assert.strictEqual(obj.url,null);
                 assert.equal(obj.date,null);
+                assert.equal(obj.enum,null);
                 assert.equal(obj.timestamp,null);
                 assert.equal(obj.transformable,null);
                 assert.equal(obj.getWorldID(),null);
@@ -144,6 +148,7 @@ describe.only('ManagedObject',function(){
                     assert.strictEqual(obj.double,100.5054);
                     assert.strictEqual(obj.email,'jackie@gmail.com');
                     assert.strictEqual(obj.url,'http://www.google.com');
+                    assert.strictEqual(obj.enum,'c');
                     assert.equal(obj.date.toISOString(),date.toISOString());
                     assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString());
                     assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject));
@@ -187,7 +192,8 @@ describe.only('ManagedObject',function(){
                         email:'jackie@gmail.com',
                         url:'http://www.google.com',
                         timestamp: timestamp,
-                        transformable: transformableObject
+                        transformable: transformableObject,
+                        enum:'a'
                     })
                 });
                 context.save(done);
@@ -205,6 +211,7 @@ describe.only('ManagedObject',function(){
                     assert.strictEqual(obj.double,100.5054);
                     assert.strictEqual(obj.email,'jackie@gmail.com');
                     assert.strictEqual(obj.url,'http://www.google.com');
+                    assert.strictEqual(obj.enum,'c');
                     assert.equal(obj.date.toISOString(),date.toISOString());
                     assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString());
                     assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject));
@@ -422,6 +429,48 @@ describe.only('ManagedObject',function(){
                     obj.bool = '1';
                 });
                 assert.strictEqual(obj.bool,true);
+            })
+            it('should pass valid enum',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+                assert.throws(function(){
+                    obj.enum = 'aa';
+                });
+                assert.throws(function(){
+                    obj.enum = 'xx';
+                });
+                assert.throws(function(){
+                    obj.enum = false;
+                });
+                assert.throws(function(){
+                    obj.enum = true;
+                });
+                assert.throws(function(){
+                    obj.enum = 125;
+                });
+                assert.throws(function(){
+                    obj.enum = {adg:'adf'};
+                });
+                assert.throws(function(){
+                    obj.setValues({enum:25});
+                });
+                assert.doesNotThrow(function(){
+                    obj.enum = null;
+                });
+                assert.strictEqual(obj.enum,null);
+                assert.doesNotThrow(function(){
+                    obj.enum = 'a';
+                });
+                assert.strictEqual(obj.enum,'a');
+                assert.doesNotThrow(function(){
+                    obj.enum = 'b';
+                });
+                assert.strictEqual(obj.enum,'b');
+                assert.doesNotThrow(function(){
+                    obj.enum = 'c';
+                });
+                assert.strictEqual(obj.enum,'c');
             })
         });
         describe('custom type',function(){

@@ -43,6 +43,8 @@ class AttributeDescription extends PropertyDescription
 
 
   validateValue:(value)->
+    if value is null
+      return
     if not @getAttributeType().validate(value,@)
       throw new Error('value \''+value+'\' ('+(typeof value)+') is not valid for attribute ' + @name)
 
@@ -159,20 +161,32 @@ AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).t
   )
 )
 AttributeDescription.registerType((new AttributeType('boolean','boolean')).transformFn((value)->
-    if typeof value is 'string'
-      value = value.toLowerCase().trim()
-    switch value
-      when true,'true',1,'1','on','yes'
-        return yes
-      else return no
-  ).validateFn((value)->
-    if typeof value is 'string'
-      value = value.toLowerCase().trim()
-    switch value
-      when true,false,'true','false','on','off','1','0','yes','no',1,0
-        return yes
-  )
+  if typeof value is 'string'
+    value = value.toLowerCase().trim()
+  switch value
+    when true,'true',1,'1','on','yes'
+      return yes
+    else return no
+).validateFn((value)->
+  if typeof value is 'string'
+    value = value.toLowerCase().trim()
+  switch value
+    when true,false,'true','false','on','off','1','0','yes','no',1,0
+      return yes
+)
 ,['bool'])
+
+AttributeDescription.registerType((new AttributeType('enum','enum')).transformFn((value)->
+  return String(value)
+).validateFn((value,attribute)->
+  if value is null
+    return yes
+  value = String(value)
+  validValues = attribute.info.values
+  if typeof validValues is 'string'
+    validValues = validValues.split(',')
+  return value in validValues
+))
 AttributeDescription.registerType((new AttributeType('transformable','text')).transformFn((value)->
     if typeof value is 'string'
       value = JSON.parse(value)
