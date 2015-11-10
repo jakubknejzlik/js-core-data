@@ -74,11 +74,16 @@ class ManagedObject extends Object
 
   @addAttributeDescription:(attributeDescription)->
     capitalizedName = capitalizedString(attributeDescription.name);
-    @prototype['get' + capitalizedName] = ->
-#      console.log('get' + capitalizedName,@isFault)
+
+    @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or ()->
+      return @['_get' + capitalizedName]()
+    @prototype['set' + capitalizedName] = @prototype['set' + capitalizedName] or (value)->
+      return @['_set' + capitalizedName](value)
+
+    @prototype['_get' + capitalizedName] = ->
       @fetchData() if @isFault
       @_data[attributeDescription.name];
-    @prototype['set' + capitalizedName] = (value)->
+    @prototype['_set' + capitalizedName] = (value)->
       @fetchData() if @isFault
       if value isnt @_data[attributeDescription.name]
         @['validate'+capitalizedName](value)

@@ -1,6 +1,10 @@
 ManagedObject = require('./../../lib/ManagedObject')
 
 class User extends ManagedObject
+
+  getFirstname:()->
+    return @_getFirstname()
+
   getFullName:()->
     return @firstname + ' ' + @lastname
 

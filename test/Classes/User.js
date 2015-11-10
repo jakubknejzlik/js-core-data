@@ -13,6 +13,10 @@
       return User.__super__.constructor.apply(this, arguments);
     }
 
+    User.prototype.getFirstname = function() {
+      return this._getFirstname();
+    };
+
     User.prototype.getFullName = function() {
       return this.firstname + ' ' + this.lastname;
     };

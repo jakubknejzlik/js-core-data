@@ -69,7 +69,7 @@ describe('custom classes',function(){
         });
         it('should be able to call custom methods',function(){
             car.setBrandCustom('test!');
-            assert.equal(car.brand,'test!test!')
+            assert.equal(car.brand,'test!test!x')
         });
         it('should call relation methods correctly',function(done){
             car.setOwner(owner);
