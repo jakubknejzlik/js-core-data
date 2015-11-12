@@ -10,7 +10,7 @@ SQLConnection = require('./SQLConnection')
 try
   require('sqlite3')
 catch e
-  throw new Error('sqlite3 module is required to user SQLite storage, please install it by running npm install --save sqlite3')
+  throw new Error('sqlite3 module is required to use SQLite storage, please install it by running npm install --save sqlite3')
 
 sqlite = require('sqlite3')
 

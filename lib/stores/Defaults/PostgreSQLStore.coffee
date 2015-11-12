@@ -11,7 +11,7 @@ SQLTransaction = require('./SQLTransaction')
 try
   require('pg')
 catch e
-  throw new Error('pg module is required to user SQLite storage, please install it by running npm install --save pg')
+  throw new Error('pg module is required to use SQLite storage, please install it by running npm install --save pg')
 
 pg = require('pg')
 

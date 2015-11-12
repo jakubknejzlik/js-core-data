@@ -10,7 +10,7 @@ SQLConnection = require('./SQLConnection')
 try
   require('mysql')
 catch e
-  throw new Error('mysql module is required to user MySQL storage, please install it by running npm install --save mysql')
+  throw new Error('mysql module is required to use MySQL storage, please install it by running npm install --save mysql')
 
 mysql = require('mysql')
 
