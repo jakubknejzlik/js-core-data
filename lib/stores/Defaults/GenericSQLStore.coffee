@@ -215,7 +215,7 @@ class GenericSQLStore extends IncrementalStore
 
     leftJoin = (subkeys, parentEntity, path) =>
       as = subkeys.shift()
-      relation = parentEntity.relationshipByName(as)
+      relation = parentEntity.getRelationship(as)
       if not relation
         throw new Error('relation ' + parentEntity.name + '=>' + as + ' not found')
       inversedRelation = relation.inverseRelationship()

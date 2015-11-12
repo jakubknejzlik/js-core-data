@@ -53,6 +53,11 @@ class EntityDescription
       name = columns.join('_')
     @indexes.push({name:name,type:type,columns:columns})
 
+  hasAttribute: (name)->
+    if @_attributesByName[name]
+      return yes
+    return no
+
   getAttribute: (name)->
     attribute = @_attributesByName[name]
     if not attribute
@@ -61,6 +66,12 @@ class EntityDescription
 
   attributesByName : ->
     @_attributesByName
+
+
+  hasRelationship: (name)->
+    if @_relationshipsByName[name]
+      return yes
+    return no
 
   getRelationship: (name)->
     relationship = @_relationshipsByName[name]
@@ -71,7 +82,7 @@ class EntityDescription
   relationshipsByName : ->
     @_relationshipsByName
 
-  relationshipByName : (name)->
-    @_relationshipsByName[name]
+#  relationshipByName : (name)->
+#    @_relationshipsByName[name]
 
 module.exports = EntityDescription;
