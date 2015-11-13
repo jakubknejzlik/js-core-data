@@ -121,6 +121,8 @@ class PersistentStoreCoordinator extends Object
     return object
 
   _objectFromContextCache: (context,objectID)->
+    if not context.registeredObjects
+      return null
     for object in context.registeredObjects
       if object.objectID.isEqual(objectID)
         return object
