@@ -163,6 +163,8 @@ class ManagedObjectContext extends Object
     if typeof options is 'function'
       callback = options
       options = null
+    options = options or {}
+    options.limit = 1
     @getObjects(entityName,options).then((objects)->
       if objects.length > 0
         deferred.resolve(objects[0])
