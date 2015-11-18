@@ -211,9 +211,13 @@ class ManagedObjectContext extends Object
   _getObjectsForRelationship: (relationship,object,context,callback)->
     if object.objectID.isTemporaryID
       return callback(null,[])
-    @storeCoordinator._valuesForForRelationship relationship,object.objectID,context,(err,objects)->
-#      console.log('!!!!',objects,object)
-      callback(err,objects)
+    @storeCoordinator._valuesForForRelationship relationship,object.objectID,context,(err,objects)=>
+      return callback(err) if err
+      ac.addObjects(@registeredObjects,objects)
+      if relationship.toMany
+        callback(null,objects)
+      else
+        callback(null,objects[0] or null)
 
 
 

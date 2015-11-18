@@ -161,12 +161,7 @@ class PersistentStoreCoordinator extends Object
   _valuesForForRelationship: (relationship,ObjectID,context,callback)->
     inversedRelationship = relationship.inverseRelationship()
     request = new FetchRequest(inversedRelationship.entity,new Predicate('SELF.' + inversedRelationship.name + '._id = %d',ObjectID.recordId()))
-    @execute(request,context,(err,objects)->
-      if relationship.toMany
-        callback(err,objects)
-      else
-        callback(err,objects[0] or null)
-    )
+    @execute(request,context,callback)
 #    store = @persistentStores[0]
 #    store.valuesForRelationship relationship,ObjectID,context,(err,ObjectIDs)=>
 #      return callback(err) if err
