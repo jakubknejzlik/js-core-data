@@ -30,6 +30,8 @@ describe('Predicate',function(){
         objectID.stringValue = "xxxx/p1";
         var predicate = new Predicate('object = %@ AND objectID =%@',object,objectID);
         assert.equal(predicate.toString(),'object_id = 1 AND objectID_id = 1');
+        predicate = new Predicate('object != %@ AND objectID !=%@',object,objectID);
+        assert.equal(predicate.toString(),'object_id != 1 AND objectID_id != 1');
         objectID.stringValue = "yyyy/p2";
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
         assert.equal(predicate.toString(),'object_id = 2 AND objectID_id = 2');
