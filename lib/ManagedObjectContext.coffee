@@ -163,6 +163,8 @@ class ManagedObjectContext extends Object
     if typeof options is 'function'
       callback = options
       options = null
+    options = options or {}
+    options.limit = 1
     @getObjects(entityName,options).then((objects)->
       if objects.length > 0
         deferred.resolve(objects[0])
@@ -209,9 +211,13 @@ class ManagedObjectContext extends Object
   _getObjectsForRelationship: (relationship,object,context,callback)->
     if object.objectID.isTemporaryID
       return callback(null,[])
-    @storeCoordinator._valuesForForRelationship relationship,object.objectID,context,(err,objects)->
-#      console.log('!!!!',objects,object)
-      callback(err,objects)
+    @storeCoordinator._valuesForForRelationship relationship,object.objectID,context,(err,objects)=>
+      return callback(err) if err
+      ac.addObjects(@registeredObjects,objects)
+      if relationship.toMany
+        callback(null,objects)
+      else
+        callback(null,objects[0] or null)
 
 
 
