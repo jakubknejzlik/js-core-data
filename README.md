@@ -20,14 +20,14 @@
 
 ==============
 
-CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by helper methods. Providing easy interface for defining data model, working with entities and persisting data to persistent store.
+CoreData is very powerful framework created by Apple for working with data. This module is heavily inspired by it's principles and simplifies usage by implementing methods to fit server environment. Providing easy interface for defining data model, version migration, working with entities and persisting data to persistent store.
 
 Currently supported persistent stores: MySQL, PostgreSQL, SQLite
 
 
 # Important
 
-Although this library is used in few projects, it's still considered as *beta*!
+This module is now used in few medium scale projects heading to production in few weeks. There are still some tasks to improve performance and abilities of data fetching. If you are using this module and consider it useful, any feedback or help is very appreciated.
 
 
 # Example
