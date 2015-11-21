@@ -3,6 +3,7 @@ Owner:
     name:
       type: string
       indexed: true
+    lastName: string
   relations:
     cars:
       entity: Car

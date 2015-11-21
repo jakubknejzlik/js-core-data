@@ -157,7 +157,7 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT SELF._id)','count')
     if request.predicate
-      query.where(request.predicate.toString())
+      query.where(@parsePredicate(request.predicate))
     return @_getRawTranslatedQueryWithJoins(query,request)
 
   sqlForFetchRequest: (request) ->
@@ -182,7 +182,7 @@ class GenericSQLStore extends IncrementalStore
         query.group(request.group)
 
     if request.predicate
-      query.where(request.predicate.toString())
+      query.where(@parsePredicate(request.predicate))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -199,6 +199,8 @@ class GenericSQLStore extends IncrementalStore
     return @_getRawTranslatedQueryWithJoins(query,request)
 
 
+  parsePredicate:(predicate)->
+    return predicate.toString()
 
 
   _getRawTranslatedQueryWithJoins:(query,request)->
@@ -208,10 +210,11 @@ class GenericSQLStore extends IncrementalStore
     sqlString = query.toString()
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
-    joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_][a-zA-Z0-9_]*){2,}','g'));
+
+    joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_"][a-zA-Z0-9_"]*){2,}','g'));
 
     if not joinMatches or joinMatches.length is 0
-      return sqlString
+      return @processQuery(sqlString)
 
     leftJoin = (subkeys, parentEntity, path) =>
       as = subkeys.shift()
@@ -264,7 +267,11 @@ class GenericSQLStore extends IncrementalStore
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + @quoteSymbol, "g"), replaceNames[replaceNameSorted[i]] + @quoteSymbol)
 
-    return sqlString
+    return @processQuery(sqlString)
+
+  processQuery:(query)->
+    console.log('!!',query)
+    return query
 
   _updateRelationsForObject: (transaction,object,callback)->
     sqls = []
