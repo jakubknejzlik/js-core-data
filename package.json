@@ -45,7 +45,8 @@
     "test-mysql": "env STORAGE=mysql mocha test;",
     "test-sqlite": "env STORAGE=sqlite mocha test;",
     "test-postgres": "env STORAGE_URL=postgres://postgres@localhost/test mocha test",
-    "test": "npm run test-sqlite;npm run test-mysql;npm run test-postgres"
+    "test-postgres-native": "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test",
+    "test": "npm run test-sqlite;npm run test-mysql;npm run test-postgres;npm run test-postgres-native"
   },
   "repository": {
     "type": "git",

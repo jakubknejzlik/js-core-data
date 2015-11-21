@@ -8,6 +8,8 @@ Predicate = require('./../../FetchClasses/Predicate')
 SQLConnection = require('./SQLConnection')
 SQLTransaction = require('./SQLTransaction')
 
+process.env.NODE_ENV = 'production'
+
 try
   require('pg')
 catch e
@@ -18,7 +20,7 @@ pg = require('pg')
 if process.env.NODE_ENV is 'production'
   try
     require('pg-native')
-    pg = require('pg-native').native
+    pg = require('pg').native
   catch e
     console.log('pg-native is recommended for running in production environment, you install module by running  npm install --save pg-native')
 

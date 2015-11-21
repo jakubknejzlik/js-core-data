@@ -270,7 +270,6 @@ class GenericSQLStore extends IncrementalStore
     return @processQuery(sqlString)
 
   processQuery:(query)->
-    console.log('!!',query)
     return query
 
   _updateRelationsForObject: (transaction,object,callback)->
