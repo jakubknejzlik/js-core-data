@@ -27,8 +27,8 @@ class GenericSQLStore extends IncrementalStore
       @connectionPool = new SQLConnectionPool(@URL,(url)=>
         return @createConnection(url)
       ,@,@globals)
-#      @connection = @createConnection()
-#    @fetchedObjectValuesCache = {}
+    #      @connection = @createConnection()
+    #    @fetchedObjectValuesCache = {}
     @permanentIDsCache = {}
 
   createConnection: (url)->
@@ -45,19 +45,19 @@ class GenericSQLStore extends IncrementalStore
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               formattedTableName = @_formatTableName(insertedObject.entity.name)
-#              inserts = ['`_id` = NULL']
-#              for key,value of values
-#                inserts.push('`' + key + '` = ' + mysql.escape(value))
-#              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (' + @DEFAULT_PRIMARY_KEY_VALUE + ') RETURNING "_id"'
+              #              inserts = ['`_id` = NULL']
+              #              for key,value of values
+              #                inserts.push('`' + key + '` = ' + mysql.escape(value))
+              #              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (' + @DEFAULT_PRIMARY_KEY_VALUE + ') RETURNING "_id"'
               transaction.createRow(formattedTableName,(err,rowId)=>
                 if err
                   return cb(err)
                 @permanentIDsCache[insertedObject.objectID.toString()] = rowId
                 cb()
               )
-            ,(err)=>
-              afterInsertCallback();
-              seriesCallback(err)
+          ,(err)=>
+            afterInsertCallback();
+            seriesCallback(err)
           (seriesCallback)=> async.forEach request.deletedObjects,
             (deletedObject,cb)=>
               formattedTableName = @_formatTableName(deletedObject.entity.name)
@@ -65,7 +65,7 @@ class GenericSQLStore extends IncrementalStore
               sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
               transaction.query sql,(err)->
                 cb(err)
-            ,seriesCallback
+          ,seriesCallback
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
@@ -76,7 +76,7 @@ class GenericSQLStore extends IncrementalStore
                   @_updateRelationsForObject(transaction,insertedObject,cb)
                 )
               else @_updateRelationsForObject(transaction,insertedObject,cb)
-            ,seriesCallback
+          ,seriesCallback
           (seriesCallback)=> async.forEach request.updatedObjects,
             (updatedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(updatedObject)
@@ -87,15 +87,15 @@ class GenericSQLStore extends IncrementalStore
                   @_updateRelationsForObject(transaction,updatedObject,cb)
                 )
               else @_updateRelationsForObject(transaction,updatedObject,cb)
-            ,seriesCallback
-          ],(err)=>
-            if err
-              @connectionPool.releaseTransaction(transaction)
-              return callback(err)
-            transaction.commit((err)=>
-              @connectionPool.releaseTransaction(transaction)
-              callback(err)
-            )
+          ,seriesCallback
+        ],(err)=>
+          if err
+            @connectionPool.releaseTransaction(transaction)
+            return callback(err)
+          transaction.commit((err)=>
+            @connectionPool.releaseTransaction(transaction)
+            callback(err)
+          )
 
     if request.type is 'fetch'
 #      console.log('sql fetch',@_sqlForFetchRequest(request))
@@ -157,7 +157,7 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT SELF._id)','count')
     if request.predicate
-      query.where(request.predicate.toString())
+      query.where(@parsePredicate(request.predicate))
     return @_getRawTranslatedQueryWithJoins(query,request)
 
   sqlForFetchRequest: (request) ->
@@ -182,7 +182,7 @@ class GenericSQLStore extends IncrementalStore
         query.group(request.group)
 
     if request.predicate
-      query.where(request.predicate.toString())
+      query.where(@parsePredicate(request.predicate))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -199,6 +199,8 @@ class GenericSQLStore extends IncrementalStore
     return @_getRawTranslatedQueryWithJoins(query,request)
 
 
+  parsePredicate:(predicate)->
+    return predicate.toString()
 
 
   _getRawTranslatedQueryWithJoins:(query,request)->
@@ -208,10 +210,11 @@ class GenericSQLStore extends IncrementalStore
     sqlString = query.toString()
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
-    joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_][a-zA-Z0-9_]*){2,}','g'));
+
+    joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_"][a-zA-Z0-9_"]*){2,}','g'));
 
     if not joinMatches or joinMatches.length is 0
-      return sqlString
+      return @processQuery(sqlString)
 
     leftJoin = (subkeys, parentEntity, path) =>
       as = subkeys.shift()
@@ -255,7 +258,7 @@ class GenericSQLStore extends IncrementalStore
     alreadyJoined = []
     for key of joins
       _subkeys = key.split(".")
-#      console.log(key,_subkeys)
+      #      console.log(key,_subkeys)
       leftJoin(_subkeys, request.entity, @tableAlias)
     replaceNameSorted = Object.keys(replaceNames).sort().reverse()
 
@@ -264,16 +267,19 @@ class GenericSQLStore extends IncrementalStore
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + @quoteSymbol, "g"), replaceNames[replaceNameSorted[i]] + @quoteSymbol)
 
-    return sqlString
+    return @processQuery(sqlString)
+
+  processQuery:(query)->
+    return query
 
   _updateRelationsForObject: (transaction,object,callback)->
     sqls = []
     for relationship in object.entity.relationships
       inversedRelationship = relationship.inverseRelationship()
       reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship);
-#      if reflexiveRelationship != relationship
-#        inversedRelationship = relationship
-#        relationship = reflexiveRelationship
+      #      if reflexiveRelationship != relationship
+      #        inversedRelationship = relationship
+      #        relationship = reflexiveRelationship
       if relationship.toMany and inversedRelationship.toMany and object._relationChanges and relationship is reflexiveRelationship
 #        console.log('update relationship',object.entity.name,relationship.name,object._relationChanges)
         addedObjects = object._relationChanges?['added_' + relationship.name]
@@ -305,7 +311,7 @@ class GenericSQLStore extends IncrementalStore
     for key,value of object._changes
       attribute = object.entity.getAttribute(key)
       data[key] = value;
-#    console.log('xxx',object.entity.name)
+    #    console.log('xxx',object.entity.name)
     for relation in object.entity.relationships
       if not relation.toMany
         if object._relationChanges?[relation.name] isnt undefined
@@ -477,7 +483,6 @@ class GenericSQLStore extends IncrementalStore
         queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
       catch err
         return callback(err)
-
       @_runRawQueriesInSingleTransaction(queries,(err)=>
         return callback(err) if err
         async.forEachSeries(migration.scriptsAfter,(script,cb)=>
@@ -548,7 +553,7 @@ class GenericSQLStore extends IncrementalStore
 
       for relationship in entityTo.relationships
         if not relationship.toMany
-          change = migration.relationshipsChanges[entityName][relationship.name]
+          change = migration.relationshipsChanges[entityName]?[relationship.name]
           if change
             if change not in ['-','+']
               newColumnNames.push(relationship.name + '_id')
@@ -572,7 +577,7 @@ class GenericSQLStore extends IncrementalStore
     for relationship in entityTo.relationships
       inversedRelationship = relationship.inverseRelationship()
       if relationship.toMany and inversedRelationship.toMany
-        change = migration.relationshipsChanges[entityName][relationship.name]
+        change = migration.relationshipsChanges[entityName]?[relationship.name]
         if change
           if change not in ['+','-']
             oldRelationship = entityFrom.getRelationship(change)
@@ -585,7 +590,7 @@ class GenericSQLStore extends IncrementalStore
             sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
             sqls.push('ALTER TABLE ' + oldReflexiveTableName + ' RENAME TO ' + reflexiveTableName)
         else
-          sqls.push(@createEntityRelationshipQueries(entityTo))
+          sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
 
 
     return sqls
