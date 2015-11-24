@@ -128,9 +128,15 @@
       return (function(_this) {
         return function(req, res, next) {
           var context;
+          if (_this.options.logging) {
+            _this.options.logging('creating context');
+          }
           context = _this.createContext();
           req.context = context;
           res.once('finish', function() {
+            if (_this.options.logging) {
+              _this.options.logging('destroying context');
+            }
             return context.destroy();
           });
           return next();

@@ -83,11 +83,16 @@ class CoreData
       @persistentStoreCoordinator.addStore(@storeURL)
     return @persistentStoreCoordinator
 
+
   middleware:()->
     return (req,res,next)=>
+      if @options.logging
+        @options.logging('creating context')
       context = @createContext()
       req.context = context
-      res.once('finish',->
+      res.once('finish',=>
+        if @options.logging
+          @options.logging('destroying context')
         context.destroy()
       )
       next()
