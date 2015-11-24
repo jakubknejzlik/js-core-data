@@ -23,6 +23,7 @@
     "squel": "^4.0.0",
     "underscore": "^1.8.3",
     "underscore.inflections": "^0.2.1",
+    "unit-converter": "^1.0.2",
     "uuid": "^2.0.1",
     "yaml-config": "^0.3.0"
   },

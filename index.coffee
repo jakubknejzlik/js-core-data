@@ -11,6 +11,7 @@ Pool = require('generic-pool')
 url = require('url')
 async = require('async')
 Q = require('q')
+convert = require('unit-converter')
 
 
 
@@ -84,7 +85,9 @@ class CoreData
     return @persistentStoreCoordinator
 
 
-  middleware:()->
+  middleware:(options)->
+    options = options or {}
+    destroyTimeout = convert(options.destroyTimeout or '10s').to('ms')
     return (req,res,next)=>
       if @options.logging
         @options.logging('creating context')
@@ -92,8 +95,10 @@ class CoreData
       req.context = context
       res.once('finish',=>
         if @options.logging
-          @options.logging('destroying context')
-        context.destroy()
+          @options.logging('destroying context timeout: ',destroyTimeout)
+        setTimeout(()->
+          context.destroy()
+        ,destroyTimeout)
       )
       next()
 
