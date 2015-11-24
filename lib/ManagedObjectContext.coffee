@@ -288,7 +288,7 @@ class ManagedObjectContext extends Object
     @insertedObjects = []
     @updatedObjects = []
     @deletedObjects = []
-    delete @storeCoordinator
+#    delete @storeCoordinator
 
   Object.defineProperties @prototype,
     hasChanges:
