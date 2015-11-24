@@ -285,6 +285,7 @@ describe('Context', function(){
                         car.brand = 'test';
                         var car2 = context.createObjectWithName('Car');
                         car2.brand = 'test2';
+                        var owner = context.create('Owner',{name:'test',lastName:'test2'})
                         context.save(function(err){
                             done(err);
                         })
@@ -356,6 +357,13 @@ describe('Context', function(){
             });
             it('should load object by attribute(brand = \'test2\')',function(done){
                 context.getObjects('Car',{where:['SELF.brand = %s','test2']},function(err,objects){
+                    assert.ifError(err);
+                    assert.equal(objects.length,1);
+                    done();
+                })
+            });
+            it('should load object by attribute(lastName = \'test2\')',function(done){
+                context.getObjects('Owner',{where:['SELF.lastName = %s OR SELF.lastName = %s','test2','SELF.lastName']},function(err,objects){
                     assert.ifError(err);
                     assert.equal(objects.length,1);
                     done();

@@ -8,12 +8,21 @@ Predicate = require('./../../FetchClasses/Predicate')
 SQLConnection = require('./SQLConnection')
 SQLTransaction = require('./SQLTransaction')
 
+process.env.NODE_ENV = 'production'
+
 try
   require('pg')
 catch e
   throw new Error('pg module is required to use SQLite storage, please install it by running npm install --save pg')
 
 pg = require('pg')
+
+if process.env.NODE_ENV is 'production'
+  try
+    require('pg-native')
+    pg = require('pg').native
+  catch e
+    console.log('pg-native is recommended for running in production environment, you install module by running  npm install --save pg-native')
 
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
@@ -106,6 +115,18 @@ class PostgreSQLStore extends GenericSQLStore
         return 'bytea'
       else
         return super(attribute)
+
+  processQuery:(query)->
+    regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
+    columnRegExp = new RegExp('SELF(\\.[\\w]+)+','gi')
+    matches = regString.match(columnRegExp)
+    for match in matches
+      column = match.replace(/\./g,'\.')
+      columnAfter = match.replace(/\.([^\.]+)$/g,'."$1"')
+      query = query.replace(new RegExp(column,'g'),columnAfter)
+
+    return query
+
 
 #  decodeValueForAttribute:(value,attribute)->
 #    return super(value,attribute)

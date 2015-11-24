@@ -1,7 +1,7 @@
 {
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
-  "version": "1.0.13",
+  "version": "1.0.16",
   "license": "MIT",
   "keywords": [
     "ORM",
@@ -18,6 +18,7 @@
     "js-yaml": "^3.3.1",
     "lock": "^0.1.2",
     "moment": "^2.10.6",
+    "pg-native": "^1.9.0",
     "q": "^1.4.1",
     "squel": "^4.0.0",
     "underscore": "^1.8.3",
@@ -44,7 +45,8 @@
     "test-mysql": "env STORAGE=mysql mocha test;",
     "test-sqlite": "env STORAGE=sqlite mocha test;",
     "test-postgres": "env STORAGE_URL=postgres://postgres@localhost/test mocha test",
-    "test": "npm run test-sqlite;npm run test-mysql;npm run test-postgres"
+    "test-postgres-native": "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test",
+    "test": "npm run test-sqlite;npm run test-mysql;npm run test-postgres;npm run test-postgres-native"
   },
   "repository": {
     "type": "git",
