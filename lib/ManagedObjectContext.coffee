@@ -284,10 +284,10 @@ class ManagedObjectContext extends Object
     if @locked
       throw new Error('context is locked')
     @destroyed = yes
-    delete @registeredObjects
-    delete @insertedObjects
-    delete @updatedObjects
-    delete @deletedObjects
+    @registeredObjects = []
+    @insertedObjects = []
+    @updatedObjects = []
+    @deletedObjects = []
     delete @storeCoordinator
 
   Object.defineProperties @prototype,
