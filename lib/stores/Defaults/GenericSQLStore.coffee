@@ -273,7 +273,7 @@ class GenericSQLStore extends IncrementalStore
 
   processQuery:(query,quoteSymbol = '`')->
     regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
-    columnRegExp = new RegExp('SELF(\\.[\\w]+)+','gi')
+    columnRegExp = new RegExp('SELF[\\w_]*(\\.[\\w_]+)+','gi')
     matches = regString.match(columnRegExp)
     for match in matches
       column = match.replace(/\./g,'\.')
