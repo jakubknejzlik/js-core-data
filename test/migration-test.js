@@ -7,7 +7,9 @@ var store_url = require('./get_storage_url').replace(':memory:',tmp.tmpNameSync(
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
+
+    var company2Name = 'Company2' + Math.random()*10000
 
     before(function(){
         model1 = db.createModel('0.1');
@@ -29,17 +31,17 @@ describe('migrations',function(){
             testNew:'string',
             addedColumn:'string'
         });
-        model2.defineEntity('Company2',{
+        model2.defineEntity(company2Name,{
             name:'string'
         });
-        model2.defineRelationshipManyToOne('User','Company2','company2','users2');
+        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2');
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
         model2.defineRelationshipManyToMany('User','User','friends2','friends2');
         model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
 
         migration1to2 = model2.createMigrationFrom(model1);
 
-        migration1to2.renameEntity('Company','Company2')
+        migration1to2.renameEntity('Company',company2Name)
 
         migration1to2.addAttribute('User','lastname');
         migration1to2.removeAttribute('User','password');
