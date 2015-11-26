@@ -88,7 +88,7 @@ class PostgreSQLStore extends GenericSQLStore
           reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
           if force
             sqls.push('DROP TABLE IF EXISTS "' + reflexiveTableName  + '"')
-          sqls.push('CREATE TABLE IF NOT EXISTS "' + reflexiveTableName + '" ("'+reflexiveRelationship.name.toLowerCase()+'_id" serial NOT NULL,"reflexive" serial NOT NULL, PRIMARY KEY ("'+reflexiveRelationship.name.toLowerCase()+'_id","reflexive"))')
+          sqls.push('CREATE TABLE IF NOT EXISTS "' + reflexiveTableName + '" ("'+reflexiveRelationship.name+'_id" serial NOT NULL,"reflexive" serial NOT NULL, PRIMARY KEY ("'+reflexiveRelationship.name+'_id","reflexive"))')
     return sqls
 
   columnTypeForAttribute:(attribute)->
