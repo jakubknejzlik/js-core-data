@@ -547,7 +547,7 @@ class GenericSQLStore extends IncrementalStore
 
 
       for attribute in entityTo.attributes
-        change = migration.attributesChanges[entityName][attribute.name]
+        change = migration.attributesChanges[entityName]?[attribute.name]
         if change
           if change not in ['-','+']
             newColumnNames.push(attribute.name)

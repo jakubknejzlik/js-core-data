@@ -32,7 +32,8 @@ describe('migrations',function(){
             addedColumn:'string'
         });
         model2.defineEntity(company2Name,{
-            name:'string'
+            name:'string',
+            name2:'string'
         });
         model2.defineRelationshipManyToOne('User',company2Name,'company2','users2');
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
@@ -42,6 +43,7 @@ describe('migrations',function(){
         migration1to2 = model2.createMigrationFrom(model1);
 
         migration1to2.renameEntity('Company',company2Name)
+        migration1to2.addAttribute(company2Name,'name2');
 
         migration1to2.addAttribute('User','lastname');
         migration1to2.removeAttribute('User','password');
