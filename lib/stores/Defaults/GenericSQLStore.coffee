@@ -158,7 +158,8 @@ class GenericSQLStore extends IncrementalStore
     query.field('COUNT(DISTINCT SELF._id)','count')
     if request.predicate
       query.where(@parsePredicate(request.predicate))
-    return @_getRawTranslatedQueryWithJoins(query,request)
+    sqlString = @_getRawTranslatedQueryWithJoins(query,request)
+    return @processQuery(sqlString)
 
   sqlForFetchRequest: (request) ->
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
@@ -196,7 +197,8 @@ class GenericSQLStore extends IncrementalStore
         query.order(column,descriptor.ascending)
 
 
-    return @_getRawTranslatedQueryWithJoins(query,request)
+    sqlString = @_getRawTranslatedQueryWithJoins(query,request)
+    return @processQuery(sqlString)
 
 
   parsePredicate:(predicate)->
@@ -214,7 +216,7 @@ class GenericSQLStore extends IncrementalStore
     joinMatches = clearedSQLString.match(new RegExp(@tableAlias + '(\\.[a-zA-Z_"][a-zA-Z0-9_"]*){2,}','g'));
 
     if not joinMatches or joinMatches.length is 0
-      return @processQuery(sqlString)
+      return sqlString
 
     leftJoin = (subkeys, parentEntity, path) =>
       as = subkeys.shift()
@@ -267,9 +269,16 @@ class GenericSQLStore extends IncrementalStore
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + @quoteSymbol, "g"), replaceNames[replaceNameSorted[i]] + @quoteSymbol)
 
-    return @processQuery(sqlString)
+    return sqlString
 
-  processQuery:(query)->
+  processQuery:(query,quoteSymbol = '`')->
+    regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
+    columnRegExp = new RegExp('SELF(\\.[\\w]+)+','gi')
+    matches = regString.match(columnRegExp)
+    for match in matches
+      column = match.replace(/\./g,'\.')
+      columnAfter = match.replace(/\.([^\.]+)$/g,'.' + quoteSymbol + '$1' + quoteSymbol)
+      query = query.replace(new RegExp(column,'g'),columnAfter)
     return query
 
   _updateRelationsForObject: (transaction,object,callback)->
