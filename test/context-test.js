@@ -28,7 +28,7 @@ describe('Context', function(){
         before(function(done){
             coreData = new CoreData(store_url,{
                 modelFile:__dirname + '/schemes/car-model.yaml',
-                //logging:false
+                logging:false
             });
             coreData.syncSchema({force:true}).then(done).catch(done);
         });
