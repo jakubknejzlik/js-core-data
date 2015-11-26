@@ -526,14 +526,14 @@ class GenericSQLStore extends IncrementalStore
     modelFrom = migration.modelFrom
 
     for change in migration.entitiesChanges
-      entityName = change.entityName
+      entityName = change.entity
       switch change.change
         when '+'
           sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
         when '-'
           sqls.push('DROP TABLE IF EXISTS ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
         else
-          sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(change) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
+          sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(change.change) + @quoteSymbol)
 
     updatedEntities = _.uniq(Object.keys(migration.attributesChanges).concat(Object.keys(migration.relationshipsChanges)))
 
