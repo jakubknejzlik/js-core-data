@@ -25,7 +25,11 @@ class Predicate extends Object
         if variable is undefined or variable is null
           variable = null
         else if util.isArray(variable)
-          variable = JSON.stringify(variable).replace(/\[/g,'(').replace(/\]/g,')')
+          variable = '(' + variable.map((x)->
+              if typeof x is 'string'
+                return '\'' + x.replace(/'/g,'\'') + '\''
+              return x
+            ).join(',') + ')'
         else if variable instanceof Date
           variable = moment(variable).format(DATE_FORMAT)
         else if variable instanceof ManagedObject
