@@ -90,8 +90,10 @@ class GenericSQLStore extends IncrementalStore
           ,seriesCallback
         ],(err)=>
           if err
-            @connectionPool.releaseTransaction(transaction)
-            return callback(err)
+            return transaction.rollback(()=>
+              @connectionPool.releaseTransaction(transaction)
+              callback(err)
+            )
           transaction.commit((err)=>
             @connectionPool.releaseTransaction(transaction)
             callback(err)
