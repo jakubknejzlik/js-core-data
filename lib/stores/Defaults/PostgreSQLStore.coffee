@@ -116,17 +116,6 @@ class PostgreSQLStore extends GenericSQLStore
       else
         return super(attribute)
 
-  processQuery:(query)->
-    regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
-    columnRegExp = new RegExp('SELF[\\w_]*(\\.[\\w_]+)+','gi')
-    matches = regString.match(columnRegExp)
-    for match in matches
-      column = match.replace(/\./g,'\.')
-      columnAfter = match.replace(/\.([^\.]+)$/g,'."$1"')
-      query = query.replace(new RegExp(column,'g'),columnAfter)
-
-    return query
-
 
 #  decodeValueForAttribute:(value,attribute)->
 #    return super(value,attribute)
