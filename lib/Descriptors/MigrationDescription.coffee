@@ -59,11 +59,11 @@ class MigrationDescription
 #    @indexesChanges[entityName] = @indexesChanges[entityName] or {}
 #    @indexesChanges[entityName][name] = '-'
 
-  addScriptBefore:(script)->
-    @scriptsBefore.push(script)
+  addScriptBefore:(script,name)->
+    @scriptsBefore.push({script:script,name:name})
 
-  addScriptAfter:(script)->
-    @scriptsAfter.push(script)
+  addScriptAfter:(script,name)->
+    @scriptsAfter.push({script:script,name:name})
 
 #  createInverseMigration:()->
 #    return null

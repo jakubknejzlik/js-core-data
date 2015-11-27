@@ -70,7 +70,7 @@ class GenericSQLStore extends IncrementalStore
             (insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
               if sql
-                transaction.query(sql,updateValues,(err,result)=>
+                transaction.query(sql,updateValues,(err)=>
                   if err
                     return cb(err)
                   @_updateRelationsForObject(transaction,insertedObject,cb)
@@ -318,7 +318,7 @@ class GenericSQLStore extends IncrementalStore
   _valuesWithRelationshipsForObject:(object)->
     data = {}
     for key,value of object._changes
-      attribute = object.entity.getAttribute(key)
+#      attribute = object.entity.getAttribute(key)
       data[key] = value;
     #    console.log('xxx',object.entity.name)
     for relation in object.entity.relationships
@@ -331,11 +331,11 @@ class GenericSQLStore extends IncrementalStore
             data[relation.name + '_id'] = null
     return data;
 
-  permanentIDsForObjects:(objects,callback) ->
+  permanentIDsForObjects:(objects) ->
     ids = []
     for object in objects
       ids.push(@_permanentIDForRecord(object.entity,@permanentIDsCache[object.objectID.toString()]))
-    ids
+    return ids
 
   newObjectID:(entity,referenceObject) ->
     new ManagedObjectID(@URL + '/' + entity.name + '/t' + referenceObject,entity)
@@ -504,12 +504,15 @@ class GenericSQLStore extends IncrementalStore
     persistentStoreCoordinator = new PersistentStoreCoordinator(model,@storeCoordinator.globals)
     persistentStoreCoordinator.addStore(@)
     context = new ManagedObjectContext(persistentStoreCoordinator)
-    script(context,(err)=>
-      if err
-        context.destroy()
-        return callback(err)
-      context.saveAndDestroy(callback)
-    )
+    try
+      script.script(context,(err)=>
+        if err
+          context.destroy()
+          return callback(err)
+        context.saveAndDestroy(callback)
+      )
+    catch err
+      callback(new Error('error running script on model ' + model.version + ', script name: \'' + (script.name or 'unknown') + '\', error: \'' + err.message + '\''))
 
 
 
@@ -522,6 +525,7 @@ class GenericSQLStore extends IncrementalStore
 
   createMigrationQueries:(migration)->
     sqls = []
+    entityChangedNames = {}
     modelTo = migration.modelTo
     modelFrom = migration.modelFrom
 
@@ -533,18 +537,17 @@ class GenericSQLStore extends IncrementalStore
         when '-'
           sqls.push('DROP TABLE IF EXISTS ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
         else
+          entityChangedNames[change.change] = entityName
           sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(change.change) + @quoteSymbol)
 
     updatedEntities = _.uniq(Object.keys(migration.attributesChanges).concat(Object.keys(migration.relationshipsChanges)))
 
-
     for entityName in updatedEntities
-      entityTo = modelTo.getEntity(entityName)
-      entityFrom = modelFrom.getEntity(entityName)
+      entityTo = modelTo.getEntity(entityName) or modelTo.getEntity(entityChangedNames[entityName])
+      entityFrom = modelFrom.getEntity(entityName) or modelFrom.getEntity(entityChangedNames[entityName])
 
       oldColumnNames = ['_id']
       newColumnNames = ['_id']
-
 
       for attribute in entityTo.attributes
         change = migration.attributesChanges[entityName]?[attribute.name]
@@ -558,7 +561,7 @@ class GenericSQLStore extends IncrementalStore
             newColumnNames.push(attribute.name)
             oldColumnNames.push(oldAttribute.name)
           catch e
-            console.error('attribute ' + attribute.name + ' not found in version ' + modelFrom.version)
+            throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.version)
 
       for relationship in entityTo.relationships
         if not relationship.toMany
@@ -573,11 +576,11 @@ class GenericSQLStore extends IncrementalStore
               newColumnNames.push(relationship.name + '_id')
               oldColumnNames.push(oldRelationship.name + '_id')
             catch e
-              console.error('relationship ' + relationship.name + ' not found in version ' + modelFrom.version)
+              throw new Error('relationship ' + entityFrom.name + '->' + relationship.name + ' not found in version ' + modelFrom.version)
 
       tableName = @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol
       tmpTableName = @quoteSymbol + @_formatTableName(entityName) + '_tmp' + @quoteSymbol
-      sqls.push('DROP TABLE IF EXISTS ' + tmpTableName)
+#      sqls.push('DROP TABLE IF EXISTS ' + tmpTableName)
       sqls.push('ALTER TABLE ' + tableName + ' RENAME TO ' + tmpTableName)
       sqls = sqls.concat(@createEntityQueries(entityTo,no,{ignoreRelationships:yes}))
       sqls.push('INSERT INTO ' + tableName + ' (' + @quoteSymbol + newColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ') SELECT ' + @quoteSymbol + oldColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ' FROM ' + tmpTableName)
@@ -596,7 +599,7 @@ class GenericSQLStore extends IncrementalStore
             oldReflexiveTableName = @quoteSymbol + @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name + @quoteSymbol
             reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
 
-            sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
+#            sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
             sqls.push('ALTER TABLE ' + oldReflexiveTableName + ' RENAME TO ' + reflexiveTableName)
         else
           sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))

@@ -1,15 +1,18 @@
 var assert = require('assert');
 var tmp = require('tmp');
+var fs = require('fs');
 
 var CoreData = require('../index');
 
-var store_url = require('./get_storage_url').replace(':memory:',tmp.tmpNameSync());
+storeTmpName = tmp.tmpNameSync();
+var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
     var db = new CoreData(store_url,{logging:true});
 
-    var company2Name = 'Company2' + Math.random()*10000
+    var company2Name = 'Company2' + Math.round(Math.random()*10000);
+    var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
 
     before(function(){
         model1 = db.createModel('0.1');
@@ -32,41 +35,61 @@ describe('migrations',function(){
             addedColumn:'string'
         });
         model2.defineEntity(company2Name,{
-            name:'string',
+            name123:'string',
             name2:'string'
         });
         model2.defineRelationshipManyToOne('User',company2Name,'company2','users2');
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
-        model2.defineRelationshipManyToMany('User','User','friends2','friends2');
+        model2.defineRelationshipManyToMany('User','User',userFriendsRelationshipName,userFriendsRelationshipName);
         model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
 
         migration1to2 = model2.createMigrationFrom(model1);
 
-        migration1to2.renameEntity('Company',company2Name)
+        migration1to2.renameEntity('Company',company2Name);
         migration1to2.addAttribute(company2Name,'name2');
+        migration1to2.renameAttribute(company2Name,'name','name123');
 
         migration1to2.addAttribute('User','lastname');
+        migration1to2.addAttribute('User','addedColumn');
         migration1to2.removeAttribute('User','password');
         migration1to2.renameAttribute('User','name','firstname');
         migration1to2.renameAttribute('User','test','testNew');
 
-        migration1to2.renameRelationship('User','friends','friends2');
+        migration1to2.renameRelationship('User','company','company2');
+
+        migration1to2.renameRelationship('User','friends',userFriendsRelationshipName);
         migration1to2.addRelationship('User','moreFriends');
         migration1to2.removeRelationship('User','company');
 
         migration1to2.addScriptAfter(function(context,done){
             context.getObjects('User').then(function(users){
-                users.forEach(function(user){
-                    if(user.firstname){
-                        var nameParts = user.firstname.split(' ');
-                        user.firstname = nameParts[0];
-                        user.lastname = nameParts[1];
-                    }
-                });
-                done();
+                context.getObjects(company2Name).then(function(companies) {
+                    users.forEach(function (user) {
+                        if (user.firstname) {
+                            var nameParts = user.firstname.split(' ');
+                            user.firstname = nameParts[0];
+                            user.lastname = nameParts[1];
+                        }
+                    });
+                    companies.forEach(function(company){
+                        company.name2 = company.name123 + '2';
+                    });
+                    done();
+                })
             }).catch(done);
-        })
+        });
 
+        var model3 = db.createModel('0.3');
+        migration2to3 = model3.createMigrationFrom(model2);
+
+        migration2to3.addScriptBefore(function(context,done){
+            context.getObjects('blahnonexisting').then(function(){
+                done()
+            }).catch(done);
+        },'my failing script')
+    });
+    after(function(){
+        if(fs.existsSync(storeTmpName))fs.unlinkSync(storeTmpName)
     });
 
     it('should sync schema to 0.1',function(done){
@@ -77,7 +100,9 @@ describe('migrations',function(){
     it('should create user object in 0.1',function(done){
         var context = db.createContext();
 
-        context.create('User',{name:'John Doe'});
+        var user = context.create('User',{name:'John Doe'});
+        var company = context.create('Company',{name:'John\'s company'});
+        company.addUser(user);
         context.saveAndDestroy(done);
     });
 
@@ -87,7 +112,7 @@ describe('migrations',function(){
     });
 
 
-    it('should validate created user object in 0.2',function(done){
+    it('should validate user objects created in 0.2',function(done){
         var context = db.createContext();
 
         context.getObjects('User').then(function(users){
@@ -97,5 +122,25 @@ describe('migrations',function(){
             assert.equal(user.lastname,'Doe');
             done();
         }).catch(done)
+    });
+
+    it('should validate company objects created in 0.2',function(done){
+        var context = db.createContext();
+
+        context.getObjects(company2Name).then(function(companies){
+            assert.equal(companies.length,1);
+            var company = companies[0];
+            assert.equal(company.name123,'John\'s company');
+            assert.equal(company.name2,'John\'s company2');
+            done();
+        }).catch(done)
+    });
+
+    it('should fail to migrate to version 0.3',function(done){
+        db.setModelVersion('0.3');
+        db.syncSchema(function(err){
+            assert.ok(err);
+            done();
+        });
     })
 });
