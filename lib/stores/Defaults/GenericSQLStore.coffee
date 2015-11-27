@@ -66,7 +66,7 @@ class GenericSQLStore extends IncrementalStore
               transaction.query sql,(err)->
                 cb(err)
           ,seriesCallback
-          (seriesCallback)=> async.forEach request.insertedObjects,
+          (seriesCallback)=> async.forEachSeries request.insertedObjects,
             (insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
               if sql
@@ -77,7 +77,7 @@ class GenericSQLStore extends IncrementalStore
                 )
               else @_updateRelationsForObject(transaction,insertedObject,cb)
           ,seriesCallback
-          (seriesCallback)=> async.forEach request.updatedObjects,
+          (seriesCallback)=> async.forEachSeries request.updatedObjects,
             (updatedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(updatedObject)
               if sql
