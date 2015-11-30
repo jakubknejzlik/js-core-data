@@ -110,10 +110,15 @@ class ManagedObject extends Object
     inverseRelationship = relationshipDescription.inverseRelationship()
     inverseRelationshipCapitalizedName = inverseRelationship.name[0].toUpperCase() + inverseRelationship.name.substring(1)
     if not relationshipDescription.toMany
+      @prototype['get' + capitalizedName ] = @prototype['get' + capitalizedName] or (callback)->
+        return @['_get' + capitalizedName ](callback)
+      @prototype['set' + capitalizedName ] = @prototype['set' + capitalizedName] or (object)->
+        return @['_set' + capitalizedName ](object)
+
       @prototype['get' + capitalizedSingularizedName + 'ID'] = ()->
         @fetchData() if @isFault
         return @_data[singularizedName + '_id'] or @_data[relationshipDescription.name]?.objectID?.recordId()
-      @prototype['get' + capitalizedName] = (callback)->
+      @prototype['_get' + capitalizedName] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
         async.nextTick(()=>
@@ -126,13 +131,24 @@ class ManagedObject extends Object
           else deferred.resolve(@_data[relationshipDescription.name]);
         )
         return deferred.promise.nodeify(callback)
-      @prototype['set' + capitalizedName] = (object)->
+      @prototype['_set' + capitalizedName] = (object)->
 #        @fetchData() if @isFault
         if object isnt null and object not instanceof ManagedObject
           throw new Error('only ManagedObject instances or null can be set to relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @_setObjectToRelation(object,relationshipDescription,inverseRelationship)
     else
-      @prototype['get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
+      @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or (callback)->
+        return @['_get' + capitalizedName](callback)
+      @prototype['add' + capitalizedSingularizedName] = @prototype['add' + capitalizedSingularizedName] or (object)->
+          return @['_add' + capitalizedSingularizedName](object)
+      @prototype['add' + capitalizedName] = @prototype['add' + capitalizedName] or (objects)->
+          return @['_add' + capitalizedName](objects)
+      @prototype['remove' + capitalizedSingularizedName] = @prototype['remove' + capitalizedSingularizedName] or (object)->
+          return @['_remove' + capitalizedSingularizedName](object)
+      @prototype['remove' + capitalizedName] = @prototype['remove' + capitalizedName] or (objects)->
+          return @['_remove' + capitalizedName](objects)
+
+      @prototype['_get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
         if not @_data[relationshipDescription.name]
@@ -147,12 +163,12 @@ class ManagedObject extends Object
             deferred.resolve(@_data[relationshipDescription.name])
         else deferred.resolve(@_data[relationshipDescription.name]);
         return deferred.promise.nodeify(callback)
-      @prototype['add' + capitalizedSingularizedName] = (object)->
+      @prototype['_add' + capitalizedSingularizedName] = (object)->
         if object not instanceof ManagedObject
 #          console.log(object)
           throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @['add' + capitalizedName]([object])
-      @prototype['add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->
+      @prototype['_add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
         if not Array.isArray(objects)
           throw new Error('array must be specified in addObjects method (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
@@ -161,9 +177,9 @@ class ManagedObject extends Object
             throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         for object in objects
           @_addObjectToRelation(object,relationshipDescription,inverseRelationship)
-      @prototype['remove' + capitalizedSingularizedName] = (object)->
+      @prototype['_remove' + capitalizedSingularizedName] = (object)->
         @['remove' + capitalizedName]([object])
-      @prototype['remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
+      @prototype['_remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
         for object in objects
           @_removeObjectFromRelation(object,relationshipDescription,inverseRelationship)
