@@ -138,9 +138,23 @@
           }
           context = _this.createContext();
           req.context = context;
-          res.once('finish', function() {
+          res.once('close', function() {
+            if (context.destroyed) {
+              return;
+            }
             if (_this.options.logging) {
-              _this.options.logging('destroying context timeout: ', destroyTimeout);
+              _this.options.logging('destroying context timeout (close): ', destroyTimeout);
+            }
+            return setTimeout(function() {
+              return context.destroy();
+            }, destroyTimeout);
+          });
+          res.once('finish', function() {
+            if (context.destroyed) {
+              return;
+            }
+            if (_this.options.logging) {
+              _this.options.logging('destroying context timeout (finish): ', destroyTimeout);
             }
             return setTimeout(function() {
               return context.destroy();

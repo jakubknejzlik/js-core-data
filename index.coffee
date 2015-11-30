@@ -93,9 +93,20 @@ class CoreData
         @options.logging('creating context')
       context = @createContext()
       req.context = context
-      res.once('finish',=>
+      res.once('close',=>
+        if context.destroyed
+          return
         if @options.logging
-          @options.logging('destroying context timeout: ',destroyTimeout)
+          @options.logging('destroying context timeout (close): ',destroyTimeout)
+        setTimeout(()->
+          context.destroy()
+        ,destroyTimeout)
+      )
+      res.once('finish',=>
+        if context.destroyed
+          return
+        if @options.logging
+          @options.logging('destroying context timeout (finish): ',destroyTimeout)
         setTimeout(()->
           context.destroy()
         ,destroyTimeout)
