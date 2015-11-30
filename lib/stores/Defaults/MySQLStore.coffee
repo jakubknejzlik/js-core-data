@@ -99,6 +99,10 @@ class MySQLConnection extends SQLConnection
       return callback(err) if err
       callback(null,@connection)
     )
+    @connection.on('error',(err)->
+      @connection.valid = no
+      console.error('mysql connection error',err)
+    )
 
   close:()->
     @connection.destroy()

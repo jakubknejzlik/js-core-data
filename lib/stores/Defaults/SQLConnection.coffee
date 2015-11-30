@@ -4,6 +4,8 @@ SQLTransaction = require('./SQLTransaction')
 
 
 class SQLConnection
+  valid: yes
+
   constructor:(@url,@store)->
 
   connect:(callback)->

@@ -133,6 +133,10 @@ class PostgreSQLConnection extends SQLConnection
   connect:(callback)->
     @connection = new pg.Client(@url)
     @connection.connect(callback)
+    @connection.on('error',(err)=>
+      @connection.valid = no
+      console.warning('error connection error',err)
+    )
 
   close:()->
     @connection.end()

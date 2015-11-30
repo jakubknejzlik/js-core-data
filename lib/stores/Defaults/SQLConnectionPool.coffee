@@ -14,6 +14,8 @@ class SQLConnectionPool
         )
       destroy  : (connection)->
         connection.close()
+      validate: (connection)->
+        return connection.valid
       max : settings.maxConnections or 1 #settings?.maxConnections or (if process.NODE_ENV is 'production' then 100 else 10),
       idleTimeoutMillis : settings?.idletimeoutMillis ? 60*1000,
       reapIntervalMillis : settings?.reapIntervalMillis ? 5*1000
