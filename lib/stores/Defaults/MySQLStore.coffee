@@ -101,7 +101,7 @@ class MySQLConnection extends SQLConnection
     )
     @connection.on('error',(err)->
       @connection.valid = no
-      console.error('mysql connection error',err)
+      @log('mysql connection error',err)
     )
 
   close:()->

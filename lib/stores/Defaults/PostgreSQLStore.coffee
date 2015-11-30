@@ -135,7 +135,7 @@ class PostgreSQLConnection extends SQLConnection
     @connection.connect(callback)
     @connection.on('error',(err)=>
       @connection.valid = no
-      console.warning('error connection error',err)
+      @log('postgres connection error',err)
     )
 
   close:()->
