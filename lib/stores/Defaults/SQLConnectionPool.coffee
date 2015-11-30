@@ -1,9 +1,12 @@
 GenericPool = require('generic-pool')
+URL = require('url')
+querystring = require('querystring')
 
 SQLTransaction = require('./SQLTransaction')
 
 class SQLConnectionPool
   constructor: (url,createConnectionFunction,@store,settings)->
+    urlOptions = querystring.parse(URL.parse(url).query)
     @pool = GenericPool.Pool({
       name     : "sql-connection-pool",
       create   : (callback)=>
@@ -16,7 +19,7 @@ class SQLConnectionPool
         connection.close()
       validate: (connection)->
         return connection.valid
-      max : settings.maxConnections or 1 #settings?.maxConnections or (if process.NODE_ENV is 'production' then 100 else 10),
+      max : settings.maxConnections or urlOptions.maxConnections or 1 #settings?.maxConnections or (if process.NODE_ENV is 'production' then 100 else 10),
       idleTimeoutMillis : settings?.idletimeoutMillis ? 60*1000,
       reapIntervalMillis : settings?.reapIntervalMillis ? 5*1000
       log: @store
