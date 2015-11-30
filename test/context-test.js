@@ -546,8 +546,11 @@ describe('Context', function(){
             describe('toOne',function(){
                 it('should set single object for relation',function(done){
                     car.setOwner(owner);
+                    assert.equal(car.getOwnerID(),owner.id)
                     car2.setOwner(null);
+                    assert.equal(car2.getOwnerID(),null)
                     car2.setOwner(owner);
+                    assert.equal(car2.getOwnerID(),owner.id)
                     done();
                 });
                 it('should return array of assigned objects',function(done){
