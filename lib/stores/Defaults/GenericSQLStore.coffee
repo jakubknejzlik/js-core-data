@@ -467,9 +467,9 @@ class GenericSQLStore extends IncrementalStore
     @getCurrentVersion((err,currentVersion)=>
       if currentVersion is objectModel.version and not options.force
         callback()
-      else if not currentVersion and not options.ignoreVersion and not options.force
-        callback(new Error('current version not found, rerun syncSchema with enabled option ignoreVersion'))
-      else if (currentVersion isnt objectModel.version and options.ignoreVersion) or options.force
+      else if not currentVersion and not options.ignoreMissingVersion and not options.force
+        callback(new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion'))
+      else if (not currentVersion and options.ignoreMissingVersion) or options.force
         try
           queries = @createSchemaQueries(options)
         catch err
