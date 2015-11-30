@@ -204,7 +204,9 @@ class ManagedObject extends Object
       throw new Error('cannot set object to relationship of object in different context')
     if object isnt @_data[relationshipDescription.name]
       prevObject = @_data[relationshipDescription.name];
+      singularizedName = _.singularize(relationshipDescription.name)
       @_data[relationshipDescription.name] = object
+      delete @_data[singularizedName + '_id']
       @_relationChanges = @_relationChanges || {}
       @_relationChanges[relationshipDescription.name] = object
       if inversedRelationshipDescription

@@ -103,6 +103,7 @@ describe('Context', function(){
                 context.save().then(function(){
                     return tempContext.getObjectWithObjectID(car.objectID).then(function(tempCar){
                         values = tempCar.getValues();
+                        console.log(values,owner.id)
                         assert.equal(values.owner_id,car.getOwnerID());
                         assert.equal(values.owner_id,tempCar.getOwnerID());
                         done();
@@ -534,6 +535,7 @@ describe('Context', function(){
                 car2 = context.createObjectWithName('Car');
                 owner = context.createObjectWithName('Owner');
                 owner.name = 'Jackie Prudil';
+                owner2 = context.createObjectWithName('Owner');
 //                console.log('owner',owner);
                 context.save(done)
             });
@@ -541,6 +543,7 @@ describe('Context', function(){
                 context.deleteObject(car);
                 context.deleteObject(car2);
                 context.deleteObject(owner);
+                context.deleteObject(owner2);
                 context.save(done);
             });
             describe('toOne',function(){
@@ -551,6 +554,11 @@ describe('Context', function(){
                     assert.equal(car2.getOwnerID(),null)
                     car2.setOwner(owner);
                     assert.equal(car2.getOwnerID(),owner.id)
+                    car2.setOwner(owner2);
+                    assert.equal(car2.getOwnerID(),owner2.id)
+                    var owner3 = context.createObjectWithName('Owner');
+                    car2.setOwner(owner3);
+                    assert.equal(car2.getOwnerID(),owner3.id)
                     done();
                 });
                 it('should return array of assigned objects',function(done){
