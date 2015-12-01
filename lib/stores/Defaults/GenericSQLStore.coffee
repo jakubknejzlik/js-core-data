@@ -589,23 +589,23 @@ class GenericSQLStore extends IncrementalStore
       sqls.push('INSERT INTO ' + tableName + ' (' + @quoteSymbol + newColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ') SELECT ' + @quoteSymbol + oldColumnNames.join(@quoteSymbol + ',' + @quoteSymbol) + @quoteSymbol + ' FROM ' + tmpTableName)
       sqls.push('DROP TABLE ' + tmpTableName)
 
-    for relationship in entityTo.relationships
-      inversedRelationship = relationship.inverseRelationship()
-      if relationship.toMany and inversedRelationship.toMany
-        change = migration.relationshipsChanges[entityName]?[relationship.name]
-        if change
-          if change not in ['+','-']
-            oldRelationship = entityFrom.getRelationship(change)
-            oldInversedRelationship = oldRelationship.inverseRelationship()
-            oldReflexiveRelationship = @_relationshipByPriority(oldRelationship,oldInversedRelationship)
-            reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-            oldReflexiveTableName = @quoteSymbol + @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name + @quoteSymbol
-            reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
+      for relationship in entityTo.relationships
+        inversedRelationship = relationship.inverseRelationship()
+        if relationship.toMany and inversedRelationship.toMany
+          change = migration.relationshipsChanges[entityName]?[relationship.name]
+          if change
+            if change not in ['+','-']
+              oldRelationship = entityFrom.getRelationship(change)
+              oldInversedRelationship = oldRelationship.inverseRelationship()
+              oldReflexiveRelationship = @_relationshipByPriority(oldRelationship,oldInversedRelationship)
+              reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+              oldReflexiveTableName = @quoteSymbol + @_formatTableName(oldReflexiveRelationship.entity.name) + '_' + oldReflexiveRelationship.name + @quoteSymbol
+              reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
 
-#            sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
-            sqls.push('ALTER TABLE ' + oldReflexiveTableName + ' RENAME TO ' + reflexiveTableName)
-        else
-          sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
+  #            sqls.push('DROP TABLE IF EXISTS ' + reflexiveTableName)
+              sqls.push('ALTER TABLE ' + oldReflexiveTableName + ' RENAME TO ' + reflexiveTableName)
+          else
+            sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
 
 
     return sqls

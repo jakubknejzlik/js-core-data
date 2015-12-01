@@ -9,7 +9,7 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     var company2Name = 'Company2' + Math.round(Math.random()*10000);
     var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
