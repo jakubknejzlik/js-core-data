@@ -128,7 +128,7 @@ class GenericSQLStore extends IncrementalStore
 
   numberOfObjectsForFetchRequest:(request,callback)->
     @connectionPool.query(@countSqlForFetchRequest(request),(err,result)=>
-      callback(err,result?[0]?.count)
+      callback(err,Number(result?[0]?.count))
     )
 
   updateQueryForUpdatedObject:(updatedObject)->
