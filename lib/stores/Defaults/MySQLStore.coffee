@@ -100,7 +100,7 @@ class MySQLConnection extends SQLConnection
       callback(null,@connection)
     )
     @connection.on('error',(err)->
-      @connection.valid = no
+      @valid = no
       @log('mysql connection error',err)
     )
 
