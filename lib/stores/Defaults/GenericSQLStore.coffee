@@ -551,19 +551,20 @@ class GenericSQLStore extends IncrementalStore
 
       for attribute in entityFrom.attributes
         change = migration.attributesChanges[entityName]?[attribute.name]
-        switch change
-          when '+'
-            break
-          when '-'
-            sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + attribute.name + @quoteSymbol)
-            break
-          else
-            try
-              newAttribute = entityTo.getAttribute(change)
-              sqls.push(@_renameAttributeQuery(@_formatTableName(entityName),attribute,newAttribute))
+        if change
+          switch change
+            when '+'
+              break
+            when '-'
+              sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + attribute.name + @quoteSymbol)
+              break
+            else
+              try
+                newAttribute = entityTo.getAttribute(change)
+                sqls.push(@_renameAttributeQuery(@_formatTableName(entityName),attribute,newAttribute))
 #              sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol + attribute.name + @quoteSymbol + ' TO ' + @quoteSymbol + newAttribute.name + @quoteSymbol)
-            catch e
-              throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.version)
+              catch e
+                throw new Error('attribute ' + entityTo.name + '->' + change + ' not found in version ' + modelFrom.version)
 
       for attribute in entityTo.attributes
         change = migration.attributesChanges[entityName]?[attribute.name]
@@ -573,18 +574,19 @@ class GenericSQLStore extends IncrementalStore
       for relationship in entityFrom.relationships
         if not relationship.toMany
           change = migration.relationshipsChanges[entityName]?[relationship.name]
-          switch change
-            when '+'
-              break
-            when '-'
-              sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol)
-            else
-              try
-                newRelationship = entityTo.getRelationship(change)
-                sqls.push(@_renameRelationshipQuery(@_formatTableName(entityName),relationship,newRelationship))
+          if change
+            switch change
+              when '+'
+                break
+              when '-'
+                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol)
+              else
+                try
+                  newRelationship = entityTo.getRelationship(change)
+                  sqls.push(@_renameRelationshipQuery(@_formatTableName(entityName),relationship,newRelationship))
 #                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol +  + @quoteSymbol + ' TO ' + @quoteSymbol + newRelationship.name + '_id' + @quoteSymbol)
-              catch e
-                throw new Error('relationship ' + entityFrom.name + '->' + relationship.name + ' not found in version ' + modelFrom.version)
+                catch e
+                  throw new Error('relationship ' + entityTo.name + '->' + change + ' not found in version ' + modelFrom.version)
       for relationship in entityTo.relationships
         if not relationship.toMany
           change = migration.relationshipsChanges[entityName]?[relationship.name]
@@ -599,20 +601,21 @@ class GenericSQLStore extends IncrementalStore
         reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
         if relationship.toMany and inverseRelationship.toMany
           change = migration.relationshipsChanges[entityName]?[relationship.name]
-          switch change
-            when '+'
-              break
+          if change
+            switch change
+              when '+'
+                break
 #              sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
-            when '-'
-              sqls.push('DROP TABLE ' + reflexiveTableName)
-            else
-              newRelationship = entityTo.getRelationship(change)
-              newInverseRelationship = newRelationship.inverseRelationship()
-              newReflexiveRelationship = @_relationshipByPriority(newRelationship,newInverseRelationship)
-              reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
-              reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
-              newReflexiveTableName = @quoteSymbol + @_formatTableName(newReflexiveRelationship.entity.name) + '_' + newReflexiveRelationship.name + @quoteSymbol
-              sqls.push('ALTER TABLE ' + reflexiveTableName + ' RENAME TO ' + newReflexiveTableName)
+              when '-'
+                sqls.push('DROP TABLE ' + reflexiveTableName)
+              else
+                newRelationship = entityTo.getRelationship(change)
+                newInverseRelationship = newRelationship.inverseRelationship()
+                newReflexiveRelationship = @_relationshipByPriority(newRelationship,newInverseRelationship)
+                reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+                reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
+                newReflexiveTableName = @quoteSymbol + @_formatTableName(newReflexiveRelationship.entity.name) + '_' + newReflexiveRelationship.name + @quoteSymbol
+                sqls.push('ALTER TABLE ' + reflexiveTableName + ' RENAME TO ' + newReflexiveTableName)
       for relationship in entityTo.relationships
         inverseRelationship = relationship.inverseRelationship()
         if relationship.toMany and inverseRelationship.toMany

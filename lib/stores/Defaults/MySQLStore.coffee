@@ -68,7 +68,7 @@ class MySQLStore extends GenericSQLStore
     return sqls
 
   _renameRelationshipQuery:(tableName,relationshipFrom,relationshipTo)->
-    return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' int(11) DEFAULT NULL'
+    return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' ' + @quoteSymbol + relationshipTo.name + '_id' + @quoteSymbol + ' int(11) DEFAULT NULL'
   _renameAttributeQuery:(tableName,attributeFrom,attributeTo)->
     return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + attributeFrom.name + @quoteSymbol + ' ' + @_columnDefinitionForAttribute(attributeTo)
 
