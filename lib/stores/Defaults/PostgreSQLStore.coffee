@@ -60,7 +60,7 @@ class PostgreSQLStore extends GenericSQLStore
 
     for relationship in entity.relationships
       if not relationship.toMany
-        parts.push('"'+relationship.name+'_id" int DEFAULT NULL')
+        parts.push(@relationshipColumnDefinition(relationship))
 
     if force
       sqls.push('DROP TABLE IF EXISTS "' + tableName + '"')
@@ -78,17 +78,19 @@ class PostgreSQLStore extends GenericSQLStore
 
     return sqls
 
-  createEntityRelationshipQueries:(entity,force)->
+  relationshipColumnDefinition:(relationship)->
+    return '"'+relationship.name+'_id" int DEFAULT NULL'
+
+  createRelationshipQueries:(relationship,force)->
     sqls = []
-    for key,relationship of entity.relationships
-      if relationship.toMany
-        inversedRelationship = relationship.inverseRelationship()
-        if inversedRelationship.toMany
-          reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-          reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
-          if force
-            sqls.push('DROP TABLE IF EXISTS "' + reflexiveTableName  + '"')
-          sqls.push('CREATE TABLE IF NOT EXISTS "' + reflexiveTableName + '" ("'+reflexiveRelationship.name+'_id" serial NOT NULL,"reflexive" serial NOT NULL, PRIMARY KEY ("'+reflexiveRelationship.name+'_id","reflexive"))')
+    if relationship.toMany
+      inversedRelationship = relationship.inverseRelationship()
+      if inversedRelationship.toMany
+        reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+        reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
+        if force
+          sqls.push('DROP TABLE IF EXISTS "' + reflexiveTableName  + '"')
+        sqls.push('CREATE TABLE IF NOT EXISTS "' + reflexiveTableName + '" ("'+reflexiveRelationship.name+'_id" serial NOT NULL,"reflexive" serial NOT NULL, PRIMARY KEY ("'+reflexiveRelationship.name+'_id","reflexive"))')
     return sqls
 
   columnTypeForAttribute:(attribute)->

@@ -23,9 +23,9 @@ class MigrationDescription
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
     @attributesChanges[entityName][name] = '+'
 
-  renameAttribute:(entityName,oldName,newName)->
+  renameAttribute:(entityName,name,newName)->
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
-    @attributesChanges[entityName][newName] = oldName
+    @attributesChanges[entityName][name] = newName
 
   removeAttribute:(entityName,name)->
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
@@ -37,9 +37,9 @@ class MigrationDescription
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}
     @relationshipsChanges[entityName][name] = '+'
 
-  renameRelationship:(entityName,oldName,newName)->
+  renameRelationship:(entityName,name,newName)->
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}
-    @relationshipsChanges[entityName][newName] = oldName
+    @relationshipsChanges[entityName][name] = newName
 
   removeRelationship:(entityName,name)->
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}

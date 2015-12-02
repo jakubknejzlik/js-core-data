@@ -53,7 +53,7 @@ class MySQLStore extends GenericSQLStore
 
     for relationship in entity.relationships
       if not relationship.toMany
-        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
+        parts.push(@relationshipColumnDefinition(relationship))
 
     if force
       sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
@@ -67,17 +67,22 @@ class MySQLStore extends GenericSQLStore
 
     return sqls
 
-  createEntityRelationshipQueries:(entity,force)->
+  _renameRelationshipQuery:(tableName,relationshipFrom,relationshipTo)->
+    return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' int(11) DEFAULT NULL'
+  _renameAttributeQuery:(tableName,attributeFrom,attributeTo)->
+    return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + attributeFrom.name + @quoteSymbol + ' ' + @_columnDefinitionForAttribute(attributeTo)
+
+
+  createRelationshipQueries:(relationship,force)->
     sqls = []
-    for key,relationship of entity.relationships
-      if relationship.toMany
-        inversedRelationship = relationship.inverseRelationship()
-        if inversedRelationship.toMany
-          reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
-          reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
-          if force
-            sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
-          sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
+    if relationship.toMany
+      inversedRelationship = relationship.inverseRelationship()
+      if inversedRelationship.toMany
+        reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
+        reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
+        if force
+          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+        sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
     return sqls
 
   columnTypeForAttribute:(attribute)->

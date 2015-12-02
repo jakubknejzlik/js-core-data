@@ -9,7 +9,7 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     var company2Name = 'Company2' + Math.round(Math.random()*10000);
     var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
@@ -59,7 +59,7 @@ describe('migrations',function(){
 
         migration1to2.renameRelationship('User','friends',userFriendsRelationshipName);
         migration1to2.addRelationship('User','moreFriends');
-        migration1to2.removeRelationship('User','company');
+        //migration1to2.removeRelationship('User','company');
 
         migration1to2.addScriptAfter(function(context,done){
             context.getObjects('User').then(function(users){
