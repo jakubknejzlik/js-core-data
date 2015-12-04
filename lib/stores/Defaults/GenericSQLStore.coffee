@@ -662,7 +662,7 @@ class GenericSQLStore extends IncrementalStore
         reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
         reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
         if force
-          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+          sqls.push(@_dropTableQuery(reflexiveTableName))
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
     return sqls
   _relationshipColumnDefinition:(relationship)->
