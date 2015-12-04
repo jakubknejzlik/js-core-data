@@ -597,7 +597,7 @@ class GenericSQLStore extends IncrementalStore
             change = migration.relationshipsChanges[entityName]?[relationship.name]
             switch change
               when '+'
-                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship))
+                sqls = sqls.concat(@_addRelationshipQueries(entityName,relationship))
                 break
 
       if entityFrom
@@ -645,6 +645,8 @@ class GenericSQLStore extends IncrementalStore
     'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + column + @quoteSymbol
   _removeRelationshipQuery:(entityName,relationship)->
     return @_removeColumnQuery(entityName,relationship.name + '_id')
+  _addRelationshipQueries:(entityName,relationship)->
+    return ['ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship)]
 
   createEntityRelationshipQueries:(entity,force)->
     sqls = []

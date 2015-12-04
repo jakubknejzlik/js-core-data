@@ -67,8 +67,8 @@ class MySQLStore extends GenericSQLStore
     sql += ') ENGINE=InnoDB  DEFAULT CHARSET=utf8'
     sqls.push(sql)
 
-#    if not options.ignoreRelationships
-#      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
+    #    if not options.ignoreRelationships
+    #      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
 
     return sqls
 
@@ -93,6 +93,11 @@ class MySQLStore extends GenericSQLStore
     return 'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP FOREIGN KEY ' + @quoteSymbol + @_foreignKeyNameForRelationship(relationship) + @quoteSymbol + ';' + @_removeColumnQuery(entityName,columnName)
   _relationshipColumnDefinition:(relationship)->
     return super(relationship) + ',' + @_foreignKeyDefinitionForRelationship(relationship)
+  _addRelationshipQueries:(entityName,relationship)->
+    return [
+      'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship) + ', ADD ' + @_foreignKeyDefinitionForRelationship(relationship)
+    ]
+
 
 
   createRelationshipQueries:(relationship,force)->
