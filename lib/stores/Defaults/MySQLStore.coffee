@@ -95,7 +95,7 @@ class MySQLStore extends GenericSQLStore
     return super(relationship) + ',' + @_foreignKeyDefinitionForRelationship(relationship)
   _addRelationshipQueries:(entityName,relationship)->
     return [
-      'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship) + ', ADD ' + @_foreignKeyDefinitionForRelationship(relationship)
+      'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @quoteSymbol + relationship.name+'_id' + @quoteSymbol + ' int(11) DEFAULT NULL, ADD ' + @_foreignKeyDefinitionForRelationship(relationship)
     ]
 
 
