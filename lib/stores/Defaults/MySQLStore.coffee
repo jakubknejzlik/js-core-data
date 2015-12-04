@@ -115,8 +115,8 @@ class MySQLStore extends GenericSQLStore
         parts.push('`'+reflexiveRelationship.name+'_id` int(11) NOT NULL')
         parts.push('`reflexive` int(11) NOT NULL')
         parts.push('PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`)')
-        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.name + '_id` FOREIGN KEY (`' + reflexiveRelationship.name + '_id`) REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`_id`) ON DELETE CASCADE')
-        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '` FOREIGN KEY (`reflexive`) REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + '_id` FOREIGN KEY (`' + reflexiveRelationship.name + '_id`) REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '` FOREIGN KEY (`reflexive`) REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`_id`) ON DELETE CASCADE')
 
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (' + parts.join(',') + ')')
 
