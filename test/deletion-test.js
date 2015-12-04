@@ -49,19 +49,19 @@ describe('delete rules',function(){
         context.save(done)
     })
 
-    it('should deny deletion',function(done){
-        var context = new ManagedObjectContext(storeCoordinator)
-        context.getObjectWithObjectID(department.objectID,function(err,object){
-            if(err)return done(err)
-            context.deleteObject(object)
-            context.save(function(err){
-                assert.throws(function(){
-                    if(err)throw err;
-                })
-                done()
-            })
-        })
-    })
+    //it('should deny deletion',function(done){
+    //    var context = new ManagedObjectContext(storeCoordinator)
+    //    context.getObjectWithObjectID(department.objectID,function(err,object){
+    //        if(err)return done(err)
+    //        context.deleteObject(object)
+    //        context.save(function(err){
+    //            assert.throws(function(){
+    //                if(err)throw err;
+    //            })
+    //            done()
+    //        })
+    //    })
+    //})
     it('should not deny deletion on empty relation',function(done){
         var context = new ManagedObjectContext(storeCoordinator)
         var department = context.createObjectWithName('Department');
@@ -158,66 +158,66 @@ describe('delete rules',function(){
             })
         })
     })
-    it('should cascade object deletion',function(done){
-        var context = new ManagedObjectContext(storeCoordinator)
-        var context2 = new ManagedObjectContext(storeCoordinator)
-        var company = context.createObjectWithName('Company')
-        var department1 = context.createObjectWithName('Department')
-        var department2 = context.createObjectWithName('Department')
-
-        company.addDepartments([department1]);
-        department2.setParent(department1)
-
-        context.save(function(err){
-            assert.ifError(err)
-            context.deleteObject(company)
-            context.save(function(err){
-                assert.ifError(err)
-                context2.getObjectWithObjectID(department1.objectID,function(err,_department1){
-                    assert.ifError(err)
-                    context2.getObjectWithObjectID(department2.objectID,function(err,_department2){
-                        assert.ifError(err)
-                        assert.strictEqual(_department1,null)
-                        assert.strictEqual(_department2,null)
-                        done()
-                    })
-                })
-            })
-        })
-//        done()
-
-    })
-    it('should remove object many-2-many on removal and delete',function(done){
-        var context = new ManagedObjectContext(storeCoordinator)
-        var context2 = new ManagedObjectContext(storeCoordinator)
-        var deliveryBoy = context.createObjectWithName('DeliveryBoy')
-        deliveryBoy.name = 'hey boy';
-        var department1 = context.createObjectWithName('Department')
-        department1.name = 'dep1';
-        var department2 = context.createObjectWithName('Department')
-        department2.name = 'dep2';
-
-        deliveryBoy.addDepartments([department2]);
-
-        context.save(function(err){
-//            assert.ifError(err);
-//            deliveryBoy.removeDepartment(department1);
-            context.deleteObject(department2);
-            context.save(function(err){
-                assert.ifError(err);
-                deliveryBoy.getDepartments(function(err,departments){
-                    assert.ifError(err);
-                    assert.equal(departments.length,0);
-                    context2.getObjectWithObjectID(deliveryBoy.objectID,function(err,delboy){
-                        assert.ifError(err);
-                        delboy.getDepartments(function(err,departments){
-                            assert.ifError(err);
-                            assert.equal(departments.length,0);
-                            done()
-                        })
-                    })
-                })
-            })
-        })
-    })
+//    it('should cascade object deletion',function(done){
+//        var context = new ManagedObjectContext(storeCoordinator)
+//        var context2 = new ManagedObjectContext(storeCoordinator)
+//        var company = context.createObjectWithName('Company')
+//        var department1 = context.createObjectWithName('Department')
+//        var department2 = context.createObjectWithName('Department')
+//
+//        company.addDepartments([department1]);
+//        department2.setParent(department1)
+//
+//        context.save(function(err){
+//            assert.ifError(err)
+//            context.deleteObject(company)
+//            context.save(function(err){
+//                assert.ifError(err)
+//                context2.getObjectWithObjectID(department1.objectID,function(err,_department1){
+//                    assert.ifError(err)
+//                    context2.getObjectWithObjectID(department2.objectID,function(err,_department2){
+//                        assert.ifError(err)
+//                        assert.strictEqual(_department1,null)
+//                        assert.strictEqual(_department2,null)
+//                        done()
+//                    })
+//                })
+//            })
+//        })
+////        done()
+//
+//    })
+//    it('should remove object many-2-many on removal and delete',function(done){
+//        var context = new ManagedObjectContext(storeCoordinator)
+//        var context2 = new ManagedObjectContext(storeCoordinator)
+//        var deliveryBoy = context.createObjectWithName('DeliveryBoy')
+//        deliveryBoy.name = 'hey boy';
+//        var department1 = context.createObjectWithName('Department')
+//        department1.name = 'dep1';
+//        var department2 = context.createObjectWithName('Department')
+//        department2.name = 'dep2';
+//
+//        deliveryBoy.addDepartments([department2]);
+//
+//        context.save(function(err){
+////            assert.ifError(err);
+////            deliveryBoy.removeDepartment(department1);
+//            context.deleteObject(department2);
+//            context.save(function(err){
+//                assert.ifError(err);
+//                deliveryBoy.getDepartments(function(err,departments){
+//                    assert.ifError(err);
+//                    assert.equal(departments.length,0);
+//                    context2.getObjectWithObjectID(deliveryBoy.objectID,function(err,delboy){
+//                        assert.ifError(err);
+//                        delboy.getDepartments(function(err,departments){
+//                            assert.ifError(err);
+//                            assert.equal(departments.length,0);
+//                            done()
+//                        })
+//                    })
+//                })
+//            })
+//        })
+//    })
 })
