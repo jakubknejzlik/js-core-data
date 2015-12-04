@@ -46,7 +46,7 @@ class PostgreSQLStore extends GenericSQLStore
     for key,entity of objectModel.entities
       for relationship in entity.relationships
         if not relationship.toMany
-          sqls.push('ALTER TABLE "' + @_formatTableName(entity.name) + '" ADD CONSTRAINT "' + @_formatTableName(entity.name) + '_' + relationship.name + '__fk" FOREIGN KEY ("' + relationship.name + '_id")  REFERENCES "' + @_formatTableName(relationship.destinationEntity.name) + '"("_id") ON DELETE ' + relationship.getOnDeleteRule())
+          sqls.push('ALTER TABLE "' + @_formatTableName(entity.name) + '" ADD CONSTRAINT "fk_' + @_formatTableName(entity.name) + '_' + relationship.name + '_id" FOREIGN KEY ("' + relationship.name + '_id")  REFERENCES "' + @_formatTableName(relationship.destinationEntity.name) + '"("_id") ON DELETE ' + relationship.getOnDeleteRule())
 
     sqls.push('CREATE TABLE IF NOT EXISTS "_meta" ("key" varchar(10) NOT NULL,"value" varchar(250) NOT NULL,PRIMARY KEY ("key"))')
     sqls.push('DELETE FROM "_meta" WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
@@ -81,8 +81,8 @@ class PostgreSQLStore extends GenericSQLStore
 
     sqls.push(sql)
 
-#    if not options.ignoreRelationships
-#      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
+    #    if not options.ignoreRelationships
+    #      sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
 
     return sqls
 
@@ -120,7 +120,7 @@ class PostgreSQLStore extends GenericSQLStore
         parts.push('"reflexive" serial NOT NULL')
         parts.push('PRIMARY KEY ("'+reflexiveRelationship.name+'_id","reflexive")')
         parts.push('CONSTRAINT "fk_' + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + '_id" FOREIGN KEY ("' + reflexiveRelationship.name + '_id") REFERENCES "' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '"("_id") ON DELETE CASCADE')
-        parts.push('CONSTRAINT "fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '_id" FOREIGN KEY ("reflexive") REFERENCES "' + @_formatTableName(reflexiveRelationship.entity.name) + '"("_id") ON DELETE CASCADE')
+        parts.push('CONSTRAINT "fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '" FOREIGN KEY ("reflexive") REFERENCES "' + @_formatTableName(reflexiveRelationship.entity.name) + '"("_id") ON DELETE CASCADE')
 
         sqls.push('CREATE TABLE IF NOT EXISTS "' + reflexiveTableName + '" (' + parts.join(',') + ')')
 
