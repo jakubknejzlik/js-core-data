@@ -52,7 +52,7 @@ class ManagedObjectContext extends Object
     if object.managedObjectContext isnt this
       throw new Error('cannot delete object from another context')
     ac.removeObject(@insertedObjects,object)
-#    object._isInserted = no
+    #    object._isInserted = no
     object._isDeleted = yes
     ac.addObject(@deletedObjects,object)
 
@@ -230,9 +230,9 @@ class ManagedObjectContext extends Object
 
   save: (callback)->
     deferred = Q.defer()
-#    callback = callback or (err)->
-#      throw err if err
-#    console.log('saving')
+    #    callback = callback or (err)->
+    #      throw err if err
+    #    console.log('saving')
     if @locked
       throw new Error('context is locked')
     @locked = yes
@@ -240,7 +240,7 @@ class ManagedObjectContext extends Object
       if not @hasChanges
         @locked = no
         return deferred.resolve()
-  #    console.log('has changes');
+      #    console.log('has changes');
 
       @_processDeletedObjects((err)=>
         if err
@@ -297,54 +297,9 @@ class ManagedObjectContext extends Object
 
   _processDeletedObjects:(callback)->
     async.forEach @deletedObjects,(object,cb)=>
-        object.prepareForDeletion(cb)
-      ,(err)=>
-        if err
-          return callback(err)
-        dels = []
-        for obj in @deletedObjects
-          dels.push(obj)
-        async.forEach dels,(object,cb)=>
-            @_deleteObjectsRelationships(object,cb)
-          ,callback
+      object.prepareForDeletion(cb)
+    ,callback
 
-
-
-  _deleteObjectsRelationships:(object,callback)->
-    async.forEach object.entity.relationships,(relationship,cb)=>
-        switch relationship.deleteRule
-          when RelationshipDescription.deleteRules.DENY
-            @_getObjectsForRelationship relationship,object,@,(err,objects)->
-              return cb(err) if err
-              canDelete = yes
-              if objects.length > 0
-                for obj in objects
-                  canDelete = canDelete and obj.isDeleted
-              else canDelete = yes
-              if not canDelete
-                return cb(new Error('cannot delete object, deletion denied for relationship '+relationship.entity.name+'->'+relationship.name))
-              else return cb()
-          when RelationshipDescription.deleteRules.NULLIFY
-            @_getObjectsForRelationship relationship,object,@,(err,objects)=>
-              return cb(err) if err
-              if objects
-                for obj in objects
-#                  console.log('remove',obj.objectID.toString(),'=>',relationship.name)
-                  object._removeObjectFromRelation(obj,relationship,relationship.inverseRelationship(),yes,no)
-                  obj._removeObjectFromRelation(object,relationship.inverseRelationship(),relationship,yes,no)
-              cb()
-          when RelationshipDescription.deleteRules.CASCADE
-#            console.log('cascade')
-            @_getObjectsForRelationship relationship,object,@,(err,objects)=>
-              return cb(err) if err
-              if objects
-                async.forEach objects,(obj,_cb)=>
-                  @_deleteObjectWithoutLockCheck(obj)
-                  @_deleteObjectsRelationships(obj,_cb)
-                ,cb
-              else cb()
-          else return cb(new Error('not implemented ' + relationship.deleteRule))
-      ,callback
 
   _didUpdateObject:(object)->
     if @destroyed
