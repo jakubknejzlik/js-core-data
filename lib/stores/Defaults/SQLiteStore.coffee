@@ -62,7 +62,6 @@ class SQLiteStore extends GenericSQLStore
     sqls.push(sql)
 
     if not options.ignoreRelationships
-      console.log(@createEntityRelationshipQueries)
       sqls = sqls.concat(@createEntityRelationshipQueries(entity,force))
 
     return sqls
@@ -105,34 +104,51 @@ class SQLiteStore extends GenericSQLStore
       oldColumnNames = ['_id']
       newColumnNames = ['_id']
 
-      for attribute in entityTo.attributes
+      for attribute in entityFrom.attributes
         change = migration.attributesChanges[entityName]?[attribute.name]
         if change
           if change not in ['-','+']
-            newColumnNames.push(attribute.name)
-            oldColumnNames.push(change)
-        else
+            oldColumnNames.push(attribute.name)
+            newColumnNames.push(change)
+        else if change isnt '+'
           try
-            oldAttribute = entityFrom.getAttribute(attribute.name)
-            newColumnNames.push(attribute.name)
-            oldColumnNames.push(oldAttribute.name)
+            newAttribute = entityTo.getAttribute(attribute.name)
+            oldColumnNames.push(attribute.name)
+            newColumnNames.push(newAttribute.name)
           catch e
-            throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.version)
+            throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.migrateVersions)
+      for attribute in entityTo.attributes
+        change = migration.attributesChanges[entityName]?[attribute.name]
+        if change is '+'
+          try
+            newColumnNames.push(attribute.name)
+            oldColumnNames.push(null)
+          catch e
+            throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.migrateVersions)
 
-      for relationship in entityTo.relationships
+      for relationship in entityFrom.relationships
         if not relationship.toMany
           change = migration.relationshipsChanges[entityName]?[relationship.name]
           if change
             if change not in ['-','+']
-              newColumnNames.push(relationship.name + '_id')
-              oldColumnNames.push(change + '_id')
-          else
+              oldColumnNames.push(relationship.name + '_id')
+              newColumnNames.push(change + '_id')
+          else if change isnt '+'
             try
-              oldRelationship = entityFrom.getRelationship(relationship.name)
-              newColumnNames.push(relationship.name + '_id')
-              oldColumnNames.push(oldRelationship.name + '_id')
+              newRelationship = entityTo.getRelationship(relationship.name)
+              oldColumnNames.push(relationship.name + '_id')
+              newColumnNames.push(newRelationship.name + '_id')
             catch e
-              throw new Error('relationship ' + entityFrom.name + '->' + relationship.name + ' not found in version ' + modelFrom.version)
+              throw new Error('relationship ' + entityFrom.name + '->' + relationship.name + ' not found in version ' + modelFrom.migrateVersions)
+      for relationship in entityTo.relationships
+        if not relationship.toMany
+          change = migration.relationshipsChanges[entityName]?[relationship.name]
+          if change is '+'
+            try
+              newColumnNames.push(relationship.name + '_id')
+              oldColumnNames.push(null)
+            catch e
+              throw new Error('relationship ' + entityFrom.name + '->' + relationship.name + ' not found in version ' + modelFrom.migrateVersions)
 
       tableName = @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol
       tmpTableName = @quoteSymbol + @_formatTableName(entityName) + '_tmp' + @quoteSymbol

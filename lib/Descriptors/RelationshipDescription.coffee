@@ -25,4 +25,16 @@ class RelationshipDescription extends PropertyDescription
   toString: ->
     @entity.name + '=>' + @name
 
+  getOnDeleteRule:()->
+    switch @deleteRule
+      when RelationshipDescription.deleteRules.NO_ACTION
+        return 'NO ACTION'
+      when RelationshipDescription.deleteRules.CASCADE
+        return 'CASCADE'
+      when RelationshipDescription.deleteRules.DENY
+        return 'RESTRICT'
+      else
+        return 'SET NULL'
+
+
 module.exports = RelationshipDescription;

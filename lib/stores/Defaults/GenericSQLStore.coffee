@@ -66,27 +66,27 @@ class GenericSQLStore extends IncrementalStore
               transaction.query sql,(err)->
                 cb(err)
           ,seriesCallback
-          (seriesCallback)=> async.forEachSeries request.insertedObjects,
-            (insertedObject,cb)=>
+          (seriesCallback)=>
+            async.forEachSeries(request.insertedObjects,(insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
               if sql
-                transaction.query(sql,updateValues,(err)=>
-                  if err
-                    return cb(err)
-                  @_updateRelationsForObject(transaction,insertedObject,cb)
-                )
-              else @_updateRelationsForObject(transaction,insertedObject,cb)
+                transaction.query(sql,updateValues,cb)
+              else cb()
+            ,seriesCallback)
+          (seriesCallback)=> async.forEachSeries request.insertedObjects,
+            (insertedObject,cb)=>
+              @_updateRelationsForObject(transaction,insertedObject,cb)
           ,seriesCallback
           (seriesCallback)=> async.forEachSeries request.updatedObjects,
             (updatedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(updatedObject)
               if sql
-                transaction.query(sql,updateValues,(err)=>
-                  if err
-                    return cb(err)
-                  @_updateRelationsForObject(transaction,updatedObject,cb)
-                )
-              else @_updateRelationsForObject(transaction,updatedObject,cb)
+                transaction.query(sql,updateValues,cb)
+              else cb()
+          ,seriesCallback
+          (seriesCallback)=> async.forEachSeries request.updatedObjects,
+            (updatedObject,cb)=>
+              @_updateRelationsForObject(transaction,updatedObject,cb)
           ,seriesCallback
         ],(err)=>
           if err
@@ -488,7 +488,6 @@ class GenericSQLStore extends IncrementalStore
     async.forEachSeries(migration.scriptsBefore,(script,cb)=>
       @_runMigrationScript(migration.modelFrom,script,cb)
     ,(err)=>
-#      console.log('err',err)
       return callback(err) if err
       try
         queries = @createMigrationQueries(migration)
@@ -540,7 +539,7 @@ class GenericSQLStore extends IncrementalStore
           addedEntitiesNames.push(entityName)
           sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
         when '-'
-          sqls.push('DROP TABLE IF EXISTS ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol)
+          sqls = sqls.concat(@_dropEntityQueries(change.entity))
         else
           entityChangedNames[change.change] = entityName
           sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(change.change) + @quoteSymbol)
@@ -559,7 +558,7 @@ class GenericSQLStore extends IncrementalStore
               when '+'
                 break
               when '-'
-                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + attribute.name + @quoteSymbol)
+                sqls.push(@_removeColumnQuery(entityName,attribute.name))
                 break
               else
                 try
@@ -584,7 +583,7 @@ class GenericSQLStore extends IncrementalStore
                 when '+'
                   break
                 when '-'
-                  sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol)
+                  sqls.push(@_removeRelationshipQuery(entityName,relationship))
                 else
                   try
                     newRelationship = entityTo.getRelationship(change)
@@ -598,14 +597,14 @@ class GenericSQLStore extends IncrementalStore
             change = migration.relationshipsChanges[entityName]?[relationship.name]
             switch change
               when '+'
-                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @relationshipColumnDefinition(relationship))
+                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship))
                 break
 
       if entityFrom
         for relationship in entityFrom.relationships
           inverseRelationship = relationship.inverseRelationship()
           reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
-          reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
+          reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
           if relationship.toMany and inverseRelationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name]
             if change
@@ -614,7 +613,7 @@ class GenericSQLStore extends IncrementalStore
                   break
 #              sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
                 when '-'
-                  sqls.push('DROP TABLE ' + reflexiveTableName)
+                  sqls.push(@_dropTableQuery(reflexiveTableName))
                 else
                   newRelationship = entityTo.getRelationship(change)
                   newInverseRelationship = newRelationship.inverseRelationship()
@@ -634,10 +633,18 @@ class GenericSQLStore extends IncrementalStore
 
     return sqls
 
+  _dropTableQuery:(tableName)->
+    return 'DROP TABLE IF EXISTS ' + @quoteSymbol + tableName + @quoteSymbol
+  _dropEntityQueries:(entity)->
+    return [@_dropTableQuery(@_formatTableName(entity.name))]
   _renameRelationshipQuery:(tableName,relationshipFrom,relationshipTo)->
     return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol + relationshipFrom.name + '_id' + @quoteSymbol + ' TO ' + @quoteSymbol + relationshipTo.name + '_id' + @quoteSymbol
   _renameAttributeQuery:(tableName,attributeFrom,attributeTo)->
     return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol + attributeFrom.name + @quoteSymbol + ' TO ' + @quoteSymbol + attributeTo.name + @quoteSymbol
+  _removeColumnQuery:(entityName,column)->
+    'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + column + @quoteSymbol
+  _removeRelationshipQuery:(entityName,relationship)->
+    return @_removeColumnQuery(entityName,relationship.name + '_id')
 
   createEntityRelationshipQueries:(entity,force)->
     sqls = []
@@ -656,8 +663,8 @@ class GenericSQLStore extends IncrementalStore
           sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
     return sqls
-  relationshipColumnDefinition:(relationship)->
-    return '`'+relationship.name+'_id` int(11) DEFAULT NULL'
+  _relationshipColumnDefinition:(relationship)->
+    return @quoteSymbol + relationship.name+'_id' + @quoteSymbol + ' int(11) DEFAULT NULL'
 
 
   _runRawQueriesInSingleTransaction:(sqls,callback)->

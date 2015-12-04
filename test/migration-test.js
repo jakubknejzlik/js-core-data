@@ -1,6 +1,8 @@
 var assert = require('assert');
 var tmp = require('tmp');
 var fs = require('fs');
+var async = require('async');
+
 
 var CoreData = require('../index');
 
@@ -9,13 +11,13 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     var company2Name = 'Company2' + Math.round(Math.random()*10000);
     var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
 
     before(function(){
-        model1 = db.createModel('0.1');
+        var model1 = db.createModel('0.1');
         model1.defineEntity('User',{
             name:'string',
             test:'string',
@@ -24,10 +26,10 @@ describe('migrations',function(){
         model1.defineEntity('Company',{
             name:'string'
         });
-        model1.defineRelationshipManyToOne('User','Company','company','users');
+        model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade',onUpdate:'cascade'});
         model1.defineRelationshipManyToMany('User','User','friends','friends');
 
-        model2 = db.createModel('0.2');
+        var model2 = db.createModel('0.2');
         model2.defineEntity('User',{
             firstname:'string',
             lastname:'string',
@@ -38,12 +40,12 @@ describe('migrations',function(){
             name123:'string',
             name2:'string'
         });
-        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2');
+        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2',{onDelete:'cascade',onUpdate:'cascade'});
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
         model2.defineRelationshipManyToMany('User','User',userFriendsRelationshipName,userFriendsRelationshipName);
         model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
 
-        migration1to2 = model2.createMigrationFrom(model1);
+        var migration1to2 = model2.createMigrationFrom(model1);
 
         migration1to2.renameEntity('Company',company2Name);
         migration1to2.addAttribute(company2Name,'name2');
@@ -80,9 +82,29 @@ describe('migrations',function(){
         });
 
         var model3 = db.createModel('0.3');
-        migration2to3 = model3.createMigrationFrom(model2);
+        model3.defineEntity('User',{
+            firstname:'string',
+            lastname:'string',
+            testNew:'string',
+            addedColumn:'string'
+        });
+        model3.defineEntity(company2Name,{
+            name123:'string',
+            name2:'string'
+        });
+//        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2');
+////        model2.defineRelationshipOneToMany('Company','User','users','company')
+//        model2.defineRelationshipManyToMany('User','User',userFriendsRelationshipName,userFriendsRelationshipName);
+//        model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
+        var migration2to3 = model3.createMigrationFrom(model2);
+        migration2to3.removeRelationship('User','company2')
+        migration2to3.removeRelationship('User',userFriendsRelationshipName)
+        migration2to3.removeRelationship('User','moreFriends')
 
-        migration2to3.addScriptBefore(function(context,done){
+        var modelFail = db.createModel('fail');
+        var migrationFail = modelFail.createMigrationFrom(model3);
+
+        migrationFail.addScriptBefore(function(context,done){
             context.getObjects('blahnonexisting').then(function(){
                 done()
             }).catch(done);
@@ -106,9 +128,18 @@ describe('migrations',function(){
         context.saveAndDestroy(done);
     });
 
-    it('should sync schema from 0.1 to 0.2',function(done){
-        db.setModelVersion('0.2');
-        db.syncSchema(done);
+    it('should sync schemas',function(done){
+        var versions = ['0.2','0.3']
+        async.forEachSeries(versions,function(version,cb){
+            db.setModelVersion(version);
+            db.syncSchema(function(err){
+                if(err) {
+                    err.message = 'cannot migrate to version ' + version + '; error: ' + err.message
+                    return cb(err)
+                }
+                cb()
+            });
+        },done)
     });
 
 
@@ -136,8 +167,8 @@ describe('migrations',function(){
         }).catch(done)
     });
 
-    it('should fail to migrate to version 0.3',function(done){
-        db.setModelVersion('0.3');
+    it('should fail to migrate to version fail',function(done){
+        db.setModelVersion('fail');
         db.syncSchema(function(err){
             assert.ok(err);
             done();

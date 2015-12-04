@@ -60,20 +60,20 @@ class CoreData
   defineRelationship:(entity,destinationEntity,name,options = {})->
     @model.defineRelationship(entity,destinationEntity,name,options)
 
-  defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
-    @model.defineRelationshipToMany(entity,destinationEntity,name,inverse)
+  defineRelationshipToMany:(entity,destinationEntity,name,inverse,options)->
+    @model.defineRelationshipToMany(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipToOne:(entity,destinationEntity,name,inverse)->
-    @model.defineRelationshipToOne(entity,destinationEntity,name,inverse)
+  defineRelationshipToOne:(entity,destinationEntity,name,inverse,options)->
+    @model.defineRelationshipToOne(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
-    @model.defineRelationshipOneToMany(entity,destinationEntity,name,inverse)
+  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse,options)->
+    @model.defineRelationshipOneToMany(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
-    @model.defineRelationshipManyToOne(entity,destinationEntity,name,inverse)
+  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse,options)->
+    @model.defineRelationshipManyToOne(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
-    @model.defineRelationshipManyToMany(entity,destinationEntity,name,inverse)
+  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse,options)->
+    @model.defineRelationshipManyToMany(entity,destinationEntity,name,inverse,options)
 
   createContext:()->
     return new ManagedObjectContext(@_persistentStoreCoordinator())

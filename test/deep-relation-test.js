@@ -3,8 +3,15 @@ var assert = require("assert"),
     ManagedObject = require('./../lib/ManagedObject'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator');
+var CoreData = require('../index');
 
 var store_url = require('./get_storage_url');;
+
+
+var coreData = new CoreData(store_url,{
+    modelFile:__dirname + '/schemes/deep-relation-model.yaml',
+    logging:false
+});
 
 describe('deep relation',function(){
     var objectModel = new ManagedObjectModel(__dirname + '/schemes/deep-relation-model.yaml');
@@ -12,12 +19,13 @@ describe('deep relation',function(){
     describe('parent class',function(){
         var storeCoordinator;
         before(function(done){
-            storeCoordinator = new PersistentStoreCoordinator(objectModel);
-            storeCoordinator.addStore(store_url)
-            storeCoordinator.persistentStores[0].syncSchema({force:true},done);
+            //storeCoordinator = new PersistentStoreCoordinator(objectModel);
+            //storeCoordinator.addStore(store_url)
+            //storeCoordinator.persistentStores[0].syncSchema({force:true},done);
+            coreData.syncSchema({force:true},done)
         })
         it('should load prepare data',function(done){
-            var context = new ManagedObjectContext(storeCoordinator)
+            var context = coreData.createContext()
             var ent1 = context.createObjectWithName('Entity1')
             ent1.name = 'entity1';
             var ent2 = context.createObjectWithName('Entity2')
@@ -34,7 +42,7 @@ describe('deep relation',function(){
             context.save(done);
         })
         it('should load all toOne relationships',function(done){
-            var context = new ManagedObjectContext(storeCoordinator)
+            var context = coreData.createContext()
             context.getObjects('Entity4',function(err,objects){
                 var entity4 = objects[0];
                 assert.ifError(err)

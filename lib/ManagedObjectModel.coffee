@@ -117,7 +117,7 @@ class ManagedObjectModel extends Object
     if typeof destinationEntity is 'string'
       destinationEntity = @entities[destinationEntity]
 #    console.log(entity.name,'=>',name,'=>',destinationEntity.name,'toMany:',options.toMany,'inverse:',options.inverse)
-    relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity);
+    relationship = new RelationshipDescription(name,destinationEntity,options.toMany,options.inverse,entity,options.onDelete);
     entity.addRelationship(relationship)
     inverseRelationship = null
     try
@@ -127,24 +127,28 @@ class ManagedObjectModel extends Object
     if inverseRelationship and not relationship.toMany and not inverseRelationship.toMany
       throw new Error('oneToOne relationships are not supported ' + relationship + ', ' + inverseRelationship)
 
-  defineRelationshipToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:yes})
+  defineRelationshipToMany:(entity,destinationEntity,name,inverse,options = {})->
+    options.inverse = inverse
+    options.toMany = yes
+    @defineRelationship(entity,destinationEntity,name,options)
 
-  defineRelationshipToOne:(entity,destinationEntity,name,inverse)->
-    @defineRelationship(entity,destinationEntity,name,{inverse:inverse,toMany:no})
+  defineRelationshipToOne:(entity,destinationEntity,name,inverse,options = {})->
+    options.inverse = inverse
+    options.toMany = no
+    @defineRelationship(entity,destinationEntity,name,options)
 
-  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToOne(destinationEntity,entity,inverse,name)
-    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+  defineRelationshipOneToMany:(entity,destinationEntity,name,inverse,options)->
+    @defineRelationshipToOne(destinationEntity,entity,inverse,name,options)
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToMany(destinationEntity,entity,inverse,name)
-    @defineRelationshipToOne(entity,destinationEntity,name,inverse)
+  defineRelationshipManyToOne:(entity,destinationEntity,name,inverse,options)->
+    @defineRelationshipToMany(destinationEntity,entity,inverse,name,options)
+    @defineRelationshipToOne(entity,destinationEntity,name,inverse,options)
 
-  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse)->
-    @defineRelationshipToMany(entity,destinationEntity,name,inverse)
+  defineRelationshipManyToMany:(entity,destinationEntity,name,inverse,options)->
+    @defineRelationshipToMany(entity,destinationEntity,name,inverse,options)
     if inverse isnt name
-      @defineRelationshipToMany(destinationEntity,entity,inverse,name)
+      @defineRelationshipToMany(destinationEntity,entity,inverse,name,options)
 
 
 

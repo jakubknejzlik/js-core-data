@@ -12,6 +12,11 @@ var assert = require("assert"),
 
 var store_url = require('./get_storage_url');
 
+var coreData = new CoreData(store_url,{
+    modelFile:__dirname + '/schemes/car-model.yaml',
+    logging:false
+});
+
 describe('Context', function(){
     describe('store stuff',function(){
 
@@ -23,13 +28,8 @@ describe('Context', function(){
     });
 
     describe('context',function(){
-        var coreData;
 
         before(function(done){
-            coreData = new CoreData(store_url,{
-                modelFile:__dirname + '/schemes/car-model.yaml',
-                logging:false
-            });
             coreData.syncSchema({force:true}).then(done).catch(done);
         });
 
@@ -103,7 +103,7 @@ describe('Context', function(){
                 context.save().then(function(){
                     return tempContext.getObjectWithObjectID(car.objectID).then(function(tempCar){
                         values = tempCar.getValues();
-                        console.log(values,owner.id)
+                        //console.log(values,owner.id)
                         assert.equal(values.owner_id,car.getOwnerID());
                         assert.equal(values.owner_id,tempCar.getOwnerID());
                         done();
@@ -715,6 +715,16 @@ describe('Context', function(){
                 })
             });
             describe('manyToMany',function(){
+                var context = coreData.createContext()
+                var owner,car;
+                it('should create objects',function(done){
+                    owner = context.create('Owner',{name:'test'})
+                    car = context.create('Car',{name:'test'})
+                    car.setOwner(owner)
+                    context.save().then(function(){
+                        done()
+                    }).catch(done)
+                })
                 it('should add object to many-2-many',function(){
 //                    console.log('assign visited car')
                     owner.addVisitedCar(car);
