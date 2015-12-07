@@ -34,6 +34,7 @@ describe('ManagedObject',function(){
 
             store = storeCoordinator.addStore(store_url);
             storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
+                console.log(err)
                 assert.ifError(err);
                 done()
             })
@@ -53,7 +54,7 @@ describe('ManagedObject',function(){
                 })
             }
             before(function(done){
-                storeCoordinator = new PersistentStoreCoordinator(objectModel);
+                storeCoordinator = new PersistentStoreCoordinator(objectModel,{logging:false});
                 storeCoordinator.addStore(store_url);
                 storeCoordinator.persistentStores[0].globals.logging = console.log
                 storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
@@ -500,6 +501,50 @@ describe('ManagedObject',function(){
 
                 obj.setValues({privateAttribute:'yyy'},['privateAttribute'])
                 assert.equal(obj.privateAttribute,'yyy')
+            })
+            it('should persist/load private attributes',function(done){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var context2 = new ManagedObjectContext(storeCoordinator);
+
+                obj = context.create('Hello',{privateAttribute:'xxx'},{privates:true})
+                context.save().then(function(){
+                    return context2.getObjectWithObjectID(obj.objectID).then(function(obj2){
+                        assert.equal(obj2.privateAttribute,obj.privateAttribute)
+                        done()
+                    })
+                }).catch(done)
+            })
+            it('transient attribute',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+
+                assert.equal(obj.fullName,obj.firstname + ' ' + obj.lastname)
+
+                obj.firstname += '2'
+                obj.lastname += '2'
+                assert.equal(obj.fullName,obj.firstname + ' ' + obj.lastname)
+
+                obj.fullName = 'Siri Smith'
+                assert.equal(obj.firstname,'Siri')
+                assert.equal(obj.lastname,'Smith')
+            })
+            it('should persist object with transient attribute',function(done){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var context2 = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+
+                obj.fullName = 'Siri Smith'
+                assert.equal(obj.firstname,'Siri')
+                assert.equal(obj.lastname,'Smith')
+
+                context.save().then(function(){
+                    return context2.getObjectWithObjectID(obj.objectID).then(function(obj2){
+                        assert.equal(obj.fullName,obj2.fullName)
+                        done()
+                    })
+                }).catch(done)
             })
         });
         describe('custom type',function(){

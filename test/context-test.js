@@ -14,7 +14,7 @@ var store_url = require('./get_storage_url');
 
 var coreData = new CoreData(store_url,{
     modelFile:__dirname + '/schemes/car-model.yaml',
-    logging:false
+    logging:true
 });
 
 describe('Context', function(){

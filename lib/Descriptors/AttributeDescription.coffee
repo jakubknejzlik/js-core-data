@@ -44,6 +44,9 @@ class AttributeDescription extends PropertyDescription
   isPrivate:()->
     return !!@info.private
 
+  isTransient:()->
+    return !!@info.transient
+
   validateValue:(value)->
     if value is null
       return

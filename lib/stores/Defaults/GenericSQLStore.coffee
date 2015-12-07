@@ -111,7 +111,7 @@ class GenericSQLStore extends IncrementalStore
         objectValues = {}
         for row in rows
           _row = {}
-          for attribute in request.entity.attributes
+          for attribute in request.entity.getNonTransientAttributes()
             _row[attribute.name] = row[attribute.name]
           for relationship in request.entity.relationships
             if not relationship.toMany
@@ -119,7 +119,7 @@ class GenericSQLStore extends IncrementalStore
               _row[columnName] = row[columnName]
           objectID = @_permanentIDForRecord(request.entity,row._id)
           #          @fetchedObjectValuesCache[objectID.toString()] = _row;
-          for attribute in request.entity.attributes
+          for attribute in request.entity.getNonTransientAttributes()
             _row[attribute.name] = @decodeValueForAttribute(_row[attribute.name],attribute)
           objectValues[objectID.toString()] = _row;
           ids.push(objectID)
@@ -169,7 +169,7 @@ class GenericSQLStore extends IncrementalStore
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
       query.group('SELF._id')
       query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,@quoteSymbol + '_id' + @quoteSymbol)
-      for attribute in request.entity.attributes
+      for attribute in request.entity.getNonTransientAttributes()
         query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,@quoteSymbol + attribute.name + @quoteSymbol)
       for relationship in request.entity.relationships
         if not relationship.toMany
@@ -446,7 +446,7 @@ class GenericSQLStore extends IncrementalStore
 
   _indexesForEntity:(entity)->
     indexes = _.clone(entity.indexes)
-    for attribute in entity.attributes
+    for attribute in entity.getNonTransientAttributes()
       if attribute.info.indexed
         indexes.push({name:attribute.name,columns:[attribute.name],type:'key'})
     return indexes
@@ -551,7 +551,7 @@ class GenericSQLStore extends IncrementalStore
       entityFrom = modelFrom.getEntity(entityName) or modelFrom.getEntity(entityChangedNames[entityName])
 
       if entityFrom
-        for attribute in entityFrom.attributes
+        for attribute in entityFrom.getNonTransientAttributes()
           change = migration.attributesChanges[entityName]?[attribute.name]
           if change
             switch change
@@ -564,12 +564,11 @@ class GenericSQLStore extends IncrementalStore
                 try
                   newAttribute = entityTo.getAttribute(change)
                   sqls.push(@_renameAttributeQuery(@_formatTableName(entityName),attribute,newAttribute))
-#              sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol + attribute.name + @quoteSymbol + ' TO ' + @quoteSymbol + newAttribute.name + @quoteSymbol)
                 catch e
                   throw new Error('attribute ' + entityTo.name + '->' + change + ' not found in version ' + modelFrom.version)
 
       if entityTo and entityName not in addedEntitiesNames
-        for attribute in entityTo.attributes
+        for attribute in entityTo.getNonTransientAttributes()
           change = migration.attributesChanges[entityName]?[attribute.name]
           if change is '+'
             sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_columnDefinitionForAttribute(attribute))

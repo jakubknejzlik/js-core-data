@@ -59,7 +59,7 @@ class PostgreSQLStore extends GenericSQLStore
     tableName = @_formatTableName(entity.name)
     parts = ['"_id" SERIAL PRIMARY KEY']
 
-    for attribute in entity.attributes
+    for attribute in entity.getNonTransientAttributes()
       columnDefinition = @_columnDefinitionForAttribute(attribute)
       if columnDefinition
         parts.push(columnDefinition);

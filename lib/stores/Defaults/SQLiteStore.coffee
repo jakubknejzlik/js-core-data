@@ -39,7 +39,7 @@ class SQLiteStore extends GenericSQLStore
     tableName = @_formatTableName(entity.name)
     parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
 
-    for attribute in entity.attributes
+    for attribute in entity.getNonTransientAttributes()
       columnDefinition = @_columnDefinitionForAttribute(attribute)
       if columnDefinition
         parts.push(columnDefinition);
@@ -104,7 +104,7 @@ class SQLiteStore extends GenericSQLStore
       oldColumnNames = ['_id']
       newColumnNames = ['_id']
 
-      for attribute in entityFrom.attributes
+      for attribute in entityFrom.getNonTransientAttributes()
         change = migration.attributesChanges[entityName]?[attribute.name]
         if change
           if change not in ['-','+']
@@ -117,7 +117,7 @@ class SQLiteStore extends GenericSQLStore
             newColumnNames.push(newAttribute.name)
           catch e
             throw new Error('attribute ' + entityFrom.name + '->' + attribute.name + ' not found in version ' + modelFrom.migrateVersions)
-      for attribute in entityTo.attributes
+      for attribute in entityTo.getNonTransientAttributes()
         change = migration.attributesChanges[entityName]?[attribute.name]
         if change is '+'
           try

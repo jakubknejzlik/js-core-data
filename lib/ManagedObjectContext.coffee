@@ -33,7 +33,9 @@ class ManagedObjectContext extends Object
       object._isFault = no
       values = {}
       for attributeDescription in object.entity.attributes
-        values[attributeDescription.name] = attributeDescription.defaultValue()
+        defaultValue = attributeDescription.defaultValue()
+        if defaultValue or not attributeDescription.isTransient()
+          values[attributeDescription.name] = defaultValue
       object._data = {}
       object.setValues(values,{privates:yes})
       object._isInserted = yes

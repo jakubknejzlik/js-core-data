@@ -1,4 +1,5 @@
 Hello:
+  class: /Classes/Hello
   columns:
     uuid:
       type: uuid
@@ -38,6 +39,15 @@ Hello:
       type: string
       default: this is private!
       private: true
+    firstname:
+      type: string
+      default: John
+    lastname:
+      type: string
+      default: Doe
+    fullName:
+      type: string
+      transient: true
   relations:
     world:
       entity: World

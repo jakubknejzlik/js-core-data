@@ -64,9 +64,17 @@ class EntityDescription
       throw new Error('attribute ' + @name + '=>' + name + ' not found')
     return attribute
 
+
+  getNonTransientAttributes: ()->
+    attrs = []
+    for attribute in @attributes
+      if not attribute.isTransient()
+        attrs.push(attribute)
+    return attrs
+
+
   attributesByName : ->
     @_attributesByName
-
 
   hasRelationship: (name)->
     if @_relationshipsByName[name]
