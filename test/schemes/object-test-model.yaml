@@ -34,6 +34,10 @@ Hello:
       regexp: /^(aa)+$/i
     transformable:
       type: transformable
+    privateAttribute:
+      type: string
+      default: this is private!
+      private: true
   relations:
     world:
       entity: World

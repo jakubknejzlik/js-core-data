@@ -41,6 +41,8 @@ class AttributeDescription extends PropertyDescription
     value = @info?.default or null
     return @transform(value)
 
+  isPrivate:()->
+    return !!@info.private
 
   validateValue:(value)->
     if value is null

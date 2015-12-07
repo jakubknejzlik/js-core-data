@@ -35,7 +35,7 @@ class ManagedObjectContext extends Object
       for attributeDescription in object.entity.attributes
         values[attributeDescription.name] = attributeDescription.defaultValue()
       object._data = {}
-      object.setValues(values)
+      object.setValues(values,{privates:yes})
       object._isInserted = yes
       object._isDeleted = no
       object._objectID = @storeCoordinator.temporaryObjectID(object)

@@ -26,7 +26,7 @@ describe('migrations',function(){
         model1.defineEntity('Company',{
             name:'string'
         });
-        model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade',onUpdate:'cascade'});
+        model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade'},{onDelete:'cascade'});
         model1.defineRelationshipManyToMany('User','User','friends','friends');
 
         var model2 = db.createModel('0.2');
@@ -40,7 +40,7 @@ describe('migrations',function(){
             name123:'string',
             name2:'string'
         });
-        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2',{onDelete:'cascade',onUpdate:'cascade'});
+        model2.defineRelationshipManyToOne('User',company2Name,'company2','users2',{onDelete:'cascade'});
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
         model2.defineRelationshipManyToMany('User','User',userFriendsRelationshipName,userFriendsRelationshipName);
         model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');

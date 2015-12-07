@@ -112,7 +112,7 @@ class PostgreSQLStore extends GenericSQLStore
         reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
         reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
         if force
-          sqls.push('DROP TABLE IF EXISTS "' + reflexiveTableName  + '"')
+          sqls.push('DROP TABLE IF EXISTS "' + reflexiveTableName  + '" CASCADE')
 
         parts = []
 

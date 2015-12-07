@@ -39,9 +39,12 @@ class ManagedObject extends Object
     attributeDescription = @entity.attributesByName()[key]
     attributeDescription.validateValue(value)
 
-  setValues:(values = {},allowedAttributes)->
+  setValues:(values = {},allowedAttributes,options = {})->
+    if not Array.isArray(allowedAttributes)
+      options = allowedAttributes or {}
+      allowedAttributes = null
     for attributeDescription in @entity.attributes
-      if (values[attributeDescription.name] isnt undefined) and (not allowedAttributes or attributeDescription.name in allowedAttributes)
+      if (values[attributeDescription.name] isnt undefined) and (not allowedAttributes or attributeDescription.name in allowedAttributes) and (not attributeDescription.isPrivate() or options.privates or (allowedAttributes and attributeDescription.name in allowedAttributes))
         @[attributeDescription.name] = values[attributeDescription.name]
 
   getValues:(allowedAttributes,options = {})->
@@ -51,7 +54,7 @@ class ManagedObject extends Object
     @fetchData() if @isFault
     values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
-      if not allowedAttributes or attributeDescription.name in allowedAttributes
+      if (not allowedAttributes or attributeDescription.name in allowedAttributes) and (not attributeDescription.isPrivate() or options.privates)
         value = @[attributeDescription.name]
         if value?
           values[attributeDescription.name] = value

@@ -472,6 +472,35 @@ describe('ManagedObject',function(){
                 });
                 assert.strictEqual(obj.enum,'c');
             })
+            it('private attribute',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+                assert.ok(obj.entity.getAttribute('privateAttribute').isPrivate())
+
+                assert.equal(obj.getValues().privateAttribute,undefined)
+                assert.equal(obj.privateAttribute,'this is private!')
+
+                obj.setValues({privateAttribute:'new Value'})
+                assert.equal(obj.getValues().privateAttribute,undefined)
+                assert.equal(obj.privateAttribute,'this is private!')
+
+                obj.privateAttribute = 'new Value';
+                assert.equal(obj.getValues({privates:true}).privateAttribute,'new Value')
+                assert.equal(obj.privateAttribute,'new Value')
+
+                obj.setValues({privateAttribute:'new Value2'},{privates:true})
+                assert.equal(obj.privateAttribute,'new Value2')
+
+                obj = context.create('Hello',{privateAttribute:'xxx'})
+                assert.equal(obj.privateAttribute,'this is private!')
+
+                obj = context.create('Hello',{privateAttribute:'xxx'},{privates:true})
+                assert.equal(obj.privateAttribute,'xxx')
+
+                obj.setValues({privateAttribute:'yyy'},['privateAttribute'])
+                assert.equal(obj.privateAttribute,'yyy')
+            })
         });
         describe('custom type',function(){
             CoreData.registerType(new CoreData.AttributeType('blah','string'));
