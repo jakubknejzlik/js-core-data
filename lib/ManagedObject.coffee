@@ -154,7 +154,7 @@ class ManagedObject extends Object
       @prototype['_get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
-        if not @_data[relationshipDescription.name]
+        if not Array.isArray(@_data[relationshipDescription.name])
           @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
             return deferred.reject(err) if err
             if @_relationChanges
@@ -163,35 +163,27 @@ class ManagedObject extends Object
               for item in @_relationChanges['removed_' + relationshipDescription.name]?
                 ac.removeObject(objects,item)
             @_data[relationshipDescription.name] = objects
-            deferred.resolve(@_data[relationshipDescription.name])
-        else deferred.resolve(@_data[relationshipDescription.name]);
+            deferred.resolve(@_data[relationshipDescription.name].slice(0))
+        else deferred.resolve(@_data[relationshipDescription.name].slice(0));
         return deferred.promise.nodeify(callback)
       @prototype['_add' + capitalizedSingularizedName] = (object)->
         if object not instanceof ManagedObject
-#          console.log(object)
           throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
-        @['add' + capitalizedName]([object])
+        @_addObjectToRelation(object,relationshipDescription,inverseRelationship)
       @prototype['_add' + capitalizedName] = @prototype['add' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
         if not Array.isArray(objects)
-          throw new Error('array must be specified in addObjects method (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+          throw new Error('array must be specified in addObjects method (given ' + util.format(objects) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         for object in objects
-          if object not instanceof ManagedObject
-            throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
-        for object in objects
-          @_addObjectToRelation(object,relationshipDescription,inverseRelationship)
+          @['add' + capitalizedSingularizedName](object)
       @prototype['_remove' + capitalizedSingularizedName] = (object)->
-        console.log('removal args',arguments)
         if object not instanceof ManagedObject
-#          console.log(object)
           throw new Error('only ManagedObject instances can be removed from toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
         @_removeObjectFromRelation(object,relationshipDescription,inverseRelationship)
       @prototype['_remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
-#        @fetchData() if @isFault
-        console.log('removing objects setter',objects)
-        for object in objects.slice(0)
-          console.log('remove object!!',object)
-          console.log(objects)
+        if not Array.isArray(objects)
+          throw new Error('array must be specified in removeObjects method (given ' + util.format(objects) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+        for object in objects
           @['remove' + capitalizedSingularizedName](object)
     @
 
@@ -243,9 +235,9 @@ class ManagedObject extends Object
       @_data[relationshipDescription.name] = @_data[relationshipDescription.name] or []
       ac.addObject(@_data[relationshipDescription.name],object)
 
-      ac.addObject(@_relationChanges['added_' + relationshipDescription.name],object)
-      if @_relationChanges['removed_' + relationshipDescription.name]
+      if @_relationChanges['removed_' + relationshipDescription.name] and object not in @_relationChanges['added_' + relationshipDescription.name]
         ac.removeObject(@_relationChanges['removed_' + relationshipDescription.name],object)
+      ac.addObject(@_relationChanges['added_' + relationshipDescription.name],object)
       if inversedRelationshipDescription and not noRecursion
         if not inversedRelationshipDescription.toMany
           object._setObjectToRelation(@,inversedRelationshipDescription)
@@ -263,8 +255,9 @@ class ManagedObject extends Object
       @_relationChanges['removed_' + relationshipDescription.name] = @_relationChanges['removed_' + relationshipDescription.name] || []
       if @_data[relationshipDescription.name]
         ac.removeObject(@_data[relationshipDescription.name],object)
+
       ac.addObject(@_relationChanges['removed_' + relationshipDescription.name],object)
-      if @_relationChanges['added_' + relationshipDescription.name]
+      if @_relationChanges['added_' + relationshipDescription.name] and object not in @_relationChanges['removed_' + relationshipDescription.name]
         ac.removeObject(@_relationChanges['added_' + relationshipDescription.name],object)
       if inversedRelationshipDescription and not noRecursion
         if not inversedRelationshipDescription.toMany
