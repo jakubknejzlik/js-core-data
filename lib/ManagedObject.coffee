@@ -189,7 +189,7 @@ class ManagedObject extends Object
       @prototype['_remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
         console.log('removing objects setter',objects)
-        for object in objects
+        for object in objects.slice(0)
           console.log('remove object!!',object)
           @['remove' + capitalizedSingularizedName](object)
     @
