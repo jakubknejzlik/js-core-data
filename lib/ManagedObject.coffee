@@ -191,6 +191,7 @@ class ManagedObject extends Object
         console.log('removing objects setter',objects)
         for object in objects.slice(0)
           console.log('remove object!!',object)
+          console.log(objects)
           @['remove' + capitalizedSingularizedName](object)
     @
 
