@@ -248,7 +248,7 @@ class ManagedObject extends Object
 
   _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion,fireEvent = yes) ->
     @fetchData() if @isFault
-    if object.managedObjectContext isnt @managedObjectContext
+    if object and object.managedObjectContext isnt @managedObjectContext
       throw new Error('cannot remove object from relationship of object in different context')
     if not @_data[relationshipDescription.name] or object in @_data[relationshipDescription.name]
       @_relationChanges = @_relationChanges || {}
