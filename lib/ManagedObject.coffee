@@ -187,7 +187,7 @@ class ManagedObject extends Object
         @_removeObjectFromRelation(object,relationshipDescription,inverseRelationship)
       @prototype['_remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
-#        console.log('removing objects setter',objects)
+        console.log('removing objects setter',objects)
         for object in objects
           @['remove' + capitalizedSingularizedName](object)
     @
