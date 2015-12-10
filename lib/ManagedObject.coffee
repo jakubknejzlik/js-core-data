@@ -17,7 +17,7 @@ class ManagedObject extends Object
   constructor:(@entity,@managedObjectContext,@_rawData) ->
     @_objectID = null
     @_isInserted = no
-    @_isUpdated = no
+#    @_isUpdated = no
     @_isDeleted = no
     @_isFault = yes;
     @_data = null
@@ -270,7 +270,7 @@ class ManagedObject extends Object
 
   _didUpdateValues: ->
     @managedObjectContext._didUpdateObject(@)
-    @_isUpdated = yes
+#    @_isUpdated = yes
 
 
   Object.defineProperties @prototype,
@@ -283,7 +283,7 @@ class ManagedObject extends Object
     isInserted:
       get: -> @_isInserted
     isUpdated:
-      get: -> @_isUpdated
+      get: -> !!((@_changes and Object.keys(@_changes).length > 0) or (@_relationChanges and @_relationChanges.length > 0))
     isDeleted:
       get: -> @_isDeleted
     isFault:

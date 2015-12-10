@@ -14,7 +14,7 @@ var store_url = require('./get_storage_url');
 
 var coreData = new CoreData(store_url,{
     modelFile:__dirname + '/schemes/car-model.yaml',
-    logging:false
+    logging:true
 });
 
 describe('Context', function(){
@@ -241,7 +241,7 @@ describe('Context', function(){
             it('should set flag isDeleted of object to true',function(){
                 assert.equal(true,object.isDeleted);
             });
-            it('should have _changes',function(){
+            it('should have changes',function(){
                 assert.equal(true,object.hasChanges);
             });
             it('number of objects after delete should be equal to zero', function(done){
@@ -783,6 +783,16 @@ describe('Context', function(){
                 it('should save successfully after removal',function(done){
 //                    console.log('saving')
                     context.save(done);
+                });
+                it('should add object twice and save',function(done){
+//                    console.log('assign visited car')
+                    owner.addVisitedCar(car);
+                    owner.managedObjectContext.save().then(function(){
+                        owner.addVisitedCar(car);
+                        owner.managedObjectContext.save(done);
+                    }).catch(done);
+//                    console.log(owner._relationChanges);
+//                    console.log(car._relationChanges);
                 });
             });
             describe('oneToOne',function(){
