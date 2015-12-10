@@ -771,6 +771,19 @@ describe('Context', function(){
                         })
                     })
                 })
+                it('should remove assigned objects',function(done){
+//                    console.log('get visited cars',owner.objectID.toString())
+                    owner.getVisitedCars(function(err,visitedCars){
+                        if(err)return done(err);
+                        owner.removeVisitedCars(visitedCars)
+//                        console.log('viscars',visitedCars)
+                        done();
+                    })
+                });
+                it('should save successfully after removal',function(done){
+//                    console.log('saving')
+                    context.save(done);
+                });
             });
             describe('oneToOne',function(){
                 before(function(done){
