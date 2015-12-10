@@ -181,11 +181,15 @@ class ManagedObject extends Object
         for object in objects
           @_addObjectToRelation(object,relationshipDescription,inverseRelationship)
       @prototype['_remove' + capitalizedSingularizedName] = (object)->
-        @['remove' + capitalizedName]([object])
+        if object not instanceof ManagedObject
+#          console.log(object)
+          throw new Error('only ManagedObject instances can be removed from toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')
+        @_removeObjectFromRelation(object,relationshipDescription,inverseRelationship)
       @prototype['_remove' + capitalizedName] = @prototype['remove' + capitalizedSingularizedName + 'Objects'] = (objects)->
 #        @fetchData() if @isFault
+#        console.log('removing objects setter',objects)
         for object in objects
-          @_removeObjectFromRelation(object,relationshipDescription,inverseRelationship)
+          @['remove' + capitalizedSingularizedName](object)
     @
 
   prepareForDeletion:(callback)->
@@ -248,6 +252,7 @@ class ManagedObject extends Object
 
   _removeObjectFromRelation: (object,relationshipDescription,inversedRelationshipDescription,noRecursion,fireEvent = yes) ->
     @fetchData() if @isFault
+    console.log('removing object',object,'from',@)
     if object and object.managedObjectContext isnt @managedObjectContext
       throw new Error('cannot remove object from relationship of object in different context')
     if not @_data[relationshipDescription.name] or object in @_data[relationshipDescription.name]
