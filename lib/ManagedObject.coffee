@@ -190,6 +190,7 @@ class ManagedObject extends Object
 #        @fetchData() if @isFault
         console.log('removing objects setter',objects)
         for object in objects
+          console.log('remove object!!',object)
           @['remove' + capitalizedSingularizedName](object)
     @
 
