@@ -79,9 +79,9 @@ class ManagedObject extends Object
     capitalizedName = capitalizedString(attributeDescription.name);
 
     @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or ()->
-      return @['_get' + capitalizedName]()
+        return @['_get' + capitalizedName]()
     @prototype['set' + capitalizedName] = @prototype['set' + capitalizedName] or (value)->
-      return @['_set' + capitalizedName](value)
+        return @['_set' + capitalizedName](value)
 
     @prototype['_get' + capitalizedName] = ->
       @fetchData() if @isFault
@@ -114,9 +114,9 @@ class ManagedObject extends Object
     inverseRelationshipCapitalizedName = inverseRelationship.name[0].toUpperCase() + inverseRelationship.name.substring(1)
     if not relationshipDescription.toMany
       @prototype['get' + capitalizedName ] = @prototype['get' + capitalizedName] or (callback)->
-        return @['_get' + capitalizedName ](callback)
+          return @['_get' + capitalizedName ](callback)
       @prototype['set' + capitalizedName ] = @prototype['set' + capitalizedName] or (object)->
-        return @['_set' + capitalizedName ](object)
+          return @['_set' + capitalizedName ](object)
 
       @prototype['get' + capitalizedSingularizedName + 'ID'] = ()->
         @fetchData() if @isFault
@@ -141,7 +141,7 @@ class ManagedObject extends Object
         @_setObjectToRelation(object,relationshipDescription,inverseRelationship)
     else
       @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or (callback)->
-        return @['_get' + capitalizedName](callback)
+          return @['_get' + capitalizedName](callback)
       @prototype['add' + capitalizedSingularizedName] = @prototype['add' + capitalizedSingularizedName] or (object)->
           return @['_add' + capitalizedSingularizedName](object)
       @prototype['add' + capitalizedName] = @prototype['add' + capitalizedName] or (objects)->
@@ -235,9 +235,10 @@ class ManagedObject extends Object
       @_data[relationshipDescription.name] = @_data[relationshipDescription.name] or []
       ac.addObject(@_data[relationshipDescription.name],object)
 
-      if @_relationChanges['removed_' + relationshipDescription.name] and object not in @_relationChanges['added_' + relationshipDescription.name]
+      if object not in @_relationChanges['removed_' + relationshipDescription.name]
+        ac.addObject(@_relationChanges['added_' + relationshipDescription.name],object)
+      if @_relationChanges['removed_' + relationshipDescription.name]
         ac.removeObject(@_relationChanges['removed_' + relationshipDescription.name],object)
-      ac.addObject(@_relationChanges['added_' + relationshipDescription.name],object)
       if inversedRelationshipDescription and not noRecursion
         if not inversedRelationshipDescription.toMany
           object._setObjectToRelation(@,inversedRelationshipDescription)
@@ -256,9 +257,10 @@ class ManagedObject extends Object
       if @_data[relationshipDescription.name]
         ac.removeObject(@_data[relationshipDescription.name],object)
 
-      if @_relationChanges['added_' + relationshipDescription.name] and object not in @_relationChanges['removed_' + relationshipDescription.name]
+      if object not in @_relationChanges['added_' + relationshipDescription.name]
+        ac.addObject(@_relationChanges['removed_' + relationshipDescription.name],object)
+      if @_relationChanges['added_' + relationshipDescription.name]
         ac.removeObject(@_relationChanges['added_' + relationshipDescription.name],object)
-      ac.addObject(@_relationChanges['removed_' + relationshipDescription.name],object)
       if inversedRelationshipDescription and not noRecursion
         if not inversedRelationshipDescription.toMany
           object._setObjectToRelation(null,inversedRelationshipDescription)
