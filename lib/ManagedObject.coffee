@@ -256,9 +256,9 @@ class ManagedObject extends Object
       if @_data[relationshipDescription.name]
         ac.removeObject(@_data[relationshipDescription.name],object)
 
-      ac.addObject(@_relationChanges['removed_' + relationshipDescription.name],object)
       if @_relationChanges['added_' + relationshipDescription.name] and object not in @_relationChanges['removed_' + relationshipDescription.name]
         ac.removeObject(@_relationChanges['added_' + relationshipDescription.name],object)
+      ac.addObject(@_relationChanges['removed_' + relationshipDescription.name],object)
       if inversedRelationshipDescription and not noRecursion
         if not inversedRelationshipDescription.toMany
           object._setObjectToRelation(null,inversedRelationshipDescription)
