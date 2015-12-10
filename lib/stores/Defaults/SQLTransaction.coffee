@@ -35,7 +35,8 @@ class SQLTransaction
 
   commit: (callback)->
     if not @started
-      return callback(new Error('cannot commit transaction before begin'))
+      @committed = yes
+      return callback()
     if @committed
       return callback(new Error('cannot commit already commited transaction'))
     if @rollbacked
