@@ -33,26 +33,28 @@ class PostgreSQLStore extends GenericSQLStore
   createConnection:()->
     return new PostgreSQLConnection(@URL,this)
 
-  createSchemaQueries: (options = {})->
+  createSchemaQueries: (options = {},transaction,callback)->
     objectModel = @storeCoordinator.objectModel
     sqls = []
+    try
+      for key,entity of objectModel.entities
+        sqls = sqls.concat(@createEntityQueries(entity,options.force))
 
-    for key,entity of objectModel.entities
-      sqls = sqls.concat(@createEntityQueries(entity,options.force))
+      for key,entity of objectModel.entities
+        sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
 
-    for key,entity of objectModel.entities
-      sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
+      for key,entity of objectModel.entities
+        for relationship in entity.relationships
+          if not relationship.toMany
+            sqls.push('ALTER TABLE "' + @_formatTableName(entity.name) + '" ADD CONSTRAINT "fk_' + @_formatTableName(entity.name) + '_' + relationship.name + '_id" FOREIGN KEY ("' + relationship.name + '_id")  REFERENCES "' + @_formatTableName(relationship.destinationEntity.name) + '"("_id") ON DELETE ' + relationship.getOnDeleteRule())
 
-    for key,entity of objectModel.entities
-      for relationship in entity.relationships
-        if not relationship.toMany
-          sqls.push('ALTER TABLE "' + @_formatTableName(entity.name) + '" ADD CONSTRAINT "fk_' + @_formatTableName(entity.name) + '_' + relationship.name + '_id" FOREIGN KEY ("' + relationship.name + '_id")  REFERENCES "' + @_formatTableName(relationship.destinationEntity.name) + '"("_id") ON DELETE ' + relationship.getOnDeleteRule())
+      sqls.push('CREATE TABLE IF NOT EXISTS "_meta" ("key" varchar(10) NOT NULL,"value" varchar(250) NOT NULL,PRIMARY KEY ("key"))')
+      sqls.push('DELETE FROM "_meta" WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
+      sqls.push('INSERT INTO "_meta" VALUES(\'version\',\'' + objectModel.version + '\')')
 
-    sqls.push('CREATE TABLE IF NOT EXISTS "_meta" ("key" varchar(10) NOT NULL,"value" varchar(250) NOT NULL,PRIMARY KEY ("key"))')
-    sqls.push('DELETE FROM "_meta" WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
-    sqls.push('INSERT INTO "_meta" VALUES(\'version\',\'' + objectModel.version + '\')')
-
-    return sqls
+      callback(null,sqls)
+    catch err
+      callback(err)
 
   createEntityQueries:(entity,force = no,options = {})->
     sqls = []

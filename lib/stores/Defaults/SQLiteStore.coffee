@@ -22,17 +22,20 @@ class SQLiteStore extends GenericSQLStore
   createConnection:(url)->
     return new SQLiteConnection(url,@)
 
-  createSchemaQueries: (options = {})->
-    objectModel = @storeCoordinator.objectModel
-    sqls = []
+  createSchemaQueries: (options = {},transaction,callback)->
+    try
+      objectModel = @storeCoordinator.objectModel
+      sqls = []
 
-    for key,entity of objectModel.entities
-      sqls = sqls.concat(@createEntityQueries(entity,options.force))
+      for key,entity of objectModel.entities
+        sqls = sqls.concat(@createEntityQueries(entity,options.force))
 
-    sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
-    sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
+      sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
+      sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
 
-    return sqls
+      callback(null,sqls)
+    catch err
+      callback(err)
 
   createEntityQueries:(entity,force = no,options = {})->
     sqls = []

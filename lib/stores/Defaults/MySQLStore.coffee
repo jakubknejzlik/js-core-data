@@ -25,21 +25,43 @@ class MySQLStore extends GenericSQLStore
   createConnection:(url)->
     return new MySQLConnection(url,@)
 
-  createSchemaQueries: (options = {})->
-    objectModel = @storeCoordinator.objectModel
-    sqls = []
+  createSchemaQueries: (options = {},transaction,callback)->
+    try
+      objectModel = @storeCoordinator.objectModel
+      sqls = []
 
-    sqls.push('SET foreign_key_checks = 0')
-    for key,entity of objectModel.entities
-      sqls = sqls.concat(@createEntityQueries(entity,options.force))
-    for key,entity of objectModel.entities
-      sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
-    sqls.push('SET foreign_key_checks = 1')
+      transaction.query('SHOW FULL TABLES WHERE TABLE_TYPE != \'VIEW\'',(err,rows)=>
+        return callback(err) if err
+        tableNames = []
+        for row in rows
+          tableNames.push(row[Object.keys(row)[0]])
+        async.forEach(tableNames,(tableName,cb)=>
+          fksQuery = "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '" + tableName + "' AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='" + @schemaName + "' AND REFERENCED_TABLE_NAME IS NOT NULL;"
+          transaction.query(fksQuery,(err,rows)=>
+            return cb(err) if err
+            for row in rows
+              sqls.push('ALTER TABLE `' + tableName + '` DROP FOREIGN KEY `' + row['constraint_name'] + '`')
+            cb()
+          )
+        ,(err)=>
+          return callback(err) if err
 
-    sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
-    sqls.push('INSERT INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
+          for tableName in tableNames
+            sqls.push('DROP TABLE `' + tableName + '`')
 
-    return sqls
+          for key,entity of objectModel.entities
+            sqls = sqls.concat(@createEntityQueries(entity,options.force))
+          for key,entity of objectModel.entities
+            sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
+
+          sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
+          sqls.push('INSERT INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
+
+          callback(null,sqls)
+        )
+      )
+    catch err
+      callback(err)
 
   createEntityQueries:(entity,force,options = {})->
     sqls = []
@@ -60,8 +82,6 @@ class MySQLStore extends GenericSQLStore
       if not relationship.toMany
         parts.push(@_relationshipColumnDefinition(relationship))
 
-    if force
-      sqls = sqls.concat(@_dropEntityQueries(entity))
     sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
     sql += parts.join(',')
     sql += ') ENGINE=InnoDB  DEFAULT CHARSET=utf8'

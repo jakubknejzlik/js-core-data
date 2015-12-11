@@ -1,6 +1,7 @@
 IncrementalStore = require('./../IncrementalStore')
 PersistentStoreRequest = require('./../PersistentStoreRequest')
 #GenericPool = require('generic-pool')
+url = require('url')
 async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
@@ -23,6 +24,12 @@ class GenericSQLStore extends IncrementalStore
   @::quoteSymbol = '"'
 
   constructor: (@storeCoordinator,@URL,@globals)->
+
+    parsedUrl = url.parse(@URL)
+    @schemaName = parsedUrl.pathname.substring(1)
+    @auth = parsedUrl.auth
+    console.log(@schemaName)
+
     if @storeCoordinator
       @connectionPool = new SQLConnectionPool(@URL,(url)=>
         return @createConnection(url)
@@ -470,12 +477,16 @@ class GenericSQLStore extends IncrementalStore
       else if not currentVersion and not options.ignoreMissingVersion and not options.force
         callback(new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion'))
       else if (not currentVersion and options.ignoreMissingVersion) or options.force
-        try
-          queries = @createSchemaQueries(options)
-        catch err
-          return callback(err)
-
-        @_runRawQueriesInSingleTransaction(queries,callback)
+        @connectionPool.createTransaction((err,transaction)=>
+          @createSchemaQueries(options,transaction,(err,queries)=>
+            if err
+              transaction.rollback(()=>
+                callback(err)
+              )
+            else
+              @_runRawQueriesInSingleTransaction(queries,transaction,callback)
+          )
+        )
       else
         migrations = objectModel.getMigrationsFrom(currentVersion)
         if not migrations or migrations.length is 0
@@ -660,17 +671,17 @@ class GenericSQLStore extends IncrementalStore
       if inverseRelationship.toMany
         reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
         reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
-        if force
-          sqls.push(@_dropTableQuery(reflexiveTableName))
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
     return sqls
   _relationshipColumnDefinition:(relationship)->
     return @quoteSymbol + relationship.name+'_id' + @quoteSymbol + ' int(11) DEFAULT NULL'
 
 
-  _runRawQueriesInSingleTransaction:(sqls,callback)->
-    @connectionPool.createTransaction((err,transaction)=>
-      return callback(err) if err
+  _runRawQueriesInSingleTransaction:(sqls,transaction,callback)->
+    if typeof transaction is 'function'
+      callback = transaction
+      transaction = undefined
+    run = (transaction)=>
       async.forEachSeries(sqls,(sql,cb)=>
         transaction.query(sql,cb)
       ,(err)=>
@@ -686,6 +697,12 @@ class GenericSQLStore extends IncrementalStore
             @connectionPool.releaseTransaction(transaction)
           )
       )
+
+    if transaction
+      return run(transaction)
+    @connectionPool.createTransaction((err,transaction)=>
+      return callback(err) if err
+      run(transaction)
     )
 
 

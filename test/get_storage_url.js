@@ -1,5 +1,5 @@
 var storages = {
-    mysql:'mysql://root@localhost/test',
+    mysql:'mysql://root@localhost/test?',
     sqlite:'sqlite://:memory:'
 }
 
