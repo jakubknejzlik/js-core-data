@@ -37,6 +37,8 @@ class SQLiteStore extends GenericSQLStore
 
         for key,entity of objectModel.entities
           sqls = sqls.concat(@createEntityQueries(entity,options.force))
+        for key,entity of objectModel.entities
+          sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
 
         sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
         sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
@@ -60,7 +62,7 @@ class SQLiteStore extends GenericSQLStore
 
     for relationship in entity.relationships
       if not relationship.toMany
-        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
+        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`_id`) ON DELETE ' + relationship.getOnDeleteRule())
 
 #    if force
 #      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
@@ -87,7 +89,11 @@ class SQLiteStore extends GenericSQLStore
         reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
 #        if force
 #          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
-        sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
+        parts = []
+        parts.push('`'+reflexiveRelationship.name+'_id` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('`reflexive` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`)')
+        sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (' + parts.join(',') + ')')
     return sqls
 
   createMigrationQueries:(migration)->
