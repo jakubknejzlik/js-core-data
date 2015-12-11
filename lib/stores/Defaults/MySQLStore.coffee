@@ -26,42 +26,47 @@ class MySQLStore extends GenericSQLStore
     return new MySQLConnection(url,@)
 
   createSchemaQueries: (options = {},transaction,callback)->
-    try
-      objectModel = @storeCoordinator.objectModel
-      sqls = []
+    objectModel = @storeCoordinator.objectModel
+    sqls = []
 
-      transaction.query('SHOW FULL TABLES WHERE TABLE_TYPE != \'VIEW\'',(err,rows)=>
-        return callback(err) if err
-        tableNames = []
-        for row in rows
-          tableNames.push(row[Object.keys(row)[0]])
-        async.forEach(tableNames,(tableName,cb)=>
-          fksQuery = "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '" + tableName + "' AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='" + @schemaName + "' AND REFERENCED_TABLE_NAME IS NOT NULL;"
-          transaction.query(fksQuery,(err,rows)=>
-            return cb(err) if err
+    transaction.query('SHOW FULL TABLES WHERE TABLE_TYPE != \'VIEW\'',(err,rows)=>
+      return callback(err) if err
+      tableNames = []
+      for row in rows
+        tableNames.push(row[Object.keys(row)[0]])
+      async.forEach(tableNames,(tableName,cb)=>
+        fksQuery = "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '" + tableName + "' AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='" + @schemaName + "' AND REFERENCED_TABLE_NAME IS NOT NULL;"
+        transaction.query(fksQuery,(err,rows)=>
+          return cb(err) if err
+          if options.force
             for row in rows
               sqls.push('ALTER TABLE `' + tableName + '` DROP FOREIGN KEY `' + row['constraint_name'] + '`')
-            cb()
-          )
-        ,(err)=>
-          return callback(err) if err
+          cb()
+        )
+      ,(err)=>
+        return callback(err) if err
 
-          for tableName in tableNames
-            sqls.push('DROP TABLE `' + tableName + '`')
+        try
+          if options.force
+            for tableName in tableNames
+              sqls.push(@_dropTableQuery(tableName))
 
+          sqls.push('SET foreign_key_checks = 0')
           for key,entity of objectModel.entities
             sqls = sqls.concat(@createEntityQueries(entity,options.force))
           for key,entity of objectModel.entities
             sqls = sqls.concat(@createEntityRelationshipQueries(entity,options.force))
+          sqls.push('SET foreign_key_checks = 1')
 
           sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`)) ENGINE=InnoDB  DEFAULT CHARSET=utf8')
           sqls.push('INSERT INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\') ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)')
 
           callback(null,sqls)
-        )
+
+        catch err
+          callback(err)
       )
-    catch err
-      callback(err)
+    )
 
   createEntityQueries:(entity,force,options = {})->
     sqls = []

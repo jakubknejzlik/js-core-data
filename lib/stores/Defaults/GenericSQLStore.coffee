@@ -28,7 +28,6 @@ class GenericSQLStore extends IncrementalStore
     parsedUrl = url.parse(@URL)
     @schemaName = parsedUrl.pathname.substring(1)
     @auth = parsedUrl.auth
-    console.log(@schemaName)
 
     if @storeCoordinator
       @connectionPool = new SQLConnectionPool(@URL,(url)=>

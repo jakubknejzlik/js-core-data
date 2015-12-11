@@ -9,7 +9,7 @@ var CoreData = require('../index');
 storeTmpName = tmp.tmpNameSync();
 var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
-describe.only('migrations',function(){
+describe('migrations',function(){
 
     var db = new CoreData(store_url,{logging:true});
 
@@ -173,5 +173,11 @@ describe.only('migrations',function(){
             assert.ok(err);
             done();
         });
+    })
+
+
+    it('should migrate with force anytime',function(done){
+        db.setModelVersion('0.1');
+        db.syncSchema({force:true},done);
     })
 });

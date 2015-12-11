@@ -17,25 +17,34 @@ sqlite = require('sqlite3')
 _ = require('underscore');
 _.mixin(require('underscore.inflections'));
 
+privateTableNames = ['sqlite_sequence']
 
 class SQLiteStore extends GenericSQLStore
   createConnection:(url)->
     return new SQLiteConnection(url,@)
 
   createSchemaQueries: (options = {},transaction,callback)->
-    try
-      objectModel = @storeCoordinator.objectModel
-      sqls = []
+    sqls = []
+    transaction.query('SELECT name as table_name FROM sqlite_master WHERE type=\'table\'',(err,rows)=>
+      return callback(err) if err
+      if options.force
+        for row in rows
+          if row['table_name'] not in privateTableNames
+            sqls.push(@_dropTableQuery(row['table_name']))
 
-      for key,entity of objectModel.entities
-        sqls = sqls.concat(@createEntityQueries(entity,options.force))
+      try
+        objectModel = @storeCoordinator.objectModel
 
-      sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
-      sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
+        for key,entity of objectModel.entities
+          sqls = sqls.concat(@createEntityQueries(entity,options.force))
 
-      callback(null,sqls)
-    catch err
-      callback(err)
+        sqls.push('CREATE TABLE IF NOT EXISTS `_meta` (`key` varchar(10) NOT NULL,`value` varchar(250) NOT NULL,PRIMARY KEY (`key`))')
+        sqls.push('INSERT OR IGNORE INTO `_meta` VALUES(\'version\',\'' + objectModel.version + '\')')
+
+        callback(null,sqls)
+      catch err
+        callback(err)
+    )
 
   createEntityQueries:(entity,force = no,options = {})->
     sqls = []
@@ -53,8 +62,8 @@ class SQLiteStore extends GenericSQLStore
       if not relationship.toMany
         parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL')
 
-    if force
-      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
+#    if force
+#      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
     sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
     sql += parts.join(',')
     sql += ')'
@@ -76,8 +85,8 @@ class SQLiteStore extends GenericSQLStore
       if inversedRelationship.toMany
         reflexiveRelationship = @_relationshipByPriority(relationship,inversedRelationship)
         reflexiveTableName = @_getMiddleTableNameForManyToManyRelation(reflexiveRelationship)
-        if force
-          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
+#        if force
+#          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (`'+reflexiveRelationship.name+'_id` int(11) NOT NULL,`reflexive` int(11) NOT NULL, PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`))')
     return sqls
 
