@@ -124,6 +124,10 @@ class MySQLStore extends GenericSQLStore
     ]
 
 
+  _insertQueryForManyToMany:(relationship,object,addedObject) ->
+    return 'INSERT INTO ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' (reflexive,' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ') VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ') ON DUPLICATE KEY UPDATE `reflexive` = VALUES(`reflexive`)'
+
+
 
   createRelationshipQueries:(relationship,force)->
     sqls = []

@@ -23,6 +23,11 @@ class SQLiteStore extends GenericSQLStore
   createConnection:(url)->
     return new SQLiteConnection(url,@)
 
+
+  _insertQueryForManyToMany:(relationship,object,addedObject) ->
+    return 'INSERT OR IGNORE INTO ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' (reflexive,' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ') VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
+
+
   createSchemaQueries: (options = {},transaction,callback)->
     sqls = []
     transaction.query('SELECT name as table_name FROM sqlite_master WHERE type=\'table\'',(err,rows)=>

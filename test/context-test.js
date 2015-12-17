@@ -9,12 +9,13 @@ var assert = require("assert"),
     Predicate = require('./../lib/FetchClasses/Predicate'),
     SortDescriptor= require('./../lib/FetchClasses/SortDescriptor'),
     CoreData = require('../index');
+var async = require('async');
 
 var store_url = require('./get_storage_url');
 
 var coreData = new CoreData(store_url,{
     modelFile:__dirname + '/schemes/car-model.yaml',
-    logging:true
+    logging:false
 });
 
 describe('Context', function(){
@@ -793,6 +794,17 @@ describe('Context', function(){
                     }).catch(done);
 //                    console.log(owner._relationChanges);
 //                    console.log(car._relationChanges);
+                });
+                it('should add object to many-2-many repeatedle',function(done){
+                    async.timesSeries(10,function(i,cb){
+                        var context2 = coreData.createContext()
+                        context2.getObjectWithObjectID(owner.objectID).then(function(owner2){
+                            return context2.getObjectWithObjectID(car.objectID).then(function(car2) {
+                                owner2.addVisitedCar(car2);
+                                context2.save(cb)
+                            })
+                        }).catch(cb)
+                    },done)
                 });
             });
             describe('oneToOne',function(){

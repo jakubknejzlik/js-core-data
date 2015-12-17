@@ -305,8 +305,7 @@ class GenericSQLStore extends IncrementalStore
         if addedObjects
           for addedObject in addedObjects
 #          console.log('xxxxx',object.relationChanges);
-            sql = 'INSERT INTO ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' (reflexive,' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ') VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
-            sqls.push(sql)
+            sqls.push(@_insertQueryForManyToMany(relationship,object,addedObject))
 
         removedObjects = object._relationChanges?['removed_' + relationship.name]
         #        console.log(relationship.name,inversedRelationship.name,Object.keys(object.relationChanges),'added_' + relationship.name)
@@ -318,6 +317,10 @@ class GenericSQLStore extends IncrementalStore
     async.forEachSeries sqls,(sql,cb)->
       transaction.query(sql,cb)
     ,callback
+
+  _insertQueryForManyToMany:(relationship,object,addedObject) ->
+    return 'INSERT INTO ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' (reflexive,' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ') VALUES (' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ')'
+
 
   _getMiddleTableNameForManyToManyRelation:(relationship)->
     inversedRelationship = relationship.inverseRelationship()
