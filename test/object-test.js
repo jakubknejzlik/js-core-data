@@ -514,7 +514,7 @@ describe('ManagedObject',function(){
                     })
                 }).catch(done)
             })
-            it('transient attribute',function(){
+            it('transient attribute',function(done){
                 var context = new ManagedObjectContext(storeCoordinator);
                 var obj = context.createObjectWithName('Hello');
 
@@ -528,6 +528,9 @@ describe('ManagedObject',function(){
                 obj.fullName = 'Siri Smith'
                 assert.equal(obj.firstname,'Siri')
                 assert.equal(obj.lastname,'Smith')
+
+                obj.fullName2 = 'test test'
+                context.save(done)
             })
             it('should persist object with transient attribute',function(done){
                 var context = new ManagedObjectContext(storeCoordinator);

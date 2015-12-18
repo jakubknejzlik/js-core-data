@@ -48,6 +48,9 @@ Hello:
     fullName:
       type: string
       transient: true
+    fullName2:
+      type: string
+      transient: true
   relations:
     world:
       entity: World

@@ -78,26 +78,27 @@ class ManagedObject extends Object
   @addAttributeDescription:(attributeDescription)->
     capitalizedName = capitalizedString(attributeDescription.name);
 
-    @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or ()->
-        return @['_get' + capitalizedName]()
-    @prototype['set' + capitalizedName] = @prototype['set' + capitalizedName] or (value)->
-        return @['_set' + capitalizedName](value)
+    if not attributeDescription.isTransient()
+      @prototype['get' + capitalizedName] = @prototype['get' + capitalizedName] or ()->
+          return @['_get' + capitalizedName]()
+      @prototype['set' + capitalizedName] = @prototype['set' + capitalizedName] or (value)->
+          return @['_set' + capitalizedName](value)
 
-    @prototype['_get' + capitalizedName] = ->
-      @fetchData() if @isFault
-      @_data[attributeDescription.name];
-    @prototype['_set' + capitalizedName] = (value)->
-      @fetchData() if @isFault
-      if value isnt @_data[attributeDescription.name]
-        @['validate'+capitalizedName](value)
-        value = attributeDescription.transform(value)
-        @_data[attributeDescription.name] = value;
-        @_changes = @_changes || {}
-        @_changes[attributeDescription.name] = value;
-        @_didUpdateValues()
-      @
-    @prototype['validate'+capitalizedName] = (value)->
-      @validateValueForKey(value,attributeDescription.name)
+      @prototype['_get' + capitalizedName] = ->
+        @fetchData() if @isFault
+        @_data[attributeDescription.name];
+      @prototype['_set' + capitalizedName] = (value)->
+        @fetchData() if @isFault
+        if value isnt @_data[attributeDescription.name]
+          @['validate'+capitalizedName](value)
+          value = attributeDescription.transform(value)
+          @_data[attributeDescription.name] = value;
+          @_changes = @_changes || {}
+          @_changes[attributeDescription.name] = value;
+          @_didUpdateValues()
+        @
+      @prototype['validate'+capitalizedName] = (value)->
+        @validateValueForKey(value,attributeDescription.name)
     @bindAttributeDescription(attributeDescription)
 
   @bindAttributeDescription:(attributeDescription)->

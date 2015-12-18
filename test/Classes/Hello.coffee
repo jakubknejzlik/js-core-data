@@ -13,4 +13,7 @@ class Hello extends ManagedObject
       @firstname = parts[0]
       @lastname = parts[1]
 
+  getFullName2:()->
+    return @firstname + ' ' + @lastname
+
 module.exports = Hello

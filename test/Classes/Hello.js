@@ -29,6 +29,10 @@
       }
     };
 
+    Hello.prototype.getFullName2 = function() {
+      return this.firstname + ' ' + this.lastname;
+    };
+
     return Hello;
 
   })(ManagedObject);

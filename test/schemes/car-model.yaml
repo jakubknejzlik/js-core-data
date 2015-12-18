@@ -4,6 +4,9 @@ Owner:
       type: string
       indexed: true
     lastName: string
+    fullName:
+      type: string
+      transient: true
   relations:
     cars:
       entity: Car
