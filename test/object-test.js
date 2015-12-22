@@ -283,6 +283,7 @@ describe('ManagedObject',function(){
                     obj.shortString = 'aaaa';
                 })
             });
+
             it('should pass valid url',function(){
                 var context = new ManagedObjectContext(storeCoordinator);
                 var obj = context.createObjectWithName('Hello');
