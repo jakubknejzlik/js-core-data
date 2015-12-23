@@ -105,6 +105,11 @@ class PostgreSQLStore extends GenericSQLStore
   _insertQueryForManyToMany:(relationship,object,addedObject) ->
     tableName = @_getMiddleTableNameForManyToManyRelation(relationship)
     return 'INSERT INTO "' + tableName + '" ("reflexive","' + relationship.name + '_id") SELECT ' + @_recordIDForObjectID(object.objectID) + ',' + @_recordIDForObjectID(addedObject.objectID) + ' WHERE NOT EXISTS (SELECT 1 FROM "' + tableName + '" WHERE "reflexive" = ' + @_recordIDForObjectID(object.objectID) + ' AND "' + relationship.name + '_id" = ' + @_recordIDForObjectID(addedObject.objectID) + ')'
+  _addRelationshipQueries:(entityName,relationship)->
+    return [
+      'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship),
+      'ALTER TABLE "' + @_formatTableName(entityName) + '" ADD CONSTRAINT "fk_' + @_formatTableName(entityName) + '_' + relationship.name + '_id" FOREIGN KEY ("' + relationship.name + '_id")  REFERENCES "' + @_formatTableName(relationship.destinationEntity.name) + '"("_id") ON DELETE ' + relationship.getOnDeleteRule()
+    ]
 
 
 #  createRelationshipQueries:(relationship,force)->
