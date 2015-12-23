@@ -104,7 +104,7 @@ describe('ManagedObject',function(){
                     obj.bool = true;
                     obj.bool = 1;
                     obj.name = 'test';
-                    obj.int = 1600;
+                    obj.int = 1004;
                     obj.decim = 0.55;
                     obj.float = 10.505;
                     obj.double = 100.5054;
@@ -143,7 +143,7 @@ describe('ManagedObject',function(){
                     var obj = objects[0];
                     assert.strictEqual(obj.bool,true,'bool value');
                     assert.strictEqual(obj.name,'test');
-                    assert.strictEqual(obj.int,1600);
+                    assert.strictEqual(obj.int,1004);
                     assert.strictEqual(obj.decim,0.55);
                     assert.strictEqual(obj.float,10.505);
                     assert.strictEqual(obj.double,100.5054);
@@ -186,7 +186,7 @@ describe('ManagedObject',function(){
                     obj.setValues({
                         bool:true,
                         name:'test',
-                        int:1600,
+                        int:1004,
                         decim: 0.55,
                         float: 10.505,
                         double: 100.5054,
@@ -206,7 +206,7 @@ describe('ManagedObject',function(){
                     var obj = objects[0];
                     assert.strictEqual(obj.bool,true);
                     assert.strictEqual(obj.name,'test');
-                    assert.strictEqual(obj.int,1600);
+                    assert.strictEqual(obj.int,1004);
                     assert.strictEqual(obj.decim,0.55);
                     assert.strictEqual(obj.float,10.505);
                     assert.strictEqual(obj.double,100.5054);
@@ -282,6 +282,43 @@ describe('ManagedObject',function(){
                 assert.doesNotThrow(function(){
                     obj.shortString = 'aaaa';
                 })
+            });
+            it('should pass invalid int',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+                assert.throws(function(){
+                    obj.int = 1;
+                },'min is 2');
+                assert.throws(function(){
+                    obj.int = 1010;
+                },'max is 1005');
+                assert.doesNotThrow(function(){
+                    obj.int = 1005;
+                });
+                assert.doesNotThrow(function(){
+                    obj.int = 1000;
+                });
+            });
+            it('should pass invalid float',function(){
+                var context = new ManagedObjectContext(storeCoordinator);
+                var obj = context.createObjectWithName('Hello');
+
+                assert.throws(function(){
+                    obj.float = 2.4;
+                },'min is 2.5');
+                assert.throws(function(){
+                    obj.float = 5000.9;
+                },'max is 5000.8');
+                assert.throws(function(){
+                    obj.float = 5158;
+                });
+                assert.doesNotThrow(function(){
+                    obj.float = 5000.8;
+                });
+                assert.doesNotThrow(function(){
+                    obj.float = 4;
+                });
             });
 
             it('should pass valid url',function(){
@@ -374,9 +411,9 @@ describe('ManagedObject',function(){
                     obj.float = 25.6134;
                 });
                 assert.doesNotThrow(function(){
-                    obj.float = '1.5';
+                    obj.float = '2.5';
                 });
-                assert.strictEqual(obj.float,1.5);
+                assert.strictEqual(obj.float,2.5);
                 // int
                 assert.throws(function(){
                     obj.int = 'aa';

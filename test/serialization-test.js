@@ -34,7 +34,7 @@ describe('serialization',function(){
             var obj = context.create('Hello')
             obj.bool = true;
             obj.name = 'test';
-            obj.int = 1600;
+            obj.int = 1004;
             obj.decim = 0.55;
             obj.float = 10.505;
             obj.double = 100.5054;
@@ -44,7 +44,7 @@ describe('serialization',function(){
             obj.timestamp = date;
             obj.transformable = {aa:'bb'};
             obj.firstname = 'Johna'
-            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"test","int":1600,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","enum":null,"date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"transformable":{"aa":"bb"},"firstname":"Johna","lastname":"Doe","fullName":"Johna Doe","fullName2":"Johna Doe","world_id":null}';
+            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"test","int":1004,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","enum":null,"date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"transformable":{"aa":"bb"},"firstname":"Johna","lastname":"Doe","fullName":"Johna Doe","fullName2":"Johna Doe","world_id":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json)
         })
 

@@ -7,13 +7,19 @@ Hello:
     name:
       type: string
       default: defVal
-    int: integer
+    int:
+      type: integer
+      min: 2
+      max: 1005
     bool: bool
     decim:
       type: decimal
       decimals: 2
       digits: 5
-    float: float
+    float:
+      type: float
+      min: 2.5
+      max: 5000.8
     double: double
     email: email
     url: url

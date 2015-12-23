@@ -72,15 +72,15 @@ floatTransform = (value)->
 floatValidate = (value,attribute)->
   float = parseFloat(value)
   if attribute.info.max and float > attribute.info.max
-    throw new Error('value \''+value+'\' longer than maxLength('+attribute.info.maxLength+') of attribute '+attribute.name)
+    throw new Error('value \''+value+'\' larger than max('+attribute.info.max+') of attribute '+attribute.name)
   if attribute.info.min and float < attribute.info.min
-    throw new Error('value \''+value+'\' shorter than minLength('+attribute.info.minLength+') of attribute '+attribute.name)
+    throw new Error('value \''+value+'\' smaller than min('+attribute.info.min+') of attribute '+attribute.name)
   if !isNaN(parseFloat(value)) and isFinite(value)
     return yes
 
 AttributeDescription.registerType((new AttributeType('string','string')).validateFn((value,attribute)->
     if attribute.info.maxLength and value.toString().length > attribute.info.maxLength
-      throw new Error('value \''+value+'\' longer than maxLength('+attribute.info.maxLength+') of attribute '+attribute.name)
+      throw new Error('value \''+value+'\' larger than maxLength('+attribute.info.maxLength+') of attribute '+attribute.name)
     if attribute.info.minLength and value.toString().length < attribute.info.minLength
       throw new Error('value \''+value+'\' shorter than minLength('+attribute.info.minLength+') of attribute '+attribute.name)
     if attribute.info.regexp
@@ -121,9 +121,9 @@ AttributeDescription.registerType((new AttributeType('integer','integer')).trans
   ).validateFn((value,attribute)->
     int = parseInt(value)
     if attribute.info.max and int > attribute.info.max
-      throw new Error('value \''+value+'\' longer than maxLength('+attribute.info.maxLength+') of attribute '+attribute.name)
+      throw new Error('value \''+value+'\' larger than max('+attribute.info.max+') of attribute '+attribute.name)
     if attribute.info.min and int < attribute.info.min
-      throw new Error('value \''+value+'\' shorter than minLength('+attribute.info.minLength+') of attribute '+attribute.name)
+      throw new Error('value \''+value+'\' smaller than min('+attribute.info.min+') of attribute '+attribute.name)
     if !isNaN(parseInt(value)) and isFinite(value) and parseInt(value,10) == parseFloat(value)
       return yes
   )
