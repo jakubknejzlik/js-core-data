@@ -101,6 +101,16 @@ describe('migrations',function(){
         migration2to3.removeRelationship('User',userFriendsRelationshipName)
         migration2to3.removeRelationship('User','moreFriends')
 
+        var model4 = db.createModel('0.4');
+        model4.createMigrationFrom(model3);
+        var model5 = db.createModel('0.5');
+        model5.createMigrationFrom(model4);
+        var model6 = db.createModel('0.6');
+        model6.createMigrationFrom(model5);
+        var model7 = db.createModel('0.7');
+        model7.createMigrationFrom(model6);
+
+
         var modelFail = db.createModel('fail');
         var migrationFail = modelFail.createMigrationFrom(model3);
 
@@ -179,5 +189,13 @@ describe('migrations',function(){
     it('should migrate with force anytime',function(done){
         db.setModelVersion('0.1');
         db.syncSchema({force:true},done);
+    })
+
+    it('should migrate multiple versions',function(done){
+        db.setModelVersion('0.1');
+        db.syncSchema({force:true}).then(function(){
+            db.setModelVersion('0.7');
+            db.syncSchema(done)
+        }).catch(done)
     })
 });

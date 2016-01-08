@@ -299,6 +299,9 @@ describe('ManagedObject',function(){
                 assert.doesNotThrow(function(){
                     obj.int = 1000;
                 });
+                assert.doesNotThrow(function(){
+                    obj.int = null;
+                });
             });
             it('should pass invalid float',function(){
                 var context = new ManagedObjectContext(storeCoordinator);
@@ -318,6 +321,9 @@ describe('ManagedObject',function(){
                 });
                 assert.doesNotThrow(function(){
                     obj.float = 4;
+                });
+                assert.doesNotThrow(function(){
+                    obj.float = null;
                 });
             });
 
