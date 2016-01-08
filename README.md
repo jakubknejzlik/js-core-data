@@ -260,8 +260,8 @@ app.listen(process.env.PORT)
 
 
 # TO-DO
-- more detailed documentation (object subclasses etc.)
-- foreign keys support
+- more detailed documentation (object subclasses, transient/private attributes etc.)
 - more examples
-- browser storage support
-- more and more tests :)
+- multiple migrations in one transaction
+- sofisticated (store parsed) predicate
+- caching mechanism (redis)
