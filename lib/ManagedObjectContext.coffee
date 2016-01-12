@@ -43,6 +43,7 @@ class ManagedObjectContext extends Object
       object._objectID = @storeCoordinator.temporaryObjectID(object)
       ac.addObject(@insertedObjects,object)
       ac.addObject(@registeredObjects,object)
+      object.awakeFromInsert()
     ac.removeObject(@deletedObjects,object)
 
   deleteObject: (object)->

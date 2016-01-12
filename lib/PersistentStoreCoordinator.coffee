@@ -118,6 +118,7 @@ class PersistentStoreCoordinator extends Object
 #      objectValues[attribute.name] = objectValues[attribute.name]
     object = new subclass(entity,context,objectValues)
     object._objectID = objectID
+    object.awakeFromFetch()
     return object
 
   _objectFromContextCache: (context,objectID)->

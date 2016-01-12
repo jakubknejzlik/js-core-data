@@ -188,6 +188,11 @@ class ManagedObject extends Object
           @['remove' + capitalizedSingularizedName](object)
     @
 
+  awakeFromInsert:()->
+
+  awakeFromFetch:()->
+
+
   prepareForDeletion:(callback)->
     callback()
 #    for relationship in @entity.relationships
