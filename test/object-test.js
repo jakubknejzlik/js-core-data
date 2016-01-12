@@ -71,6 +71,7 @@ describe('ManagedObject',function(){
                 var obj = context.createObjectWithName('Hello');
                 assert.equal(obj.name,'defVal');
                 assert.notEqual(obj.date,null)
+                assert.equal(obj.awakeFromInsertValue,'awaken');
             });
 
 
@@ -141,6 +142,7 @@ describe('ManagedObject',function(){
                 context.getObjects('Hello',function(err,objects){
                     if(err)return done(err);
                     var obj = objects[0];
+                    assert.equal(obj.awakeFromFetchValue,'fetched');
                     assert.strictEqual(obj.bool,true,'bool value');
                     assert.strictEqual(obj.name,'test');
                     assert.strictEqual(obj.int,1004);

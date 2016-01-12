@@ -44,7 +44,7 @@ describe('serialization',function(){
             obj.timestamp = date;
             obj.transformable = {aa:'bb'};
             obj.firstname = 'Johna'
-            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"test","int":1004,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","enum":null,"date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"transformable":{"aa":"bb"},"firstname":"Johna","lastname":"Doe","fullName":"Johna Doe","fullName2":"Johna Doe","world_id":null}';
+            var json = '{"id":'+obj.objectID.recordId()+',"awakeFromInsertValue":"awaken","awakeFromFetchValue":null,"uuid":"'+obj.uuid+'","name":"test","int":1004,"bool":true,"decim":0.55,"float":10.505,"double":100.5054,"email":"jackie@gmail.com","url":"http://www.google.com","enum":null,"date":'+JSON.stringify(date)+',"timestamp":'+JSON.stringify(date)+',"data":null,"shortString":null,"transformable":{"aa":"bb"},"firstname":"Johna","lastname":"Doe","fullName":"Johna Doe","fullName2":"Johna Doe","world_id":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json)
         })
 
@@ -53,7 +53,7 @@ describe('serialization',function(){
             var obj = context.createObjectWithName('Hello');
             obj.date = null;
             obj.timestamp = null;
-            var json = '{"id":'+obj.objectID.recordId()+',"uuid":"'+obj.uuid+'","name":"defVal","int":null,"bool":null,"decim":null,"float":null,"double":null,"email":null,"url":null,"enum":null,"date":null,"timestamp":null,"data":null,"shortString":null,"transformable":null,"firstname":"John","lastname":"Doe","fullName":"John Doe","fullName2":"John Doe","world_id":null}';
+            var json = '{"id":'+obj.objectID.recordId()+',"awakeFromInsertValue":"awaken","awakeFromFetchValue":null,"uuid":"'+obj.uuid+'","name":"defVal","int":null,"bool":null,"decim":null,"float":null,"double":null,"email":null,"url":null,"enum":null,"date":null,"timestamp":null,"data":null,"shortString":null,"transformable":null,"firstname":"John","lastname":"Doe","fullName":"John Doe","fullName2":"John Doe","world_id":null}';
             assert.equal(JSON.stringify(obj.toJSON()),json);
         })
     })

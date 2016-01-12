@@ -1,6 +1,13 @@
 ManagedObject = require('./../../lib/ManagedObject')
 
 class Hello extends ManagedObject
+  awakeFromInsert:()->
+    super
+    @awakeFromInsertValue = 'awaken'
+  awakeFromFetch:()->
+    super
+    @awakeFromFetchValue = 'fetched'
+
   getFullName:()->
     return @firstname + ' ' + @lastname
 

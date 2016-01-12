@@ -13,6 +13,16 @@
       return Hello.__super__.constructor.apply(this, arguments);
     }
 
+    Hello.prototype.awakeFromInsert = function() {
+      Hello.__super__.awakeFromInsert.apply(this, arguments);
+      return this.awakeFromInsertValue = 'awaken';
+    };
+
+    Hello.prototype.awakeFromFetch = function() {
+      Hello.__super__.awakeFromFetch.apply(this, arguments);
+      return this.awakeFromFetchValue = 'fetched';
+    };
+
     Hello.prototype.getFullName = function() {
       return this.firstname + ' ' + this.lastname;
     };

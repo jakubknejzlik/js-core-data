@@ -1,6 +1,8 @@
 Hello:
   class: /Classes/Hello
   columns:
+    awakeFromInsertValue: string
+    awakeFromFetchValue: string
     uuid:
       type: uuid
       default: uuidv4
