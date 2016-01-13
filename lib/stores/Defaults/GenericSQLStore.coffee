@@ -480,6 +480,7 @@ class GenericSQLStore extends IncrementalStore
         callback(new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion'))
       else if (not currentVersion and options.ignoreMissingVersion) or options.force
         @connectionPool.createTransaction((err,transaction)=>
+          return callback(err) if err
           @createSchemaQueries(options,transaction,(err,queries)=>
             if err
               transaction.rollback(()=>
