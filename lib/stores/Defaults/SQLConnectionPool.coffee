@@ -22,7 +22,7 @@ class SQLConnectionPool
       max : settings.maxConnections or urlOptions.maxConnections or 1 #settings?.maxConnections or (if process.NODE_ENV is 'production' then 100 else 10),
       idleTimeoutMillis : settings?.idletimeoutMillis ? 60*1000,
       reapIntervalMillis : settings?.reapIntervalMillis ? 5*1000
-      log: @store.log
+      log: @store.globals.log
     })
 
   query: (query,params,callback)=>
