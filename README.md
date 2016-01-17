@@ -12,6 +12,7 @@
 [npm-url]: https://npmjs.org/package/js-core-data
 [downloads-image]: https://img.shields.io/npm/dm/js-core-data.svg
 [downloads-url]: https://npmjs.org/package/js-core-data
+[![](https://js-core-data-slackin.herokuapp.com/badge.svg?)](https://js-core-data-slackin.herokuapp.com/)
 
 [dependencies-image]:https://david-dm.org/jakubknejzlik/js-core-data.png
 [dependencies-url]:https://david-dm.org/jakubknejzlik/js-core-data
