@@ -192,6 +192,11 @@ class ManagedObject extends Object
 
   awakeFromFetch:()->
 
+  willSave:()->
+
+  didSave:()->
+
+
 
   prepareForDeletion:(callback)->
     callback()

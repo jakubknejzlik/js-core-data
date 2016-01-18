@@ -238,6 +238,15 @@ class ManagedObjectContext extends Object
     #    console.log('saving')
     if @locked
       throw new Error('context is locked')
+
+    allObjects = []
+    for obj in @insertedObjects.concat(@updatedObjects,@deletedObjects)
+      if obj not in allObjects
+        allObjects.push(obj)
+    for obj in allObjects
+      obj.willSave()
+
+
     @locked = yes
     async.nextTick(()=>
       if not @hasChanges
@@ -268,6 +277,8 @@ class ManagedObjectContext extends Object
           if err
             deferred.reject(err)
           else
+            for obj in allObjects
+              obj.didSave()
             deferred.resolve()
         )
       )

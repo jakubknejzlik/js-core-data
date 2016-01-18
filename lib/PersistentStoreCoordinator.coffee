@@ -138,6 +138,7 @@ class PersistentStoreCoordinator extends Object
         request.updatedObjects.push(obj)
     request.deletedObjects = context.deletedObjects
     temporaryObjectIDs = []
+
     async.forEach(@persistentStores,
     (store,cb)->
       if store instanceof IncrementalStore

@@ -66,14 +66,6 @@ describe('ManagedObject',function(){
     //            deleteAll(storeCoordinator,done);
     //        })
 
-            it('should create object with default values',function(){
-                var context = new ManagedObjectContext(storeCoordinator);
-                var obj = context.createObjectWithName('Hello');
-                assert.equal(obj.name,'defVal');
-                assert.notEqual(obj.date,null)
-                assert.equal(obj.awakeFromInsertValue,'awaken');
-            });
-
 
             it('should assign only allowed attributes',function(){
                 var context = new ManagedObjectContext(storeCoordinator);
@@ -613,6 +605,25 @@ describe('ManagedObject',function(){
             assert.equal(b.blahAttr,'xxx');
         })
     });
+
+    describe('lifecycle',function(){
+        it('should create object with default values',function(){
+            var context = new ManagedObjectContext(storeCoordinator);
+            var obj = context.createObjectWithName('Hello');
+            assert.equal(obj.name,'defVal');
+            assert.notEqual(obj.date,null);
+            assert.equal(obj.awakeFromInsertValue,'awaken');
+        });
+        it('should call willSave',function(done){
+            var context = new ManagedObjectContext(storeCoordinator);
+            var obj = context.createObjectWithName('Hello');
+            context.save().then(function(){
+                assert.equal(obj.saveValue,'did save');
+                done()
+            }).catch(done);
+            assert.equal(obj.saveValue,'will save');
+        });
+    })
 
     describe('relationships',function(){
         before(function(done){

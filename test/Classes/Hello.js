@@ -23,6 +23,14 @@
       return this.awakeFromFetchValue = 'fetched';
     };
 
+    Hello.prototype.willSave = function() {
+      return this.saveValue = 'will save';
+    };
+
+    Hello.prototype.didSave = function() {
+      return this.saveValue = 'did save';
+    };
+
     Hello.prototype.getFullName = function() {
       return this.firstname + ' ' + this.lastname;
     };

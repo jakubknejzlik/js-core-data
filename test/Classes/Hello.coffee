@@ -8,6 +8,11 @@ class Hello extends ManagedObject
     super
     @awakeFromFetchValue = 'fetched'
 
+  willSave:()->
+    @saveValue = 'will save'
+  didSave:()->
+    @saveValue = 'did save'
+
   getFullName:()->
     return @firstname + ' ' + @lastname
 

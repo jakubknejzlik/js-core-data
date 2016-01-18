@@ -3,6 +3,7 @@ Hello:
   columns:
     awakeFromInsertValue: string
     awakeFromFetchValue: string
+    saveValue: string
     uuid:
       type: uuid
       default: uuidv4
