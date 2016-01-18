@@ -171,7 +171,7 @@ class ManagedObjectModel extends Object
     for migration in @migrations
       if migration.modelTo.version = @version
         migrations = migration.modelFrom.getMigrationsFrom(version)
-        if migrations.length > 0
+        if migrations?.length > 0
           migrations.push(migration)
           return migrations
 
