@@ -121,7 +121,7 @@ class ManagedObject extends Object
 
       @prototype['get' + capitalizedSingularizedName + 'ID'] = ()->
         @fetchData() if @isFault
-        return @_data[singularizedName + '_id'] or @_data[relationshipDescription.name]?.objectID?.recordId()
+        return @_data[singularizedName + '_id'] or @_data[relationshipDescription.name]?.objectID?.recordId() or null
       @prototype['_get' + capitalizedName] = (callback)->
         deferred = Q.defer()
         @fetchData() if @isFault
