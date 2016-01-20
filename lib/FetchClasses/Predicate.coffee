@@ -5,6 +5,9 @@ moment = require('moment')
 
 DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
+numberRegExp = /\!([0-9\.]+)\!/g
+nanRegExp = /\!NaN\!/g
+
 class Predicate extends Object
   constructor: (@format,@variables...)->
 
@@ -18,7 +21,7 @@ class Predicate extends Object
     if @format instanceof ManagedObjectID
       return '_id = ' + @format.recordId();
     else
-      format = @format.replace(/[\s]*(!?=)[\s]*%@/g,'_id $1 %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s')
+      format = @format.replace(/[\s]*(!?=)[\s]*%@/g,'_id $1 %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s').replace(/%d/g,'!%d!')
 
       args = [format]
       for variable in @variables
@@ -40,7 +43,14 @@ class Predicate extends Object
           variable = variable.format(DATE_FORMAT)
         args.push(variable)
 
-#      console.log(args)
-      return util.format.apply(util.format,args);
+      string = util.format.apply(util.format,args);
+
+      console.log(string)
+      string = string.replace(numberRegExp,'$1')
+      console.log(string)
+      string = string.replace(nanRegExp,'\'[NaN]\'')
+      console.log(string)
+
+      return string
 
 module.exports = Predicate

@@ -37,14 +37,18 @@ describe('Predicate',function(){
         assert.equal(predicate.toString(),'object_id = 2 AND objectID_id = 2');
         objectID.stringValue = "yyyy/o2";
         predicate = new Predicate('object= %@ AND objectID=%@',object,objectID);
-        assert.equal(predicate.toString(),'object_id = NaN AND objectID_id = NaN');
+        assert.equal(predicate.toString(),'object_id = \'[NaN]\' AND objectID_id = \'[NaN]\'');
     })
     it('should correctly format undefined values',function(){
         var predicate = new Predicate('attr1 = %d AND attr2 = %s AND attr3 = %@','aa',undefined,undefined);
-        assert.equal(predicate.toString(),"attr1 = NaN AND attr2 = 'null' AND attr3_id = 0");
+        assert.equal(predicate.toString(),"attr1 = '[NaN]' AND attr2 = 'null' AND attr3_id = 0");
     })
     it('should correctly format undefined arrays',function(){
         var predicate = new Predicate('attr1 IN %a AND attr2 IN %a AND attr3 IN %a',['a','b'],[1,2],['aa',1]);
         assert.equal(predicate.toString(),"attr1 IN ('a','b') AND attr2 IN (1,2) AND attr3 IN ('aa',1)");
+    })
+    it('should correctly format NaN',function(){
+        var predicate = new Predicate('attr1 = %d AND attr2 != %d AND test=%s AND value > MAX(%d)','hello','xxx','this is NaN','invalid number');
+        assert.equal(predicate.toString(),"attr1 = '[NaN]' AND attr2 != '[NaN]' AND test='this is NaN' AND value > MAX('[NaN]')");
     })
 })
