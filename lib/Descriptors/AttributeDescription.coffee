@@ -38,7 +38,9 @@ class AttributeDescription extends PropertyDescription
 
 
   defaultValue:()->
-    value = @info?.default or null
+    value = @info?.default
+    if typeof value is 'undefined'
+      value = null
     return @transform(value)
 
   isPrivate:()->

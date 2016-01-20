@@ -661,4 +661,34 @@ describe('ManagedObject',function(){
             },/only ManagedObject instances can be added/)
         });
     })
+
+    describe('script created model',function(){
+        var database = new CoreData('sqlite://:memory:')
+        before(function(done){
+            database.defineEntity('User',{
+                username: 'string',
+                number: {
+                    type: 'int',
+                    default: 0
+                },
+                int: {
+                    type: 'int',
+                    default: 0
+                },
+                bool: {
+                    type: 'bool',
+                    default: false
+                }
+            });
+            database.syncSchema({force:true},done);
+        })
+
+        it('should initialize object',function(){
+            var context = database.createContext();
+            var obj = context.create('User');
+
+            assert.strictEqual(obj.int,0);
+            assert.strictEqual(obj.bool,false);
+        })
+    })
 });
