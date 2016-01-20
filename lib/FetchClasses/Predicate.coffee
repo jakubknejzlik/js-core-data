@@ -45,11 +45,8 @@ class Predicate extends Object
 
       string = util.format.apply(util.format,args);
 
-      console.log(string)
       string = string.replace(numberRegExp,'$1')
-      console.log(string)
       string = string.replace(nanRegExp,'\'[NaN]\'')
-      console.log(string)
 
       return string
 
