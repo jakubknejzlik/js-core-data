@@ -1,5 +1,5 @@
 class PersistentStore
-  constructor:(@persistentStoreCoordinator,@URL) ->
+  constructor:(@persistentStoreCoordinator,@URL,@globals) ->
 
   getType: ->
     throw new Error('method must be overwritten')
