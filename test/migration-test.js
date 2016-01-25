@@ -11,7 +11,7 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     var company2Name = 'Company2' + Math.round(Math.random()*10000);
     var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
@@ -144,12 +144,9 @@ describe('migrations',function(){
         var versions = ['0.2','0.3']
         async.forEachSeries(versions,function(version,cb){
             db.setModelVersion(version);
-            db.syncSchema(function(err){
-                if(err) {
-                    err.message = 'cannot migrate to version ' + version + '; error: ' + err.message
-                    return cb(err)
-                }
-                cb()
+            db.syncSchema().then(cb).catch(function(err){
+                err.message = 'cannot migrate to version ' + version + '; error: ' + err.message
+                return cb(err)
             });
         },done)
     });
