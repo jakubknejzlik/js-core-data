@@ -41,6 +41,7 @@ describe('migrations',function(){
             name2:'string'
         });
         model2.defineRelationshipManyToOne('User',company2Name,'company2','users2',{onDelete:'cascade'});
+        model2.defineRelationshipOneToMany('User',company2Name,'favoriteCompanies','favoritedUser',{onDelete:'cascade'});
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
         model2.defineRelationshipManyToMany('User','User',userFriendsRelationshipName,userFriendsRelationshipName);
         model2.defineRelationshipManyToMany('User','User','moreFriends','moreFriends');
@@ -61,6 +62,7 @@ describe('migrations',function(){
 
         migration1to2.renameRelationship('User','friends',userFriendsRelationshipName);
         migration1to2.addRelationship('User','moreFriends');
+        migration1to2.addRelationship('User','favoriteCompanies');
         //migration1to2.removeRelationship('User','company');
 
         migration1to2.addScriptAfter(function(context,done){

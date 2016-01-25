@@ -587,10 +587,13 @@ class GenericSQLStore extends IncrementalStore
           if change is '+'
             sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_columnDefinitionForAttribute(attribute))
 
+
+
+# relationships oneToMany
       if entityFrom
         for relationship in entityFrom.relationships
           inverseRelationship = relationship.inverseRelationship()
-          if not relationship.toMany or not inverseRelationship.toMany
+          if not relationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             if change
               switch change
@@ -598,23 +601,30 @@ class GenericSQLStore extends IncrementalStore
                   break
                 when '-'
                   sqls.push(@_removeRelationshipQuery(entityName,relationship))
-                else
-                  try
-                    newRelationship = entityTo.getRelationship(change)
-                    sqls.push(@_renameRelationshipQuery(@_formatTableName(entityName),relationship,newRelationship))
-#                sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol +  + @quoteSymbol + ' TO ' + @quoteSymbol + newRelationship.name + '_id' + @quoteSymbol)
-                  catch e
-                    throw new Error('relationship ' + entityTo.name + '->' + change + ' not found in version ' + modelFrom.version)
+
+        for relationship in entityFrom.relationships
+          if not relationship.toMany
+            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            if change and change not in ['+','-']
+              try
+                newRelationship = entityTo.getRelationship(change)
+                sqls.push(@_renameRelationshipQuery(@_formatTableName(entityName),relationship,newRelationship))
+#                    sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME COLUMN ' + @quoteSymbol +  + @quoteSymbol + ' TO ' + @quoteSymbol + newRelationship.name + '_id' + @quoteSymbol)
+              catch e
+                throw new Error('relationship ' + entityTo.name + '->' + change + ' not found in version ' + modelTo.version)
+
       if entityTo and entityName not in addedEntitiesNames
         for relationship in entityTo.relationships
           inverseRelationship = relationship.inverseRelationship()
-          if not relationship.toMany or not inverseRelationship.toMany
+          if not relationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             switch change
               when '+'
                 sqls = sqls.concat(@_addRelationshipQueries(entityName,relationship))
                 break
 
+
+# relationships manyToMany
       if entityFrom
         for relationship in entityFrom.relationships
           inverseRelationship = relationship.inverseRelationship()
@@ -629,14 +639,22 @@ class GenericSQLStore extends IncrementalStore
 #              sqls = sqls.concat(@createEntityRelationshipQueries(entityTo))
                 when '-'
                   sqls.push(@_dropTableQuery(reflexiveTableName))
-                else
-                  newRelationship = entityTo.getRelationship(change)
-                  newInverseRelationship = newRelationship.inverseRelationship()
-                  newReflexiveRelationship = @_relationshipByPriority(newRelationship,newInverseRelationship)
-                  reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
-                  reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
-                  newReflexiveTableName = @quoteSymbol + @_formatTableName(newReflexiveRelationship.entity.name) + '_' + newReflexiveRelationship.name + @quoteSymbol
-                  sqls.push('ALTER TABLE ' + reflexiveTableName + ' RENAME TO ' + newReflexiveTableName)
+
+        for relationship in entityFrom.relationships
+          inverseRelationship = relationship.inverseRelationship()
+          reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+          reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+          if relationship.toMany and inverseRelationship.toMany
+            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            if change and change not in ['+','-']
+              newRelationship = entityTo.getRelationship(change)
+              newInverseRelationship = newRelationship.inverseRelationship()
+              newReflexiveRelationship = @_relationshipByPriority(newRelationship,newInverseRelationship)
+              reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+              reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
+              newReflexiveTableName = @quoteSymbol + @_formatTableName(newReflexiveRelationship.entity.name) + '_' + newReflexiveRelationship.name + @quoteSymbol
+              sqls.push('ALTER TABLE ' + reflexiveTableName + ' RENAME TO ' + newReflexiveTableName)
+
       if entityTo
         for relationship in entityTo.relationships
           inverseRelationship = relationship.inverseRelationship()
