@@ -592,19 +592,6 @@ class GenericSQLStore extends IncrementalStore
       # relationships oneToMany
       if entityFrom
         for relationship in entityFrom.relationships
-          inverseRelationship = relationship.inverseRelationship()
-          if not relationship.toMany or not inverseRelationship.toMany
-            change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
-            if relationship.toMany
-              relationship = inverseRelationship
-            if change
-              switch change
-                when '+'
-                  break
-                when '-'
-                  sqls.push(@_removeRelationshipQuery(relationship.entity.name,relationship))
-
-        for relationship in entityFrom.relationships
           if not relationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name]
             if change and change not in ['+','-']
@@ -646,6 +633,18 @@ class GenericSQLStore extends IncrementalStore
               reflexiveTableName = @quoteSymbol + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + @quoteSymbol
               newReflexiveTableName = @quoteSymbol + @_formatTableName(newReflexiveRelationship.entity.name) + '_' + newReflexiveRelationship.name + @quoteSymbol
               sqls.push('ALTER TABLE ' + reflexiveTableName + ' RENAME TO ' + newReflexiveTableName)
+
+    for entityName,entityFrom of modelFrom.entities
+      for relationship in entityFrom.relationships
+        inverseRelationship = relationship.inverseRelationship()
+        if not relationship.toMany
+          change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
+          if change
+            switch change
+              when '+'
+                break
+              when '-'
+                sqls.push(@_removeRelationshipQuery(relationship.entity.name,relationship))
 
     for entityName,entityTo of modelTo.entities
       if entityTo and entityTo.name not in addedEntitiesNames

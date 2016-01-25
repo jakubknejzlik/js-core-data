@@ -9,7 +9,7 @@ var CoreData = require('../index');
 storeTmpName = tmp.tmpNameSync();
 var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
-describe('migrations',function(){
+describe.only('migrations',function(){
 
     var db = new CoreData(store_url,{logging:true});
 
@@ -26,7 +26,8 @@ describe('migrations',function(){
         model1.defineEntity('Company',{
             name:'string'
         });
-        model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade'},{onDelete:'cascade'});
+        model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade'});
+        model1.defineRelationshipManyToOne('User','Company','invalidCompany','invalidUsers',{onDelete:'cascade'});
         model1.defineRelationshipManyToMany('User','User','friends','friends');
 
         var model2 = db.createModel('0.2');
@@ -63,6 +64,7 @@ describe('migrations',function(){
         migration1to2.renameRelationship('User','friends',userFriendsRelationshipName);
         migration1to2.addRelationship('User','moreFriends');
         migration1to2.addRelationship('User','favoriteCompanies');
+        migration1to2.removeRelationship('User','invalidCompany');
         //migration1to2.removeRelationship('User','company');
 
         migration1to2.addScriptAfter(function(context,done){
