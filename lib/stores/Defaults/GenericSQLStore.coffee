@@ -589,8 +589,9 @@ class GenericSQLStore extends IncrementalStore
 
       if entityFrom
         for relationship in entityFrom.relationships
+          inverseRelationship = relationship.inverseRelationship()
           if not relationship.toMany
-            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             if change
               switch change
                 when '+'
@@ -606,8 +607,9 @@ class GenericSQLStore extends IncrementalStore
                     throw new Error('relationship ' + entityTo.name + '->' + change + ' not found in version ' + modelFrom.version)
       if entityTo and entityName not in addedEntitiesNames
         for relationship in entityTo.relationships
+          inverseRelationship = relationship.inverseRelationship()
           if not relationship.toMany
-            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             switch change
               when '+'
                 sqls = sqls.concat(@_addRelationshipQueries(entityName,relationship))
@@ -619,7 +621,7 @@ class GenericSQLStore extends IncrementalStore
           reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
           reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
           if relationship.toMany and inverseRelationship.toMany
-            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             if change
               switch change
                 when '+'
@@ -639,7 +641,7 @@ class GenericSQLStore extends IncrementalStore
         for relationship in entityTo.relationships
           inverseRelationship = relationship.inverseRelationship()
           if relationship.toMany and inverseRelationship.toMany
-            change = migration.relationshipsChanges[entityName]?[relationship.name]
+            change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             if change is '+'
               sqls = sqls.concat(@createRelationshipQueries(relationship))
 
