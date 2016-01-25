@@ -90,14 +90,17 @@ class ManagedObject extends Object
       @prototype['_set' + capitalizedName] = (value)->
         @fetchData() if @isFault
         if value isnt @_data[attributeDescription.name]
-          @['validate'+capitalizedName](value)
+          if typeof @['validate'+capitalizedName] is 'function'
+            it not @['validate'+capitalizedName](value)
+              throw new Error('value \''+value+'\' ('+(typeof value)+') is not valid for attribute ' + attributeDescription.name)
+          @['_validate'+capitalizedName](value)
           value = attributeDescription.transform(value)
           @_data[attributeDescription.name] = value;
           @_changes = @_changes || {}
           @_changes[attributeDescription.name] = value;
           @_didUpdateValues()
         @
-      @prototype['validate'+capitalizedName] = (value)->
+      @prototype['_validate'+capitalizedName] = (value)->
         @validateValueForKey(value,attributeDescription.name)
     @bindAttributeDescription(attributeDescription)
 
