@@ -51,4 +51,18 @@ describe('Predicate',function(){
         var predicate = new Predicate('attr1 = %d AND attr2 != %d AND test=%s AND value > MAX(%d)','hello','xxx','this is NaN','invalid number');
         assert.equal(predicate.toString(),"attr1 = '[NaN]' AND attr2 != '[NaN]' AND test='this is NaN' AND value > MAX('[NaN]')");
     })
+
+
+    it('should correctly parse object condition',function(){
+        var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?'});
+        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND test = 24 AND nullAttr IS NULL AND nonnullAttr IS NOT NULL AND lt < 10 AND lte <= 15 AND gt > 5 AND gte >= 15 AND notequal <> 'aa' AND like LIKE 'test%aa_')");
+    })
+    it('should correctly parse object condition with OR',function(){
+        var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'test':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR test = 24 OR (nullAttr IS NULL OR nonnullAttr IS NOT NULL)))");
+    })
+    it('should correctly parse object condition with AND',function(){
+        var predicate = new Predicate({$and:{'SELF.tags.key':['aa','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') AND test = 24 AND (nullAttr IS NULL AND nonnullAttr IS NOT NULL)))");
+    })
 })

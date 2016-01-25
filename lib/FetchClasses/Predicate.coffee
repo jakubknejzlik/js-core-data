@@ -8,6 +8,15 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 numberRegExp = /\!([0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
 
+operators = {
+  '>=':'>=',
+  '<=':'<=',
+  '>':'>',
+  '<':'<',
+  '!':'<>'
+  '?':'LIKE'
+}
+
 class Predicate extends Object
   constructor: (@format,@variables...)->
 
@@ -17,10 +26,45 @@ class Predicate extends Object
   objectID:->
     @format
 
+  parseObjectCondition:(object, join = 'AND')->
+    predicates = []
+    for key,value of object
+
+      operator = '='
+      for signature,_operator of operators
+        if key.indexOf(signature) isnt -1
+          operator = _operator
+          key = key.replace(signature,'')
+          break
+
+
+      if value is null
+        if operator is '<>'
+          predicates.push(new Predicate(key + ' IS NOT NULL'))
+        else
+          predicates.push(new Predicate(key + ' IS NULL'))
+      else if key is '$or'
+        predicates.push(@parseObjectCondition(value,'OR'))
+      else if key is '$and'
+        predicates.push(@parseObjectCondition(value,'AND'))
+      else if Array.isArray(value)
+        predicates.push(new Predicate(key + ' IN %a',value))
+      else if typeof value is 'number'
+        predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
+      else if typeof value is 'string'
+        if operator is 'LIKE'
+          predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
+        else
+          predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
+    return '(' + predicates.map((x)-> return x.toString()).join(' ' + join + ' ') + ')'
+
   toString:->
     if @format instanceof ManagedObjectID
       return '_id = ' + @format.recordId();
     else
+      if typeof @format is 'object'
+        return @parseObjectCondition(@format)
+
       format = @format.replace(/[\s]*(!?=)[\s]*%@/g,'_id $1 %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s').replace(/%d/g,'!%d!')
 
       args = [format]
