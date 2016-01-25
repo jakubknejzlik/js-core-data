@@ -589,11 +589,11 @@ class GenericSQLStore extends IncrementalStore
 
 
 
-# relationships oneToMany
+      # relationships oneToMany
       if entityFrom
         for relationship in entityFrom.relationships
           inverseRelationship = relationship.inverseRelationship()
-          if not relationship.toMany
+          if not relationship.toMany or not inverseRelationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             if change
               switch change
@@ -616,7 +616,8 @@ class GenericSQLStore extends IncrementalStore
       if entityTo and entityName not in addedEntitiesNames
         for relationship in entityTo.relationships
           inverseRelationship = relationship.inverseRelationship()
-          if not relationship.toMany
+          console.log(relationship.toString(),'!!!')
+          if not relationship.toMany or not inverseRelationship.toMany
             change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
             switch change
               when '+'
@@ -624,7 +625,7 @@ class GenericSQLStore extends IncrementalStore
                 break
 
 
-# relationships manyToMany
+      # relationships manyToMany
       if entityFrom
         for relationship in entityFrom.relationships
           inverseRelationship = relationship.inverseRelationship()
