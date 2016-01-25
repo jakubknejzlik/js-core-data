@@ -133,6 +133,8 @@ class ManagedObjectContext extends Object
       where = options.where.slice()
       where.unshift(null)
       predicate = new (Function.prototype.bind.apply(Predicate, where))
+    else if typeof options.where is 'object'
+      predicate = new Predicate(options.where)
 
     sort = options.sort or options.order
     if typeof sort is 'string'
