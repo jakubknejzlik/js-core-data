@@ -65,4 +65,8 @@ describe('Predicate',function(){
         var predicate = new Predicate({$and:{'SELF.tags.key':['aa','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
         assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') AND test = 24 AND (nullAttr IS NULL AND nonnullAttr IS NOT NULL)))");
     })
+    it('should correctly parse object condition with empty objects',function(){
+        var predicate = new Predicate({$and:{$or:{}},$or:{}});
+        assert.equal(predicate.toString(),"TRUE");
+    })
 })

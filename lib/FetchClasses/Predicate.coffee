@@ -56,14 +56,19 @@ class Predicate extends Object
           predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
         else
           predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
-    return '(' + predicates.map((x)-> return x.toString()).join(' ' + join + ' ') + ')'
+
+    predicates = predicates.filter((x) -> return x)
+    if predicates.length is 0
+      return null
+    string = predicates.map((x)-> return x.toString()).join(' ' + join + ' ')
+    return '(' + string + ')'
 
   toString:->
     if @format instanceof ManagedObjectID
       return '_id = ' + @format.recordId();
     else
       if typeof @format is 'object'
-        return @parseObjectCondition(@format)
+        return @parseObjectCondition(@format) or 'TRUE'
 
       format = @format.replace(/[\s]*(!?=)[\s]*%@/g,'_id $1 %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s').replace(/%d/g,'!%d!')
 
