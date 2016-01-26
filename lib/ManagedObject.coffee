@@ -91,7 +91,7 @@ class ManagedObject extends Object
         @fetchData() if @isFault
         if value isnt @_data[attributeDescription.name]
           if typeof @['validate'+capitalizedName] is 'function'
-            it not @['validate'+capitalizedName](value)
+            if not @['validate'+capitalizedName](value)
               throw new Error('value \''+value+'\' ('+(typeof value)+') is not valid for attribute ' + attributeDescription.name)
           @['_validate'+capitalizedName](value)
           value = attributeDescription.transform(value)
