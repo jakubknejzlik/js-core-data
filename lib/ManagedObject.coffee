@@ -86,7 +86,10 @@ class ManagedObject extends Object
 
       @prototype['_get' + capitalizedName] = ->
         @fetchData() if @isFault
-        @_data[attributeDescription.name];
+        value = @_data[attributeDescription.name]
+        if value is undefined
+          return null
+        return value
       @prototype['_set' + capitalizedName] = (value)->
         @fetchData() if @isFault
         if value isnt @_data[attributeDescription.name]
