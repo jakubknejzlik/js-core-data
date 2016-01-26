@@ -69,4 +69,24 @@ describe('Predicate',function(){
         var predicate = new Predicate({$and:{$or:{}},$or:{}});
         assert.equal(predicate.toString(),"TRUE");
     })
+    it('should correctly parse object condition with custom object',function(){
+        var predicate = new Predicate({test:new Date(1420070400000)});
+        assert.equal(predicate.toString(),"(test = '2015-01-01 01:00:00')");
+    })
+    it('should correctly parse object with Objects and ObjectIDs',function(){
+        var objectID = new ManagedObjectID();
+        var object = new ManagedObject();
+        object._objectID = objectID;
+        objectID.stringValue = "xxxx/p1";
+        var predicate = new Predicate({object:object,objectID:objectID});
+        assert.equal(predicate.toString(),'(object_id = 1 AND objectID_id = 1)');
+        predicate = new Predicate({'object!':object,'objectID!':objectID});
+        assert.equal(predicate.toString(),'(object_id <> 1 AND objectID_id <> 1)');
+        objectID.stringValue = "yyyy/p2";
+        predicate = new Predicate({object:object,objectID:objectID});
+        assert.equal(predicate.toString(),'(object_id = 2 AND objectID_id = 2)');
+        objectID.stringValue = "yyyy/o2";
+        predicate = new Predicate({object:object,objectID:objectID});
+        assert.equal(predicate.toString(),'(object_id = \'[NaN]\' AND objectID_id = \'[NaN]\')');
+    })
 })
