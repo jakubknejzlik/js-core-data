@@ -28,43 +28,48 @@ class Predicate extends Object
 
   parseObjectCondition:(object, join = 'AND')->
     predicates = []
-    for key,value of object
 
-      operator = '='
-      for signature,_operator of operators
-        if key.indexOf(signature) isnt -1
-          operator = _operator
-          key = key.replace(signature,'')
-          break
+    if Array.isArray(object)
+      for item in object
+        predicates.push(@parseObjectCondition(item))
+    else
+      for key,value of object
+
+        operator = '='
+        for signature,_operator of operators
+          if key.indexOf(signature) isnt -1
+            operator = _operator
+            key = key.replace(signature,'')
+            break
 
 
-      if value is null
-        if operator is '<>'
-          predicates.push(new Predicate(key + ' IS NOT NULL'))
+        if value is null
+          if operator is '<>'
+            predicates.push(new Predicate(key + ' IS NOT NULL'))
+          else
+            predicates.push(new Predicate(key + ' IS NULL'))
+        else if key is '$or'
+          predicates.push(@parseObjectCondition(value,'OR'))
+        else if key is '$and'
+          predicates.push(@parseObjectCondition(value,'AND'))
+        else if Array.isArray(value)
+          predicates.push(new Predicate(key + ' IN %a',value))
+        else if typeof value is 'number'
+          predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
+        else if typeof value is 'string'
+          if operator is 'LIKE'
+            predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
+          else
+            predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
         else
-          predicates.push(new Predicate(key + ' IS NULL'))
-      else if key is '$or'
-        predicates.push(@parseObjectCondition(value,'OR'))
-      else if key is '$and'
-        predicates.push(@parseObjectCondition(value,'AND'))
-      else if Array.isArray(value)
-        predicates.push(new Predicate(key + ' IN %a',value))
-      else if typeof value is 'number'
-        predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
-      else if typeof value is 'string'
-        if operator is 'LIKE'
-          predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
-        else
-          predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
-      else
-        if value instanceof Date
-          predicates.push(new Predicate(key + ' ' + operator + ' %s',moment(value).format(DATE_FORMAT)))
-        else if value instanceof ManagedObject
-          predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.objectID.recordId()))
-        else if value instanceof ManagedObjectID
-          predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.recordId()))
-        else if value._isAMomentObject
-          predicates.push(new Predicate(key + ' ' + operator + ' %s',value.format(DATE_FORMAT)))
+          if value instanceof Date
+            predicates.push(new Predicate(key + ' ' + operator + ' %s',moment(value).format(DATE_FORMAT)))
+          else if value instanceof ManagedObject
+            predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.objectID.recordId()))
+          else if value instanceof ManagedObjectID
+            predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.recordId()))
+          else if value._isAMomentObject
+            predicates.push(new Predicate(key + ' ' + operator + ' %s',value.format(DATE_FORMAT)))
 
     predicates = predicates.filter((x) -> return x)
     if predicates.length is 0

@@ -60,6 +60,10 @@ describe('Predicate',function(){
     it('should correctly parse object condition with OR',function(){
         var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'test':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
         assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR test = 24 OR (nullAttr IS NULL OR nonnullAttr IS NOT NULL)))");
+        predicate = new Predicate({$or:[{$and:{test:'x',test2:'x2'}},{$and:{test:'y',test2:'y2'}}]});
+        assert.equal(predicate.toString(),"((((test = 'x' AND test2 = 'x2')) OR ((test = 'y' AND test2 = 'y2'))))");
+        predicate = new Predicate({$and:[{$or:{test:'x',test2:'x2'}},{$or:{test:'y',test2:'y2'}}]});
+        assert.equal(predicate.toString(),"((((test = 'x' OR test2 = 'x2')) AND ((test = 'y' OR test2 = 'y2'))))");
     });
     it('should correctly parse object condition with AND',function(){
         var predicate = new Predicate({$and:{'SELF.tags.key':['aa','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
