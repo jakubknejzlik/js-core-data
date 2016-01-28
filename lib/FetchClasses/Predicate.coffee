@@ -5,7 +5,7 @@ moment = require('moment')
 
 DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
-numberRegExp = /\!([0-9\.]+)\!/g
+numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
 
 operators = {

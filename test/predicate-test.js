@@ -54,8 +54,8 @@ describe('Predicate',function(){
 
 
     it('should correctly parse object condition',function(){
-        var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?'});
-        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND test = 24 AND nullAttr IS NULL AND nonnullAttr IS NOT NULL AND lt < 10 AND lte <= 15 AND gt > 5 AND gte >= 15 AND notequal <> 'aa' AND like LIKE 'test%aa_')");
+        var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'minustest':-25,'minustest2':'-25','nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?'});
+        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND test = 24 AND minustest = -25 AND minustest2 = '-25' AND nullAttr IS NULL AND nonnullAttr IS NOT NULL AND lt < 10 AND lte <= 15 AND gt > 5 AND gte >= 15 AND notequal <> 'aa' AND like LIKE 'test%aa_')");
     });
     it('should correctly parse object condition with OR',function(){
         var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'test':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
