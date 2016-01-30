@@ -11,6 +11,7 @@ nanRegExp = /\!NaN\!/g
 operators = {
   '>=':'>=',
   '<=':'<=',
+  '!?':'NOT LIKE'
   '>':'>',
   '<':'<',
   '!':'<>'
@@ -57,7 +58,7 @@ class Predicate extends Object
         else if typeof value is 'number'
           predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
         else if typeof value is 'string'
-          if operator is 'LIKE'
+          if operator in ['LIKE','NOT LIKE']
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
           else
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
