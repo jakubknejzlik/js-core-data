@@ -34,7 +34,7 @@ class ManagedObjectContext extends Object
       values = {}
       for attributeDescription in object.entity.attributes
         defaultValue = attributeDescription.defaultValue()
-        if defaultValue isnt null or not attributeDescription.isTransient()
+        if defaultValue isnt null and not attributeDescription.isTransient()
           values[attributeDescription.name] = defaultValue
       object._data = {}
       object.setValues(values,{privates:yes})
