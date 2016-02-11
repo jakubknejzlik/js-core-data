@@ -39,7 +39,7 @@
       this.storeURL = storeURL;
       this.options = options1 != null ? options1 : {};
       this.modelVersion = 'default';
-      if (this.options.logging === void 0 || (this.options.logging && typeof this.options.logging !== 'function')) {
+      if (this.options.logging && typeof this.options.logging !== 'function') {
         this.options.logging = console.log;
       }
       this.models = {};

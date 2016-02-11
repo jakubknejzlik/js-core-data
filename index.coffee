@@ -21,7 +21,7 @@ class CoreData
 
   constructor:(@storeURL,@options = {})->
     @modelVersion = 'default'
-    if @options.logging is undefined or (@options.logging and typeof @options.logging isnt 'function')
+    if (@options.logging and typeof @options.logging isnt 'function')
       @options.logging = console.log
     @models = {}
     @model = @models[@modelVersion] = new ManagedObjectModel(@options.modelFile, @options.modelClasses, @modelVersion)
