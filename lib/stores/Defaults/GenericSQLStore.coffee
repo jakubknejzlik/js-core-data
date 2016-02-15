@@ -51,10 +51,6 @@ class GenericSQLStore extends IncrementalStore
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               formattedTableName = @_formatTableName(insertedObject.entity.name)
-              #              inserts = ['`_id` = NULL']
-              #              for key,value of values
-              #                inserts.push('`' + key + '` = ' + mysql.escape(value))
-              #              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (' + @DEFAULT_PRIMARY_KEY_VALUE + ') RETURNING "_id"'
               transaction.createRow(formattedTableName,(err,rowId)=>
                 if err
                   return cb(err)
@@ -193,7 +189,8 @@ class GenericSQLStore extends IncrementalStore
     if request.predicate
       query.where(@parsePredicate(request.predicate))
     if request.havingPredicate
-      query.having(@parsePredicate(request.havingPredicate))
+      console.log('!!?',@parseHavingPredicate(request.havingPredicate))
+      query.having(@parseHavingPredicate(request.havingPredicate))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -208,11 +205,16 @@ class GenericSQLStore extends IncrementalStore
 
 
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
-    return @processQuery(sqlString)
+    return @processQuery(sqlString,request)
 
 
   parsePredicate:(predicate)->
     return predicate.toString()
+  parseHavingPredicate:(predicate)->
+    return predicate.toString()
+    string = predicate.toString()
+    string = string.replace(new RegExp(@tableAlias + '.','g'),'')
+    return string
 
 
   _getRawTranslatedQueryWithJoins:(query,request)->
@@ -220,6 +222,7 @@ class GenericSQLStore extends IncrementalStore
     joins = {}
 
     sqlString = query.toString()
+#    console.log(sqlString)
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
 
@@ -281,8 +284,9 @@ class GenericSQLStore extends IncrementalStore
 
     return sqlString
 
-  processQuery:(query)->
+  processQuery:(query,request)->
     regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
+
     columnRegExp = new RegExp(@tableAlias + '[\\w_]*(\\.[\\w_]+)+','gi')
     matches = regString.match(columnRegExp)
     if matches
@@ -290,13 +294,13 @@ class GenericSQLStore extends IncrementalStore
         column = match.replace(/\./g,'\.')
         columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
         query = query.replace(new RegExp(column,'g'),columnAfter)
-    havingColumnRegExp = new RegExp('HAVING[\\w_]*(\\.[\\w_]+)+','gi')
-    havingMatches = regString.match(havingColumnRegExp)
-    if havingMatches
-      for match in havingMatches
-        column = match.replace(/\./g,'\.')
-        columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
-        query = query.replace(new RegExp(column,'g'),columnAfter)
+
+
+    if request?.fields
+      for fieldName,fieldValue of request.fields
+        console.log(fieldName)
+      console.log(query)
+
     return query
 
   _updateRelationsForObject: (transaction,object,callback)->
