@@ -163,7 +163,7 @@ class GenericSQLStore extends IncrementalStore
 
   countSqlForFetchRequest:(request)->
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
-    query.field('COUNT(DISTINCT SELF._id)','count')
+    query.field('COUNT(DISTINCT ' + @tableAlias + '._id)','count')
     if request.predicate
       query.where(@parsePredicate(request.predicate))
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
@@ -173,7 +173,7 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
 
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
-      query.group('SELF._id')
+      query.group(@tableAlias + '._id')
       query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,@quoteSymbol + '_id' + @quoteSymbol)
       for attribute in request.entity.getNonTransientAttributes()
         query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,@quoteSymbol + attribute.name + @quoteSymbol)
@@ -192,6 +192,8 @@ class GenericSQLStore extends IncrementalStore
 
     if request.predicate
       query.where(@parsePredicate(request.predicate))
+    if request.havingPredicate
+      query.having(@parsePredicate(request.havingPredicate))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -281,10 +283,17 @@ class GenericSQLStore extends IncrementalStore
 
   processQuery:(query)->
     regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
-    columnRegExp = new RegExp('SELF[\\w_]*(\\.[\\w_]+)+','gi')
+    columnRegExp = new RegExp(@tableAlias + '[\\w_]*(\\.[\\w_]+)+','gi')
     matches = regString.match(columnRegExp)
     if matches
       for match in matches
+        column = match.replace(/\./g,'\.')
+        columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
+        query = query.replace(new RegExp(column,'g'),columnAfter)
+    havingColumnRegExp = new RegExp('HAVING[\\w_]*(\\.[\\w_]+)+','gi')
+    havingMatches = regString.match(havingColumnRegExp)
+    if havingMatches
+      for match in havingMatches
         column = match.replace(/\./g,'\.')
         columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
         query = query.replace(new RegExp(column,'g'),columnAfter)

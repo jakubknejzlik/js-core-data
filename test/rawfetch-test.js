@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -37,9 +37,27 @@ describe('raw fetch',function(){
         }).catch(done)
     });
 
-    it('fetch entity',function(done){
+    it.only('fetch entity',function(done){
         context = db.createContext();
-        context.fetch('User',{fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
+        context.fetch('User',{
+            where:{
+                $or:{
+                    'SELF.company._id>':0,
+                    'SELF.company._id':null
+                },
+                'SELF.company.name':'John\'s company'
+            },
+            having:{
+                'companyName':'John\'s company'
+            },
+            fields:{
+                companyName:'SELF.company.name',
+                firstname:'SELF.firstname',
+                lastname:'SELF.lastname',
+                name:'SELF.firstname'
+            },
+            order:'SELF.firstname'
+        }).then(function(data){
             assert.equal(data.length,3);
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');

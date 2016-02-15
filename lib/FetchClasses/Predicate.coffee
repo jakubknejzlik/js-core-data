@@ -20,6 +20,11 @@ operators = {
 
 class Predicate extends Object
   constructor: (@format,@variables...)->
+    @variables = @variables.map((x)->
+      if typeof x is 'string'
+        x = x.replace(/'/g,"''")
+      return x
+    )
 
   isObjectIDPredicate:->
     return @format instanceof ManagedObjectID
@@ -43,7 +48,6 @@ class Predicate extends Object
             key = key.replace(signature,'')
             break
 
-
         if value is null
           if operator is '<>'
             predicates.push(new Predicate(key + ' IS NOT NULL'))
@@ -54,10 +58,16 @@ class Predicate extends Object
         else if key is '$and'
           predicates.push(@parseObjectCondition(value,'AND'))
         else if Array.isArray(value)
+          value = value.map((x)->
+            if typeof x is 'string'
+              x = x.replace(/'/g,"''")
+            return x
+          )
           predicates.push(new Predicate(key + ' IN %a',value))
         else if typeof value is 'number'
           predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
         else if typeof value is 'string'
+          value = value.replace(/'/g,"''")
           if operator in ['LIKE','NOT LIKE']
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
           else

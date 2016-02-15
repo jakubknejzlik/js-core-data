@@ -10,8 +10,8 @@ describe('Predicate',function(){
         assert.equal(predicate.toString(),'name = \'aa\'');
     });
     it('should correctly format multiple strings',function(){
-        var predicate = new Predicate('name = %s AND test = %s OR xxx = %s','aa','test','xxx');
-        assert.equal(predicate.toString(),'name = \'aa\' AND test = \'test\' OR xxx = \'xxx\'');
+        var predicate = new Predicate('name = %s AND test = %s OR xxx = %s','aa\'','test','xxx');
+        assert.equal(predicate.toString(),'name = \'aa\'\'\' AND test = \'test\' OR xxx = \'xxx\'');
     });
     it('should correctly format multiple numbers',function(){
         var predicate = new Predicate('name = %d AND test = %d OR xxx = %d',12,25,58);
@@ -66,8 +66,8 @@ describe('Predicate',function(){
         assert.equal(predicate.toString(),"((((test = 'x' OR test2 = 'x2')) AND ((test = 'y' OR test2 = 'y2'))))");
     });
     it('should correctly parse object condition with AND',function(){
-        var predicate = new Predicate({$and:{'SELF.tags.key':['aa','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
-        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') AND test = 24 AND (nullAttr IS NULL AND nonnullAttr IS NOT NULL)))");
+        var predicate = new Predicate({$and:{'SELF.tags.key':['aa\'','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa''','bb') AND test = 24 AND (nullAttr IS NULL AND nonnullAttr IS NOT NULL)))");
     });
     it('should correctly parse object condition with empty objects',function(){
         var predicate = new Predicate({$and:{$or:{}},$or:{}});
