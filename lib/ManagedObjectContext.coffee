@@ -125,6 +125,7 @@ class ManagedObjectContext extends Object
   _getFetchRequest:(entityName,options)->
     options = options or {}
     predicate = null
+    havingPredicate = null
     sortDescriptors = []
 
     if typeof options.where is 'string'
@@ -135,6 +136,15 @@ class ManagedObjectContext extends Object
       predicate = new (Function.prototype.bind.apply(Predicate, where))
     else if typeof options.where is 'object'
       predicate = new Predicate(options.where)
+
+    if typeof options.having is 'string'
+      havingPredicate = new Predicate(options.having)
+    else if Array.isArray(options.having)
+      having = options.having.slice()
+      having.unshift(null)
+      havingPredicate = new (Function.prototype.bind.apply(Predicate, having))
+    else if typeof options.having is 'object'
+      havingPredicate = new Predicate(options.having)
 
     sort = options.sort or options.order
     if typeof sort is 'string'
@@ -150,6 +160,7 @@ class ManagedObjectContext extends Object
 
     request = new FetchRequest(@storeCoordinator.objectModel.getEntity(entityName),predicate,sortDescriptors)
     request.predicate = predicate
+    request.havingPredicate = havingPredicate
     request.sortDescriptors = sortDescriptors
 
     if options.offset and not options.limit
