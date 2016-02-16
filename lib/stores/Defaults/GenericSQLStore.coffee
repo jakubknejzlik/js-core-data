@@ -161,7 +161,7 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT ' + @tableAlias + '._id)','count')
     if request.predicate
-      query.where(@parsePredicate(request.predicate))
+      query.where(@parsePredicate(request.predicate),request)
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
     return @processQuery(sqlString)
 
@@ -179,18 +179,24 @@ class GenericSQLStore extends IncrementalStore
           query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,@quoteSymbol + columnName + @quoteSymbol)
     else
       if not request.fields
-        query.field(@tableAlias + '.*')
-      else
-        for name,field of request.fields
-          query.field(field,@quoteSymbol + name + @quoteSymbol)
+        fields = {
+          '_id':@tableAlias + '._id'
+        }
+        for attribute in request.entity.attributes
+          fields[attribute.name] = @tableAlias + '.' + attribute.name
+        request.fields = fields
+
+      for name,field of request.fields
+        query.field(field,@quoteSymbol + name + @quoteSymbol)
       if request.group
         query.group(request.group)
+      else
+        query.group(@tableAlias + '._id')
 
     if request.predicate
-      query.where(@parsePredicate(request.predicate))
+      query.where(@parsePredicate(request.predicate,request))
     if request.havingPredicate
-      console.log('!!?',@parseHavingPredicate(request.havingPredicate))
-      query.having(@parseHavingPredicate(request.havingPredicate))
+      query.having(@parsePredicate(request.havingPredicate,request))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -208,14 +214,14 @@ class GenericSQLStore extends IncrementalStore
     return @processQuery(sqlString,request)
 
 
-  parsePredicate:(predicate)->
-    return predicate.toString()
-  parseHavingPredicate:(predicate)->
-    return predicate.toString()
+  parsePredicate:(predicate,request)->
     string = predicate.toString()
-    string = string.replace(new RegExp(@tableAlias + '.','g'),'')
-    return string
 
+    if request?.fields
+      for fieldName,fieldValue of request.fields
+        string = string.replace(new RegExp(@tableAlias + '.' + fieldName),fieldValue)
+
+    return string
 
   _getRawTranslatedQueryWithJoins:(query,request)->
     replaceNames = {}
@@ -294,12 +300,6 @@ class GenericSQLStore extends IncrementalStore
         column = match.replace(/\./g,'\.')
         columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
         query = query.replace(new RegExp(column,'g'),columnAfter)
-
-
-    if request?.fields
-      for fieldName,fieldValue of request.fields
-        console.log(fieldName)
-      console.log(query)
 
     return query
 

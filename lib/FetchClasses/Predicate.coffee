@@ -8,6 +8,7 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
 columnNameRegExp = /([\w]+)/g
+columnFunctionRegExp = /([\w]+\()/g
 
 operators = {
   '>=':'>=',
@@ -30,7 +31,7 @@ class Predicate extends Object
     @format
 
   escapeArrayValues:(array)->
-    return array.map(@escapeValue)
+    return array.map(@escapeValue.bind(@))
 
 
   escapeValue:(value)->
@@ -56,10 +57,12 @@ class Predicate extends Object
             key = key.replace(signature,'')
             break
 
-        if key not in ['$or','$and'] and key.indexOf(tableAlias + '.') is -1
-          key = key.replace(columnNameRegExp,tableAlias + '.$1')
-
-
+        if key not in ['$or','$and']
+          cleanKey = key.replace(columnFunctionRegExp,'...(').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'...')
+          matches = cleanKey.match(columnNameRegExp)
+          if matches
+            for match in matches
+              key = key.replace(match,tableAlias + '.' + match)
 
         if value is null
           if operator is '<>'

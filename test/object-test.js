@@ -56,7 +56,7 @@ describe('ManagedObject',function(){
             before(function(done){
                 storeCoordinator = new PersistentStoreCoordinator(objectModel,{logging:false});
                 storeCoordinator.addStore(store_url);
-                storeCoordinator.persistentStores[0].globals.logging = console.log
+                //storeCoordinator.persistentStores[0].globals.logging = console.log
                 storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
                     if(err)return done(err);
                     deleteAll(storeCoordinator,done);
