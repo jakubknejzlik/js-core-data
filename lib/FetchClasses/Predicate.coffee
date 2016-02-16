@@ -7,6 +7,8 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
+columnNameRegExp = /([\w]+)/g
+columnFunctionRegExp = /([\w]+\()/g
 
 operators = {
   '>=':'>=',
@@ -20,6 +22,7 @@ operators = {
 
 class Predicate extends Object
   constructor: (@format,@variables...)->
+    @variables = @escapeArrayValues(@variables)
 
   isObjectIDPredicate:->
     return @format instanceof ManagedObjectID
@@ -27,7 +30,18 @@ class Predicate extends Object
   objectID:->
     @format
 
-  parseObjectCondition:(object, join = 'AND')->
+  escapeArrayValues:(array)->
+    return array.map(@escapeValue.bind(@))
+
+
+  escapeValue:(value)->
+    if Array.isArray(value)
+      return @escapeArrayValues(value)
+    else if typeof value is 'string'
+      value = value.replace(/'/g,"''")
+    return value
+
+  parseObjectCondition:(object, join = 'AND', tableAlias = 'SELF')->
     predicates = []
 
     if Array.isArray(object)
@@ -43,6 +57,12 @@ class Predicate extends Object
             key = key.replace(signature,'')
             break
 
+        if key not in ['$or','$and']
+          cleanKey = key.replace(columnFunctionRegExp,'...(').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'...')
+          matches = cleanKey.match(columnNameRegExp)
+          if matches
+            for match in matches
+              key = key.replace(match,tableAlias + '.' + match)
 
         if value is null
           if operator is '<>'
@@ -78,7 +98,7 @@ class Predicate extends Object
     string = predicates.map((x)-> return x.toString()).join(' ' + join + ' ')
     return '(' + string + ')'
 
-  toString:->
+  toString:(tableAlias = 'SELF')->
     if @format instanceof ManagedObjectID
       return '_id = ' + @format.recordId();
     else

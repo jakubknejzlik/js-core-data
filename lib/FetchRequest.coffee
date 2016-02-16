@@ -10,6 +10,7 @@ class FetchRequest extends PersistentStoreRequest
     @offset = 0
     @resultType = FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
     @fields = null
+    @havingPredicate = null
     @groupBy = null
 
   setLimit: (value)->

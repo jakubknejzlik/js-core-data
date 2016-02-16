@@ -37,14 +37,56 @@ describe('raw fetch',function(){
         }).catch(done)
     });
 
-    it('fetch entity',function(done){
+    it('fetch entity with fields',function(done){
         context = db.createContext();
-        context.fetch('User',{fields:{companyName:'SELF.company.name',firstname:'SELF.firstname',lastname:'SELF.lastname',name:'SELF.firstname'},order:'SELF.firstname'}).then(function(data){
-            assert.equal(data.length,3);
+        context.fetch('User',{
+            where:{
+                $or:{
+                    'SELF.company._id>':0,
+                    'SELF.company._id':null
+                },
+                'SELF.company.name':'John\'s company'
+            },
+            having:{
+                'companyName':'John\'s company'
+            },
+            fields:{
+                companyName:'MIN(SELF.company.name)',
+                firstname:'SELF.firstname',
+                lastname:'SELF.lastname',
+                name:'SELF.firstname'
+            },
+            group:'SELF.company.name,SELF.firstname,SELF.lastname',
+            order:'SELF.firstname'
+        }).then(function(data){
+            assert.equal(data.length,2);
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');
             assert.equal(data[0].name,'John');
             assert.equal(data[0].companyName,'John\'s company');
+            assert.equal(data[1].firstname,'John2');
+            context.destroy();
+            done();
+        }).catch(done);
+    })
+    it('fetch entity',function(done){
+        context = db.createContext();
+        context.fetch('User',{
+            where:{
+                $or:{
+                    'SELF.company._id>':0,
+                    'SELF.company._id':null
+                },
+                'SELF.firstname>':'.'
+            },
+            having:{
+                'firstname?':'Joh*'
+            },
+            order:'SELF.firstname'
+        }).then(function(data){
+            assert.equal(data.length,3);
+            assert.equal(data[0].firstname,'John');
+            assert.equal(data[0].lastname,'Doe');
             assert.equal(data[1].firstname,'John2');
             context.destroy();
             done();

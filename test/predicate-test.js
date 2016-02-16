@@ -10,8 +10,8 @@ describe('Predicate',function(){
         assert.equal(predicate.toString(),'name = \'aa\'');
     });
     it('should correctly format multiple strings',function(){
-        var predicate = new Predicate('name = %s AND test = %s OR xxx = %s','aa','test','xxx');
-        assert.equal(predicate.toString(),'name = \'aa\' AND test = \'test\' OR xxx = \'xxx\'');
+        var predicate = new Predicate('name = %s AND test = %s OR xxx = %s','aa\'','test','xxx');
+        assert.equal(predicate.toString(),'name = \'aa\'\'\' AND test = \'test\' OR xxx = \'xxx\'');
     });
     it('should correctly format multiple numbers',function(){
         var predicate = new Predicate('name = %d AND test = %d OR xxx = %d',12,25,58);
@@ -55,19 +55,19 @@ describe('Predicate',function(){
 
     it('should correctly parse object condition',function(){
         var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'minustest':-25,'minustest2':'-25','nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?','notLike!?':'test*aa?'});
-        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND test = 24 AND minustest = -25 AND minustest2 = '-25' AND nullAttr IS NULL AND nonnullAttr IS NOT NULL AND lt < 10 AND lte <= 15 AND gt > 5 AND gte >= 15 AND notequal <> 'aa' AND like LIKE 'test%aa_' AND notLike NOT LIKE 'test%aa_')");
+        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND SELF.test = 24 AND SELF.minustest = -25 AND SELF.minustest2 = '-25' AND SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL AND SELF.lt < 10 AND SELF.lte <= 15 AND SELF.gt > 5 AND SELF.gte >= 15 AND SELF.notequal <> 'aa' AND SELF.like LIKE 'test%aa_' AND SELF.notLike NOT LIKE 'test%aa_')");
     });
     it('should correctly parse object condition with OR',function(){
-        var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'test':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
-        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR test = 24 OR (nullAttr IS NULL OR nonnullAttr IS NOT NULL)))");
+        var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'LEAST(test)':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR LEAST(SELF.test) = 24 OR (SELF.nullAttr IS NULL OR SELF.nonnullAttr IS NOT NULL)))");
         predicate = new Predicate({$or:[{$and:{test:'x',test2:'x2'}},{$and:{test:'y',test2:'y2'}}]});
-        assert.equal(predicate.toString(),"((((test = 'x' AND test2 = 'x2')) OR ((test = 'y' AND test2 = 'y2'))))");
+        assert.equal(predicate.toString(),"((((SELF.test = 'x' AND SELF.test2 = 'x2')) OR ((SELF.test = 'y' AND SELF.test2 = 'y2'))))");
         predicate = new Predicate({$and:[{$or:{test:'x',test2:'x2'}},{$or:{test:'y',test2:'y2'}}]});
-        assert.equal(predicate.toString(),"((((test = 'x' OR test2 = 'x2')) AND ((test = 'y' OR test2 = 'y2'))))");
+        assert.equal(predicate.toString(),"((((SELF.test = 'x' OR SELF.test2 = 'x2')) AND ((SELF.test = 'y' OR SELF.test2 = 'y2'))))");
     });
     it('should correctly parse object condition with AND',function(){
-        var predicate = new Predicate({$and:{'SELF.tags.key':['aa','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
-        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') AND test = 24 AND (nullAttr IS NULL AND nonnullAttr IS NOT NULL)))");
+        var predicate = new Predicate({$and:{'SELF.tags.key':['aa\'','bb'],'test':24,$and:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa''','bb') AND SELF.test = 24 AND (SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL)))");
     });
     it('should correctly parse object condition with empty objects',function(){
         var predicate = new Predicate({$and:{$or:{}},$or:{}});
@@ -76,7 +76,7 @@ describe('Predicate',function(){
     it('should correctly parse object condition with custom object',function(){
         date = new Date(1420070400000);
         var predicate = new Predicate({test:date});
-        assert.equal(predicate.toString(),"(test = '" + moment(date).format('YYYY-MM-DD HH:mm:ss') + "')");
+        assert.equal(predicate.toString(),"(SELF.test = '" + moment(date).format('YYYY-MM-DD HH:mm:ss') + "')");
     });
     it('should correctly parse object with Objects and ObjectIDs',function(){
         var objectID = new ManagedObjectID();
@@ -84,14 +84,14 @@ describe('Predicate',function(){
         object._objectID = objectID;
         objectID.stringValue = "xxxx/p1";
         var predicate = new Predicate({object:object,objectID:objectID});
-        assert.equal(predicate.toString(),'(object_id = 1 AND objectID_id = 1)');
+        assert.equal(predicate.toString(),'(SELF.object_id = 1 AND SELF.objectID_id = 1)');
         predicate = new Predicate({'object!':object,'objectID!':objectID});
-        assert.equal(predicate.toString(),'(object_id <> 1 AND objectID_id <> 1)');
+        assert.equal(predicate.toString(),'(SELF.object_id <> 1 AND SELF.objectID_id <> 1)');
         objectID.stringValue = "yyyy/p2";
         predicate = new Predicate({object:object,objectID:objectID});
-        assert.equal(predicate.toString(),'(object_id = 2 AND objectID_id = 2)');
+        assert.equal(predicate.toString(),'(SELF.object_id = 2 AND SELF.objectID_id = 2)');
         objectID.stringValue = "yyyy/o2";
         predicate = new Predicate({object:object,objectID:objectID});
-        assert.equal(predicate.toString(),'(object_id = \'[NaN]\' AND objectID_id = \'[NaN]\')');
+        assert.equal(predicate.toString(),'(SELF.object_id = \'[NaN]\' AND SELF.objectID_id = \'[NaN]\')');
     });
 });

@@ -51,10 +51,6 @@ class GenericSQLStore extends IncrementalStore
           (seriesCallback)=> async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               formattedTableName = @_formatTableName(insertedObject.entity.name)
-              #              inserts = ['`_id` = NULL']
-              #              for key,value of values
-              #                inserts.push('`' + key + '` = ' + mysql.escape(value))
-              #              sql = 'INSERT INTO ' + formattedTableName + ' ('+@quoteSymbol+'_id'+@quoteSymbol+') VALUES (' + @DEFAULT_PRIMARY_KEY_VALUE + ') RETURNING "_id"'
               transaction.createRow(formattedTableName,(err,rowId)=>
                 if err
                   return cb(err)
@@ -163,9 +159,9 @@ class GenericSQLStore extends IncrementalStore
 
   countSqlForFetchRequest:(request)->
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
-    query.field('COUNT(DISTINCT SELF._id)','count')
+    query.field('COUNT(DISTINCT ' + @tableAlias + '._id)','count')
     if request.predicate
-      query.where(@parsePredicate(request.predicate))
+      query.where(@parsePredicate(request.predicate),request)
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
     return @processQuery(sqlString)
 
@@ -173,7 +169,7 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
 
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
-      query.group('SELF._id')
+      query.group(@tableAlias + '._id')
       query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,@quoteSymbol + '_id' + @quoteSymbol)
       for attribute in request.entity.getNonTransientAttributes()
         query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,@quoteSymbol + attribute.name + @quoteSymbol)
@@ -183,15 +179,24 @@ class GenericSQLStore extends IncrementalStore
           query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,@quoteSymbol + columnName + @quoteSymbol)
     else
       if not request.fields
-        query.field(@tableAlias + '.*')
-      else
-        for name,field of request.fields
-          query.field(field,@quoteSymbol + name + @quoteSymbol)
+        fields = {
+          '_id':@tableAlias + '._id'
+        }
+        for attribute in request.entity.attributes
+          fields[attribute.name] = @tableAlias + '.' + attribute.name
+        request.fields = fields
+
+      for name,field of request.fields
+        query.field(field,@quoteSymbol + name + @quoteSymbol)
       if request.group
         query.group(request.group)
+      else
+        query.group(@tableAlias + '._id')
 
     if request.predicate
-      query.where(@parsePredicate(request.predicate))
+      query.where(@parsePredicate(request.predicate,request))
+    if request.havingPredicate
+      query.having(@parsePredicate(request.havingPredicate,request))
 
     query.limit(request.limit) if request.limit
     query.offset(request.offset) if request.offset
@@ -206,18 +211,24 @@ class GenericSQLStore extends IncrementalStore
 
 
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
-    return @processQuery(sqlString)
+    return @processQuery(sqlString,request)
 
 
-  parsePredicate:(predicate)->
-    return predicate.toString()
+  parsePredicate:(predicate,request)->
+    string = predicate.toString()
 
+    if request?.fields
+      for fieldName,fieldValue of request.fields
+        string = string.replace(new RegExp(@tableAlias + '.' + fieldName),fieldValue)
+
+    return string
 
   _getRawTranslatedQueryWithJoins:(query,request)->
     replaceNames = {}
     joins = {}
 
     sqlString = query.toString()
+#    console.log(sqlString)
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
 
@@ -279,15 +290,17 @@ class GenericSQLStore extends IncrementalStore
 
     return sqlString
 
-  processQuery:(query)->
+  processQuery:(query,request)->
     regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
-    columnRegExp = new RegExp('SELF[\\w_]*(\\.[\\w_]+)+','gi')
+
+    columnRegExp = new RegExp(@tableAlias + '[\\w_]*(\\.[\\w_]+)+','gi')
     matches = regString.match(columnRegExp)
     if matches
       for match in matches
         column = match.replace(/\./g,'\.')
         columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
         query = query.replace(new RegExp(column,'g'),columnAfter)
+
     return query
 
   _updateRelationsForObject: (transaction,object,callback)->
