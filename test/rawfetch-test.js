@@ -12,7 +12,11 @@ describe('raw fetch',function(){
         var User = db.defineEntity('User',{
             firstname:'string',
             lastname:'string',
-            lastnameTest:'string'
+            lastnameTest:'string',
+            transientAttr:{
+                type:'string',
+                transient: true
+            }
         });
         var Company = db.defineEntity('Company',{
             name:'string'

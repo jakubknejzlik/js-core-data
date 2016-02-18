@@ -183,7 +183,8 @@ class GenericSQLStore extends IncrementalStore
           '_id':@tableAlias + '._id'
         }
         for attribute in request.entity.attributes
-          fields[attribute.name] = @tableAlias + '.' + attribute.name
+          if not attribute.isTransient()
+            fields[attribute.name] = @tableAlias + '.' + attribute.name
         request.fields = fields
 
       for name,field of request.fields
