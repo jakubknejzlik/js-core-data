@@ -13,6 +13,7 @@ describe('raw fetch',function(){
             firstname:'string',
             lastname:'string',
             lastnameTest:'string',
+            value12345:'string',
             transientAttr:{
                 type:'string',
                 transient: true
@@ -50,7 +51,8 @@ describe('raw fetch',function(){
                     'SELF.company._id>':0,
                     'SELF.company._id':null
                 },
-                'CAST(SELF.company.name AS text)':'John\'s company'
+                'CAST(SELF.company.name AS text)':'John\'s company',
+                '(50.01 - 20.33)>':25
             },
             having:{
                 'companyName':'John\'s company'

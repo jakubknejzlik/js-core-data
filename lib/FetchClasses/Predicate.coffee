@@ -7,7 +7,7 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
-columnNameRegExp = /([\w]+)/g
+columnNameRegExp = /([a-z_][\w]+)/g
 columnFunctionRegExp = /([\w]+(\())|(\sAS\s\w+(\)))/g
 
 operators = {
@@ -63,6 +63,7 @@ class Predicate extends Object
           if matches
             for match in matches
               key = key.replace(match,tableAlias + '.' + match)
+
 
         if value is null
           if operator is '<>'
