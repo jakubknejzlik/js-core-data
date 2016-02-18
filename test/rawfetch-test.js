@@ -103,13 +103,18 @@ describe('raw fetch',function(){
         context = db.createContext();
         context.fetch('User',{
             fields:{
+                0:'SELF.*',
+                name:'SELF.firstname',
                 'companyName':'SELF.company.name'
             },
             where:{
-                companyName:'test'
+                companyName:'John\'s company'
+            },
+            having:{
+                companyName:'John\'s company'
             },
             order:'companyName'
-        }).then(function(){
+        }).then(function(data){
             context.destroy();
             done();
         }).catch(done);

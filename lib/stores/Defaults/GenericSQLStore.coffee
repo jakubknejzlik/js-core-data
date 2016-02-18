@@ -179,13 +179,24 @@ class GenericSQLStore extends IncrementalStore
           query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,@quoteSymbol + columnName + @quoteSymbol)
     else
       if not request.fields
-        fields = {
-          '_id':@tableAlias + '._id'
-        }
-        for attribute in request.entity.attributes
-          if not attribute.isTransient()
-            fields[attribute.name] = @tableAlias + '.' + attribute.name
+        fields = {}
+        for attribute in request.entity.getNonTransientAttributes()
+          fields[attribute.name] = @tableAlias + '.' + attribute.name
         request.fields = fields
+      else
+        allFieldsMark = null
+        for name,field of request.fields
+          if field in ['SELF.*','*']
+            allFieldsMark = name
+            break
+        if allFieldsMark
+          delete request.fields[allFieldsMark]
+          for attribute in request.entity.getNonTransientAttributes()
+            request.fields[attribute.name] = @tableAlias + '.' + attribute.name
+
+
+      request.fields['_id'] = @tableAlias + '._id'
+
 
       for name,field of request.fields
         query.field(field,@quoteSymbol + name + @quoteSymbol)
