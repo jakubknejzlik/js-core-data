@@ -8,7 +8,7 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
 columnNameRegExp = /([\w]+)/g
-columnFunctionRegExp = /([\w]+\()/g
+columnFunctionRegExp = /([\w]+(\())|(\sAS\s\w+(\)))/g
 
 operators = {
   '>=':'>=',
@@ -58,7 +58,7 @@ class Predicate extends Object
             break
 
         if key not in ['$or','$and']
-          cleanKey = key.replace(columnFunctionRegExp,'...(').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'...')
+          cleanKey = key.replace(columnFunctionRegExp,'!$2$4').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'!')
           matches = cleanKey.match(columnNameRegExp)
           if matches
             for match in matches
@@ -103,7 +103,7 @@ class Predicate extends Object
       return '_id = ' + @format.recordId();
     else
       if typeof @format is 'object'
-        return @parseObjectCondition(@format) or 'TRUE'
+        return @parseObjectCondition(@format, undefined, tableAlias) or 'TRUE'
 
       format = @format.replace(/[\s]*(!?=)[\s]*%@/g,'_id $1 %d').replace(/%s/g,'\'%s\'').replace(/%a/g,'%s').replace(/%d/g,'!%d!')
 

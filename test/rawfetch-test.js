@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -46,7 +46,7 @@ describe('raw fetch',function(){
                     'SELF.company._id>':0,
                     'SELF.company._id':null
                 },
-                'SELF.company.name':'John\'s company'
+                'CAST(SELF.company.name AS text)':'John\'s company'
             },
             having:{
                 'companyName':'John\'s company'
