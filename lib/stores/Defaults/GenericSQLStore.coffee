@@ -295,6 +295,8 @@ class GenericSQLStore extends IncrementalStore
 
     columnRegExp = new RegExp(@tableAlias + '[\\w_]*(\\.[\\w_]+)+','gi')
     matches = regString.match(columnRegExp)
+    matches = _.unique(matches)
+    matches.sort().reverse()
     if matches
       for match in matches
         column = match.replace(/\./g,'\.')
