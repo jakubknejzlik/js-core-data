@@ -186,10 +186,6 @@ class GenericSQLStore extends IncrementalStore
       query.where(@parsePredicate(request.predicate),request)
     if request.havingPredicate
       query.having(@parsePredicate(request.havingPredicate,request))
-    if request.group
-      query.group(request.group)
-    else
-      query.group(@tableAlias + '._id')
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
     return @processQuery(sqlString,request)
 

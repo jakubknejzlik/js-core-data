@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     before(function(done){
         var User = db.defineEntity('User',{
