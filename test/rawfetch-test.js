@@ -51,7 +51,7 @@ describe('raw fetch',function(){
                     'SELF.company._id>':0,
                     'SELF.company._id':null
                 },
-                'CAST(SELF.company._id AS char)>':'0',
+                'CAST(SELF.company._id AS int)>':'0',
                 '(50.01 - 20.33)>':25
             },
             having:{
@@ -108,11 +108,30 @@ describe('raw fetch',function(){
                 'companyName':'MIN(SELF.company.name)'
             },
             having:{
-                companyName:'John\'s company'
+                'SELF.companyName':'John\'s company'
             },
             order:'companyName'
         }).then(function(data){
             assert.equal(data.length,2)
+            context.destroy();
+            done();
+        }).catch(done);
+    })
+    it('fetch entity count',function(done){
+        context = db.createContext();
+        context.getObjectsCount('User',{
+            fields:{
+                0:'SELF.*',
+                name:'SELF.firstname',
+                'companyName':'MIN(SELF.company.name)'
+            },
+            having:{
+                $or:{'LOWER(CAST(SELF.companyName AS text))':'John\'s company'}
+            },
+            order:'companyName'
+        }).then(function(data){
+            console.log(data)
+            //assert.equal(data.length,2)
             context.destroy();
             done();
         }).catch(done);

@@ -157,13 +157,37 @@ class GenericSQLStore extends IncrementalStore
       return [null,null]
 
 
+  processRequest:(request)->
+    if not request.fields
+      fields = {}
+      for attribute in request.entity.getNonTransientAttributes()
+        fields[attribute.name] = @tableAlias + '.' + attribute.name
+      request.fields = fields
+    else
+      allFieldsMark = null
+      for name,field of request.fields
+        if field in ['SELF.*','*']
+          allFieldsMark = name
+          break
+      if allFieldsMark
+        delete request.fields[allFieldsMark]
+        for attribute in request.entity.getNonTransientAttributes()
+          request.fields[attribute.name] = @tableAlias + '.' + attribute.name
+
+
+    request.fields['_id'] = @tableAlias + '._id'
+
+
   countSqlForFetchRequest:(request)->
+    @processRequest(request)
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
     query.field('COUNT(DISTINCT ' + @tableAlias + '._id)','count')
     if request.predicate
       query.where(@parsePredicate(request.predicate),request)
+    if request.havingPredicate
+      query.having(@parsePredicate(request.havingPredicate,request))
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
-    return @processQuery(sqlString)
+    return @processQuery(sqlString,request)
 
   sqlForFetchRequest: (request) ->
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
@@ -178,24 +202,7 @@ class GenericSQLStore extends IncrementalStore
           columnName = _.singularize(relationship.name) + '_id'
           query.field(@tableAlias + '.' + @quoteSymbol + columnName + @quoteSymbol,@quoteSymbol + columnName + @quoteSymbol)
     else
-      if not request.fields
-        fields = {}
-        for attribute in request.entity.getNonTransientAttributes()
-          fields[attribute.name] = @tableAlias + '.' + attribute.name
-        request.fields = fields
-      else
-        allFieldsMark = null
-        for name,field of request.fields
-          if field in ['SELF.*','*']
-            allFieldsMark = name
-            break
-        if allFieldsMark
-          delete request.fields[allFieldsMark]
-          for attribute in request.entity.getNonTransientAttributes()
-            request.fields[attribute.name] = @tableAlias + '.' + attribute.name
-
-
-      request.fields['_id'] = @tableAlias + '._id'
+      @processRequest(request)
 
 
       for name,field of request.fields
@@ -235,7 +242,10 @@ class GenericSQLStore extends IncrementalStore
     joins = {}
 
     sqlString = query.toString()
-#    console.log(sqlString)
+
+    if request?.fields
+      for fieldName,fieldValue of request.fields
+        sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
 
