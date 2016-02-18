@@ -217,11 +217,6 @@ class GenericSQLStore extends IncrementalStore
 
   parsePredicate:(predicate,request)->
     string = predicate.toString()
-
-    if request?.fields
-      for fieldName,fieldValue of request.fields
-        string = string.replace(new RegExp(@tableAlias + '.' + fieldName),fieldValue)
-
     return string
 
   _getRawTranslatedQueryWithJoins:(query,request)->
@@ -285,6 +280,11 @@ class GenericSQLStore extends IncrementalStore
     replaceNameSorted = Object.keys(replaceNames).sort().reverse()
 
     sqlString = query.toString()
+
+    if request?.fields
+      for fieldName,fieldValue of request.fields
+        sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
+
     for i of replaceNameSorted
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + @quoteSymbol, "g"), replaceNames[replaceNameSorted[i]] + @quoteSymbol)
@@ -292,6 +292,7 @@ class GenericSQLStore extends IncrementalStore
     return sqlString
 
   processQuery:(query,request)->
+
     regString = query.replace(new RegExp('\'[^\']+\'','g'),'\'ignored\'')
 
     columnRegExp = new RegExp(@tableAlias + '[\\w_]*(\\.[\\w_]+)+','gi')

@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -95,6 +95,21 @@ describe('raw fetch',function(){
             assert.equal(data[0].firstname,'John');
             assert.equal(data[0].lastname,'Doe');
             assert.equal(data[1].firstname,'John2');
+            context.destroy();
+            done();
+        }).catch(done);
+    })
+    it('fetch entity ordered',function(done){
+        context = db.createContext();
+        context.fetch('User',{
+            fields:{
+                'companyName':'SELF.company.name'
+            },
+            where:{
+                companyName:'test'
+            },
+            order:'companyName'
+        }).then(function(){
             context.destroy();
             done();
         }).catch(done);
