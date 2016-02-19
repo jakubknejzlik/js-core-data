@@ -210,8 +210,6 @@ class GenericSQLStore extends IncrementalStore
 
       if request.group
         query.group(request.group)
-      else
-        query.group(@tableAlias + '._id')
 
     if request.predicate
       query.where(@parsePredicate(request.predicate,request))

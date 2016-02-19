@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -86,9 +86,6 @@ describe('raw fetch',function(){
                 },
                 'SELF.firstname>':'.'
             },
-            having:{
-                'firstname?':'Joh*'
-            },
             order:'SELF.firstname'
         }).then(function(data){
             assert.equal(data.length,3);
@@ -105,10 +102,10 @@ describe('raw fetch',function(){
             fields:{
                 0:'SELF.*',
                 name:'SELF.firstname',
-                'companyName':'MIN(SELF.company.name)'
+                'companyName':'SELF.company.name'
             },
-            having:{
-                'SELF.companyName':'John\'s company'
+            where:{
+                'companyName':'John\'s company'
             },
             order:'companyName'
         }).then(function(data){
