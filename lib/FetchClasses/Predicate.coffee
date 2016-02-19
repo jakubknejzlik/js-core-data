@@ -75,8 +75,10 @@ class Predicate extends Object
           predicates.push(@parseObjectCondition(value,'AND'))
         else if Array.isArray(value)
           predicates.push(new Predicate(key + ' IN %a',value))
-        else if typeof value in ['number','boolean']
+        else if typeof value is 'number'
           predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
+        else if typeof value is 'boolean'
+          predicates.push(new Predicate(key + ' ' + operator,if value then 'TRUE' else 'FALSE'))
         else if typeof value is 'string'
           if operator in ['LIKE','NOT LIKE']
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
