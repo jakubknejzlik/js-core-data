@@ -18,7 +18,7 @@ var coreData = new CoreData(store_url,{
     logging:false
 });
 
-describe.only('Context', function(){
+describe('Context', function(){
     describe('store stuff',function(){
 
         it('should throw error when creating coordinator with null object model',function(){

@@ -6,7 +6,7 @@ var store_url = require('./get_storage_url');
 
 describe('raw fetch',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     before(function(done){
         var User = db.defineEntity('User',{
@@ -120,12 +120,11 @@ describe('raw fetch',function(){
             fields:{
                 0:'SELF.*',
                 name:'SELF.firstname',
-                'companyName':'MIN(SELF.company.name)'
+                'companyName':'SELF.company.name'
             },
-            having:{
-                $or:{'LOWER(CAST(SELF.companyName AS text))':'John\'s company'}
-            },
-            order:'companyName'
+            where:{
+                $or:{'CAST(SELF._id AS int)':123}
+            }
         }).then(function(data){
             console.log(data)
             //assert.equal(data.length,2)
