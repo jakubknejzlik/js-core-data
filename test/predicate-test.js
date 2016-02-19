@@ -54,12 +54,12 @@ describe('Predicate',function(){
 
 
     it('should correctly parse object condition',function(){
-        var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'minustest':-25,'minustest2':'-25','nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?','notLike!?':'test*aa?'});
-        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND SELF.test = 24 AND SELF.minustest = -25 AND SELF.minustest2 = '-25' AND SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL AND SELF.lt < 10 AND SELF.lte <= 15 AND SELF.gt > 5 AND SELF.gte >= 15 AND SELF.notequal <> 'aa' AND SELF.like LIKE 'test%aa_' AND SELF.notLike NOT LIKE 'test%aa_')");
+        var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'minustest':-25,'minustest2':'-25',negativeBool:false,bool:true,'nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?','notLike!?':'test*aa?'});
+        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND SELF.test = 24 AND SELF.minustest = -25 AND SELF.minustest2 = '-25' AND SELF.negativeBool = 0 AND SELF.bool = 1 AND SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL AND SELF.lt < 10 AND SELF.lte <= 15 AND SELF.gt > 5 AND SELF.gte >= 15 AND SELF.notequal <> 'aa' AND SELF.like LIKE 'test%aa_' AND SELF.notLike NOT LIKE 'test%aa_')");
     });
     it('should correctly parse object condition with OR',function(){
-        var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'LEAST(test)':24,$or:{'nullAttr':null,'nonnullAttr!':null}}});
-        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR LEAST(SELF.test) = 24 OR (SELF.nullAttr IS NULL OR SELF.nonnullAttr IS NOT NULL)))");
+        var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'LEAST(test)':24,'testBool':true,$or:{'nullAttr':null,'nonnullAttr!':null}}});
+        assert.equal(predicate.toString(),"((SELF.tags.key IN ('aa','bb') OR LEAST(SELF.test) = 24 OR SELF.testBool = 1 OR (SELF.nullAttr IS NULL OR SELF.nonnullAttr IS NOT NULL)))");
         predicate = new Predicate({$or:[{$and:{test:'x',test2:'x2'}},{$and:{test:'y',test2:'y2'}}]});
         assert.equal(predicate.toString(),"((((SELF.test = 'x' AND SELF.test2 = 'x2')) OR ((SELF.test = 'y' AND SELF.test2 = 'y2'))))");
         predicate = new Predicate({$and:[{$or:{test:'x',test2:'x2'}},{$or:{test:'y',test2:'y2'}}]});
