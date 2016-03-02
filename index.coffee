@@ -53,6 +53,10 @@ class CoreData
   createModel:(modelVersion)->
     @models[modelVersion] = new ManagedObjectModel(null, null, modelVersion)
     return @models[modelVersion]
+  getModel:(modelVersion)->
+    if not @models[modelVersion]
+      throw new Error('model with version ' + modelVersion + ' not found')
+    return @models[modelVersion]
 
   defineEntity:(entityName,attributes,options = {})->
     return @model.defineEntity(entityName,attributes,options)

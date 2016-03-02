@@ -80,6 +80,13 @@
       return this.models[modelVersion];
     };
 
+    CoreData.prototype.getModel = function(modelVersion) {
+      if (!this.models[modelVersion]) {
+        throw new Error('model with version ' + modelVersion + ' not found');
+      }
+      return this.models[modelVersion];
+    };
+
     CoreData.prototype.defineEntity = function(entityName, attributes, options) {
       if (options == null) {
         options = {};
