@@ -94,7 +94,7 @@ class Predicate extends Object
             predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.objectID.recordId()))
           else if value instanceof ManagedObjectID
             predicates.push(new Predicate(key + '_id ' + operator + ' %d',value.recordId()))
-          else if value._isAMomentObject
+          else if value and value._isAMomentObject
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value.format(DATE_FORMAT)))
 
     predicates = predicates.filter((x) -> return x)
@@ -128,7 +128,7 @@ class Predicate extends Object
           variable = variable.objectID.recordId()
         else if variable instanceof ManagedObjectID
           variable = variable.recordId()
-        else if variable._isAMomentObject
+        else if variable and variable._isAMomentObject
           variable = variable.format(DATE_FORMAT)
         args.push(variable)
 
