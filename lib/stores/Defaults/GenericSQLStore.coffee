@@ -174,8 +174,8 @@ class GenericSQLStore extends IncrementalStore
         for attribute in request.entity.getNonTransientAttributes()
           request.fields[attribute.name] = @tableAlias + '.' + attribute.name
 
-
-    request.fields['_id'] = @tableAlias + '._id'
+    if request.type isnt 'fetch'
+      request.fields['_id'] = @tableAlias + '._id'
 
 
   countSqlForFetchRequest:(request)->
@@ -231,7 +231,6 @@ class GenericSQLStore extends IncrementalStore
           column = @tableAlias + '.' + column
         query.order(column,descriptor.ascending)
 
-
     sqlString = @_getRawTranslatedQueryWithJoins(query,request)
     return @processQuery(sqlString,request)
 
@@ -248,7 +247,8 @@ class GenericSQLStore extends IncrementalStore
 
     if request?.fields
       for fieldName,fieldValue of request.fields
-        sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
+        if fieldValue.indexOf(@tableAlias + '.' + fieldName) is -1
+          sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
 
     clearedSQLString = sqlString.replace(/\\"/g,'').replace(/"[^"]+"/g,'').replace(/\\'/g,'').replace(/'[^']+'/g,'')
 
@@ -307,7 +307,8 @@ class GenericSQLStore extends IncrementalStore
 
     if request?.fields
       for fieldName,fieldValue of request.fields
-        sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
+        if fieldValue.indexOf(@tableAlias + '.' + fieldName) is -1
+          sqlString = sqlString.replace(new RegExp(@tableAlias + '.' + fieldName,'g'),fieldValue)
 
     for i of replaceNameSorted
       sqlString = sqlString.replace(new RegExp(replaceNameSorted[i].replace(".", "\\.") + "\\.(?![^\\s_]+\\\")", "g"), replaceNames[replaceNameSorted[i]] + ".")
