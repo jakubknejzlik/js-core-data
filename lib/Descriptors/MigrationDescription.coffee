@@ -1,3 +1,5 @@
+EntityDescription = require('../Descriptors/EntityDescription')
+
 class MigrationDescription
   constructor:(@modelFrom,@modelTo)->
     @entitiesChanges = []
@@ -19,29 +21,40 @@ class MigrationDescription
     @entitiesChanges.push({entity:name,change:'-'})
 
 
-  addAttribute:(entityName,name)->
+  _entityName:(entity)->
+    if entity instanceof EntityDescription
+      return entity.name
+    return entity
+
+  addAttribute:(entity,name)->
+    entityName = @_entityName(entity)
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
     @attributesChanges[entityName][name] = '+'
 
-  renameAttribute:(entityName,name,newName)->
+  renameAttribute:(entity,name,newName)->
+    entityName = @_entityName(entity)
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
     @attributesChanges[entityName][name] = newName
 
-  removeAttribute:(entityName,name)->
+  removeAttribute:(entity,name)->
+    entityName = @_entityName(entity)
     @attributesChanges[entityName] = @attributesChanges[entityName] or {}
     @attributesChanges[entityName][name] = '-'
 
 
 
-  addRelationship:(entityName,name)->
+  addRelationship:(entity,name)->
+    entityName = @_entityName(entity)
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}
     @relationshipsChanges[entityName][name] = '+'
 
-  renameRelationship:(entityName,name,newName)->
+  renameRelationship:(entity,name,newName)->
+    entityName = @_entityName(entity)
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}
     @relationshipsChanges[entityName][name] = newName
 
-  removeRelationship:(entityName,name)->
+  removeRelationship:(entity,name)->
+    entityName = @_entityName(entity)
     @relationshipsChanges[entityName] = @relationshipsChanges[entityName] or {}
     @relationshipsChanges[entityName][name] = '-'
 
