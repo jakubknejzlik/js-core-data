@@ -595,7 +595,7 @@ class GenericSQLStore extends IncrementalStore
           addedEntitiesNames.push(entityName)
           sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
         when '-'
-          sqls = sqls.concat(@_dropEntityQueries(change.entity))
+          sqls = sqls.concat(@_dropEntityQueries(modelFrom.getEntity(entityName)))
         else
           entityChangedNames[change.change] = entityName
           sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(change.change) + @quoteSymbol)

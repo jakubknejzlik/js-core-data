@@ -26,6 +26,9 @@ describe('migrations',function(){
         model1.defineEntity('Company',{
             name:'string'
         });
+        model1.defineEntity('Test',{
+            name: 'string'
+        })
         model1.defineRelationshipManyToOne('User','Company','company','users',{onDelete:'cascade'});
         model1.defineRelationshipManyToOne('User','Company','invalidCompany','invalidUsers',{onDelete:'cascade'});
         model1.defineRelationshipManyToMany('User','User','friends','friends');
@@ -49,6 +52,7 @@ describe('migrations',function(){
 
         var migration1to2 = model2.createMigrationFrom(model1);
 
+        migration1to2.removeEntity('Test')
         migration1to2.renameEntity('Company',company2Name);
         migration1to2.addAttribute(company2Name,'name2');
         migration1to2.renameAttribute(company2Name,'name','name123');
