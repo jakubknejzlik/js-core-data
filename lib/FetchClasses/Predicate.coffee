@@ -7,6 +7,7 @@ DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 numberRegExp = /\!(-?[0-9\.]+)\!/g
 nanRegExp = /\!NaN\!/g
+stringRegExp = /'[^']+'/g
 columnNameRegExp = /([a-z_][\w]+)/g
 columnFunctionRegExp = /([\w]+(\())|(\sAS\s\w+(\)))/g
 
@@ -58,7 +59,7 @@ class Predicate extends Object
             break
 
         if key not in ['$or','$and']
-          cleanKey = key.replace(columnFunctionRegExp,'!$2$4').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'!')
+          cleanKey = key.replace(stringRegExp,'___').replace(columnFunctionRegExp,'!$2$4').replace(new RegExp(tableAlias + '(\\.[\\w_0-9]+)+','gi'),'!')
           matches = cleanKey.match(columnNameRegExp)
           if matches
             for match in matches
