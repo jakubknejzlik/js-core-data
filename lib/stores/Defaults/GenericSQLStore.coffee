@@ -174,6 +174,7 @@ class GenericSQLStore extends IncrementalStore
         delete request.fields[allFieldsMark]
         for attribute in request.entity.getNonTransientAttributes()
           request.fields[attribute.name] = @tableAlias + '.' + attribute.name
+        request.fields['_id'] = @tableAlias + '._id'
 
     if request.type isnt 'fetch'
       request.fields['_id'] = @tableAlias + '._id'
