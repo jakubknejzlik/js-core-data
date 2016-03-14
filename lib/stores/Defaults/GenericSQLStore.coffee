@@ -163,6 +163,7 @@ class GenericSQLStore extends IncrementalStore
       for attribute in request.entity.getNonTransientAttributes()
         fields[attribute.name] = @tableAlias + '.' + attribute.name
       request.fields = fields
+      request.fields['_id'] = @tableAlias + '._id'
     else
       allFieldsMark = null
       for name,field of request.fields
