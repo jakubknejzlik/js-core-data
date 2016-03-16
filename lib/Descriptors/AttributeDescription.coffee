@@ -80,6 +80,22 @@ floatValidate = (value,attribute)->
   if !isNaN(parseFloat(value)) and isFinite(value)
     return yes
 
+integerTransform = (value)->
+  value = parseInt(value,10)
+  if isNaN(value)
+    value = null
+  return value
+integerValidate = (value,attribute)->
+  int = parseInt(value)
+  if attribute.info.max and int > attribute.info.max
+    throw new Error('value \''+value+'\' larger than max('+attribute.info.max+') of attribute '+attribute.name)
+  if attribute.info.min and int < attribute.info.min
+    throw new Error('value \''+value+'\' smaller than min('+attribute.info.min+') of attribute '+attribute.name)
+  if !isNaN(parseInt(value)) and isFinite(value) and parseInt(value,10) == parseFloat(value)
+    return yes
+
+
+
 AttributeDescription.registerType((new AttributeType('string','string')).validateFn((value,attribute)->
     if attribute.info.maxLength and value.toString().length > attribute.info.maxLength
       throw new Error('value \''+value+'\' larger than maxLength('+attribute.info.maxLength+') of attribute '+attribute.name)
@@ -115,21 +131,8 @@ AttributeDescription.registerType((new AttributeType('data','data')))
 AttributeDescription.registerType((new AttributeType('decimal','decimal')).transformFn(floatTransform).validateFn(floatValidate))
 AttributeDescription.registerType((new AttributeType('float','float')).transformFn(floatTransform).validateFn(floatValidate))
 AttributeDescription.registerType((new AttributeType('double','double')).transformFn(floatTransform).validateFn(floatValidate))
-AttributeDescription.registerType((new AttributeType('integer','integer')).transformFn((value)->
-    value = parseInt(value,10)
-    if isNaN(value)
-      value = null
-    return value
-  ).validateFn((value,attribute)->
-    int = parseInt(value)
-    if attribute.info.max and int > attribute.info.max
-      throw new Error('value \''+value+'\' larger than max('+attribute.info.max+') of attribute '+attribute.name)
-    if attribute.info.min and int < attribute.info.min
-      throw new Error('value \''+value+'\' smaller than min('+attribute.info.min+') of attribute '+attribute.name)
-    if !isNaN(parseInt(value)) and isFinite(value) and parseInt(value,10) == parseFloat(value)
-      return yes
-  )
-,['int','bigint'])
+AttributeDescription.registerType((new AttributeType('integer','integer')).transformFn(integerTransform).validateFn(integerValidate),['int'])
+AttributeDescription.registerType((new AttributeType('bigint','bigint')).transformFn(integerTransform).validateFn(integerValidate))
 AttributeDescription.registerType((new AttributeType('date','date')).transformFn((value)->
     if value is null
       return null
