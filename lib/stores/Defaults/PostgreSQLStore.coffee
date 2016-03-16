@@ -153,6 +153,8 @@ class PostgreSQLStore extends GenericSQLStore
         return 'integer'
       when 'integer','int'
         return 'int'
+      when 'bigint'
+        return 'bigint'
       when 'timestamp'
         return 'bigint'
       when 'datetime','date'

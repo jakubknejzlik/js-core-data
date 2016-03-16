@@ -449,6 +449,8 @@ class GenericSQLStore extends IncrementalStore
           type = 'longblob'
       when 'int','integer'
         type = 'int('+(attribute.info.length or 11)+')'
+      when 'bigint'
+        type = 'bigint('+(attribute.info.length or 20)+')'
       when 'decimal'
         type = 'decimal('+(attribute.info.digits or 20)+','+(attribute.info.decimals or 5)+')'
       when 'float'

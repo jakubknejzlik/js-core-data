@@ -129,7 +129,7 @@ AttributeDescription.registerType((new AttributeType('integer','integer')).trans
     if !isNaN(parseInt(value)) and isFinite(value) and parseInt(value,10) == parseFloat(value)
       return yes
   )
-,['int'])
+,['int','bigint'])
 AttributeDescription.registerType((new AttributeType('date','date')).transformFn((value)->
     if value is null
       return null
