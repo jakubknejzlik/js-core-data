@@ -14,12 +14,12 @@
   "dependencies": {
     "array-control": "^0.2.0",
     "async": "^1.4.0",
+    "bluebird": "^3.3.4",
     "generic-pool": "^2.2.0",
     "js-yaml": "^3.3.1",
     "lock": "^0.1.2",
     "moment": "^2.11.2",
     "pg-native": "^1.9.0",
-    "q": "^1.4.1",
     "squel": "^4.0.0",
     "string": "^3.3.1",
     "underscore": "^1.8.3",

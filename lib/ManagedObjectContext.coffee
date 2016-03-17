@@ -9,7 +9,7 @@ RelationshipDescription = require('./Descriptors/RelationshipDescription')
 async = require('async')
 ac = require('array-control')
 Lock = require('lock')
-Q = require('q')
+Promise = require('bluebird')
 
 class ManagedObjectContext extends Object
   constructor:(@storeCoordinator) ->
@@ -69,58 +69,56 @@ class ManagedObjectContext extends Object
     return object
 
   getObjectWithId: (entityName,id,callback)->
-    deferred = Q.defer()
-    async.nextTick(()=>
-      entity = @storeCoordinator.objectModel.getEntity(entityName)
-      return deferred.reject(new Error('entity '+entityName+' not found')) if not entity
-      @getObjectWithObjectID(new ManagedObjectID(id,entity)).then(deferred.resolve).catch(deferred.reject)
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      async.nextTick(()=>
+        entity = @storeCoordinator.objectModel.getEntity(entityName)
+        return reject(new Error('entity '+entityName+' not found')) if not entity
+        @getObjectWithObjectID(new ManagedObjectID(id,entity)).then(resolve).catch(reject)
+      )
+    ).asCallback(callback)
 
   getObjectWithObjectID: (ObjectID,callback)->
-    deferred = Q.defer()
-    request = new FetchRequest(ObjectID.entity)
-    request.setLimit(1);
-    request.predicate = new Predicate(ObjectID)
-    @storeCoordinator.execute(request,@,(err,objects)=>
-      return deferred.reject(err) if err
-      if objects[0]
-        ac.addObject(@registeredObjects,objects[0])
-        deferred.resolve(objects[0])
-      else deferred.resolve(null)
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      request = new FetchRequest(ObjectID.entity)
+      request.setLimit(1);
+      request.predicate = new Predicate(ObjectID)
+      @storeCoordinator.execute(request,@,(err,objects)=>
+        return reject(err) if err
+        if objects[0]
+          ac.addObject(@registeredObjects,objects[0])
+          resolve(objects[0])
+        else resolve(null)
+      )
+    ).asCallback(callback)
 
   getObjects: (entityName,options,callback)->
-    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = undefined
-
-    @storeCoordinator.execute(@_getFetchRequest(entityName,options),@,(err,objects)=>
-      if err
-        deferred.reject(err)
-      else
-        ac.addObjects(@registeredObjects,objects)
-        deferred.resolve(objects)
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      @storeCoordinator.execute(@_getFetchRequest(entityName,options),@,(err,objects)=>
+        if err
+          reject(err)
+        else
+          ac.addObjects(@registeredObjects,objects)
+          resolve(objects)
+      )
+    ).asCallback(callback)
 
   fetch: (entityName,options,callback)->
-    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = undefined
-
-    request = @_getFetchRequest(entityName,options)
-    request.resultType = FetchRequest.RESULT_TYPE.VALUES
-    @storeCoordinator.execute(request,@,(err,values)=>
-      if err
-        deferred.reject(err)
-      else
-        deferred.resolve(values)
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      request = @_getFetchRequest(entityName,options)
+      request.resultType = FetchRequest.RESULT_TYPE.VALUES
+      @storeCoordinator.execute(request,@,(err,values)=>
+        if err
+          reject(err)
+        else
+          resolve(values)
+      )
+    ).asCallback(callback)
 
   _getFetchRequest:(entityName,options)->
     options = options or {}
@@ -175,52 +173,51 @@ class ManagedObjectContext extends Object
     return request
 
   getObject: (entityName,options,callback)->
-    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = null
-    options = options or {}
-    options.limit = 1
-    @getObjects(entityName,options).then((objects)->
-      if objects.length > 0
-        deferred.resolve(objects[0])
-      else
-        deferred.resolve(null)
-    ).catch(deferred.reject)
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      options = options or {}
+      options.limit = 1
+      @getObjects(entityName,options).then((objects)->
+        if objects.length > 0
+          resolve(objects[0])
+        else
+          resolve(null)
+      ).catch(reject)
+    ).asCallback(callback)
 
   getOrCreateObject:(entityName,options,defaultValues,callback)->
-    deferred = Q.defer()
     if typeof defaultValues is 'function'
       callback = defaultValues
       defaultValues = undefined
-    @lock(entityName,(release)=>
-#      callback = release(callback)
-      @getObject(entityName,options,(err,object)=>
-        if err
+    return new Promise((resolve,reject)=>
+      @lock(entityName,(release)=>
+  #      callback = release(callback)
+        @getObject(entityName,options,(err,object)=>
+          if err
+            release()()
+            return reject(err)
+          if not object
+            object = @create(entityName,defaultValues)
+          resolve(object)
           release()()
-          return deferred.reject(err)
-        if not object
-          object = @create(entityName,defaultValues)
-        deferred.resolve(object)
-        release()()
+        )
       )
-    )
-    return deferred.promise.nodeify(callback)
+    ).asCallback(callback)
 
   getObjectsCount:(entityName,options,callback)->
-    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = undefined
-
-    @storeCoordinator.numberOfObjectsForFetchRequest(@_getFetchRequest(entityName,options),(err,count)->
-      if err
-        deferred.reject(err)
-      else
-        deferred.resolve(count)
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      @storeCoordinator.numberOfObjectsForFetchRequest(@_getFetchRequest(entityName,options),(err,count)->
+        if err
+          reject(err)
+        else
+          resolve(count)
+      )
+    ).asCallback(callback)
 
 
 
@@ -245,58 +242,55 @@ class ManagedObjectContext extends Object
     ).catch(callback)
 
   save: (callback)->
-    deferred = Q.defer()
-    #    callback = callback or (err)->
-    #      throw err if err
-    #    console.log('saving')
-    if @locked
-      throw new Error('context is locked')
+    return new Promise((resolve,reject)=>
+      if @locked
+        throw new Error('context is locked')
 
-    allObjects = []
-    for obj in @insertedObjects.concat(@updatedObjects,@deletedObjects)
-      if obj not in allObjects
-        allObjects.push(obj)
-    for obj in allObjects
-      obj.willSave()
+      allObjects = []
+      for obj in @insertedObjects.concat(@updatedObjects,@deletedObjects)
+        if obj not in allObjects
+          allObjects.push(obj)
+      for obj in allObjects
+        obj.willSave()
 
 
-    @locked = yes
-    async.nextTick(()=>
-      if not @hasChanges
-        @locked = no
-        return deferred.resolve()
-      #    console.log('has changes');
-
-      @_processDeletedObjects((err)=>
-        if err
+      @locked = yes
+      async.nextTick(()=>
+        if not @hasChanges
           @locked = no
-          return deferred.reject(err);
-        @storeCoordinator.saveContext(@,(err)=>
-          if not err
-            for object in @insertedObjects
-              object._changes = null
-              object._relationChanges = null
-              object._isInserted = no
-            for object in @updatedObjects
-              object._changes = null
-              object._relationChanges = null
-              object._isUpdated = no
-            for object in @deletedObjects
-              object._isDeleted = no
-            @insertedObjects = []
-            @updatedObjects = []
-            @deletedObjects = []
-          @locked = no
+          return resolve()
+        #    console.log('has changes');
+
+        @_processDeletedObjects((err)=>
           if err
-            deferred.reject(err)
-          else
-            for obj in allObjects
-              obj.didSave()
-            deferred.resolve()
+            @locked = no
+            return reject(err);
+          @storeCoordinator.saveContext(@,(err)=>
+            if not err
+              for object in @insertedObjects
+                object._changes = null
+                object._relationChanges = null
+                object._isInserted = no
+              for object in @updatedObjects
+                object._changes = null
+                object._relationChanges = null
+                object._isUpdated = no
+              for object in @deletedObjects
+                object._isDeleted = no
+              @insertedObjects = []
+              @updatedObjects = []
+              @deletedObjects = []
+            @locked = no
+            if err
+              reject(err)
+            else
+              for obj in allObjects
+                obj.didSave()
+              resolve()
+          )
         )
       )
-    )
-    return deferred.promise.nodeify(callback)
+    ).asCallback(callback)
 
   reset:->
     if @locked

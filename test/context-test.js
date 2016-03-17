@@ -328,11 +328,11 @@ describe('Context', function(){
                     done();
                 })
             });
-            it('should not load offest without limit',function(){
-                assert.throws(function(){
-                    context.getObjects('Car',{offset:1},function(err,objects){
-                    })
-                },'limit must be supplied when fetching with offset')
+            it('should not load offest without limit',function(done){
+                context.getObjects('Car',{offset:1},function(err,objects){
+                    assert.ok(err !== null)
+                    done()
+                })
             });
             it('should add loaded objects to registered objects',function(done){
                 context.getObjects('Car',function(err,objects){

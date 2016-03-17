@@ -3,7 +3,7 @@ ManagedObjectID = require('./ManagedObjectID')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
 
 ac = require('array-control')
-Q = require('q')
+Promise = require('bluebird')
 async = require('async')
 util = require('util')
 
@@ -129,18 +129,18 @@ class ManagedObject extends Object
         @fetchData() if @isFault
         return @_data[singularizedName + '_id'] or @_data[relationshipDescription.name]?.objectID?.recordId() or null
       @prototype['_get' + capitalizedName] = (callback)->
-        deferred = Q.defer()
-        @fetchData() if @isFault
-        async.nextTick(()=>
-          if @_data[relationshipDescription.name] is undefined
-            @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
-              if err
-                deferred.reject(err)
-              else
-                deferred.resolve(object)
-          else deferred.resolve(@_data[relationshipDescription.name]);
-        )
-        return deferred.promise.nodeify(callback)
+        return new Promise((resolve,reject)=>
+          @fetchData() if @isFault
+          async.nextTick(()=>
+            if @_data[relationshipDescription.name] is undefined
+              @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
+                if err
+                  reject(err)
+                else
+                  resolve(object)
+            else resolve(@_data[relationshipDescription.name]);
+          )
+        ).asCallback(callback)
       @prototype['_set' + capitalizedName] = (object)->
 #        @fetchData() if @isFault
         if object isnt null and object not instanceof ManagedObject
@@ -159,20 +159,20 @@ class ManagedObject extends Object
           return @['_remove' + capitalizedName](objects)
 
       @prototype['_get' + capitalizedName] = @prototype['get' + capitalizedSingularizedName + 'Objects'] = (callback)->
-        deferred = Q.defer()
-        @fetchData() if @isFault
-        if not Array.isArray(@_data[relationshipDescription.name])
-          @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
-            return deferred.reject(err) if err
-            if @_relationChanges
-              for item in @_relationChanges['added_' + relationshipDescription.name]?
-                ac.addObject(objects,item)
-              for item in @_relationChanges['removed_' + relationshipDescription.name]?
-                ac.removeObject(objects,item)
-            @_data[relationshipDescription.name] = objects
-            deferred.resolve(@_data[relationshipDescription.name].slice(0))
-        else deferred.resolve(@_data[relationshipDescription.name].slice(0));
-        return deferred.promise.nodeify(callback)
+        return new Promise((resolve,reject)=>
+          @fetchData() if @isFault
+          if not Array.isArray(@_data[relationshipDescription.name])
+            @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
+              return reject(err) if err
+              if @_relationChanges
+                for item in @_relationChanges['added_' + relationshipDescription.name]?
+                  ac.addObject(objects,item)
+                for item in @_relationChanges['removed_' + relationshipDescription.name]?
+                  ac.removeObject(objects,item)
+              @_data[relationshipDescription.name] = objects
+              resolve(@_data[relationshipDescription.name].slice(0))
+          else resolve(@_data[relationshipDescription.name].slice(0));
+        ).asCallback(callback)
       @prototype['_add' + capitalizedSingularizedName] = (object)->
         if object not instanceof ManagedObject
           throw new Error('only ManagedObject instances can be added to toMany relationship (given ' + util.format(object) + '; ' + relationshipDescription.entity.name + '=>' + relationshipDescription.name + ')')

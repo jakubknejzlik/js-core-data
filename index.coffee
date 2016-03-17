@@ -10,7 +10,7 @@ RelationshipDescription = require('./lib/Descriptors/RelationshipDescription')
 Pool = require('generic-pool')
 url = require('url')
 async = require('async')
-Q = require('q')
+Promise = require('bluebird')
 convert = require('unit-converter')
 
 
@@ -27,21 +27,21 @@ class CoreData
     @model = @models[@modelVersion] = new ManagedObjectModel(@options.modelFile, @options.modelClasses, @modelVersion)
 
   syncSchema:(options,callback)->
-    deferred = Q.defer()
     if typeof options is 'function'
       callback = options
       options = undefined
-    options = options or {}
-    async.forEach(@_persistentStoreCoordinator().persistentStores,(store,cb)->
-      store.syncSchema(options,cb)
-    ,(err)->
-#      callback(err) if callback
-      if err
-        deferred.reject(err)
-      else
-        deferred.resolve()
-    )
-    return deferred.promise.nodeify(callback)
+    return new Promise((resolve,reject)=>
+      options = options or {}
+      async.forEach(@_persistentStoreCoordinator().persistentStores,(store,cb)->
+        store.syncSchema(options,cb)
+      ,(err)->
+  #      callback(err) if callback
+        if err
+          reject(err)
+        else
+          resolve()
+      )
+    ).asCallback(callback)
 
   setModelVersion:(version)->
     if not @models[version]
