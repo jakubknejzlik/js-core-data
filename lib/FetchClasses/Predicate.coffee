@@ -45,7 +45,11 @@ class Predicate extends Object
   parseObjectCondition:(object, join = 'AND', tableAlias = 'SELF')->
     predicates = []
 
-    if Array.isArray(object)
+    if typeof object is 'string'
+      object = new Predicate('(' + object + ')')
+    if object instanceof Predicate
+      return object.toString(@tableAlias)
+    else if Array.isArray(object)
       for item in object
         predicates.push(@parseObjectCondition(item))
     else
