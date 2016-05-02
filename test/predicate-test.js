@@ -97,6 +97,12 @@ describe('Predicate',function(){
     it('should correctly parse nested predicate object',function(){
         var predicate = new Predicate({aa:'aa',bb:'bb'});
         var predicate2 = new Predicate([{xx:'xx'},predicate,'SELF.test = 10']);
+        var predicate3 = new Predicate([
+            {$or:{
+                'SELF.followers._id':321
+            }},
+            'EVERY(SELF.eventInvitations._id != ' + 123 + ')'
+        ])
         assert.equal(predicate2.toString(),'((SELF.xx = \'xx\') AND (SELF.aa = \'aa\' AND SELF.bb = \'bb\') AND (SELF.test = 10))');
     });
 });

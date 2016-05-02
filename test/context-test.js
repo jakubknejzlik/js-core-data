@@ -138,12 +138,12 @@ describe('Context', function(){
 
             it('should store object',function(done){
                 var car = context.create('Car',{brand:'test car',timestamp:new Date(),date:new Date()});
-
                 context.save(function(err){
                     assert.ifError(err);
                     var context2 = coreData.createContext();
                     context2.getObjectWithObjectID(car.objectID).then(function(car2){
                         assert.equal(car.timestamp.toString(),car2.timestamp.toString());
+                        console.log(JSON.stringify(car))
                         done();
                     }).catch(done)
                 });

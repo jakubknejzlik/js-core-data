@@ -133,14 +133,12 @@ AttributeDescription.registerType((new AttributeType('float','float')).transform
 AttributeDescription.registerType((new AttributeType('double','double')).transformFn(floatTransform).validateFn(floatValidate))
 AttributeDescription.registerType((new AttributeType('integer','integer')).transformFn(integerTransform).validateFn(integerValidate),['int'])
 AttributeDescription.registerType((new AttributeType('bigint','bigint')).transformFn(integerTransform).validateFn(integerValidate))
-AttributeDescription.registerType((new AttributeType('date','date')).transformFn((value)->
+AttributeDescription.registerType((new AttributeType('date','date')).transformFn((value, attribute)->
     if value is null
       return null
     if value is 'now'
       value = new Date()
-    if typeof value is 'string'
-      value = new Date(value)
-    return moment(value).toDate()
+    return moment(value, attribute.info.format).toDate()
   ).validateFn((value)->
     if value in ['now']
       return yes
