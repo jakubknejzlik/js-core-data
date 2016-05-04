@@ -50,7 +50,7 @@ class ManagedObject extends Object
   getValues:(allowedAttributes,options = {})->
     if not Array.isArray(allowedAttributes)
       options = allowedAttributes or {}
-      allowedAttributes = null
+      allowedAttributes = options.attributes or null
     @fetchData() if @isFault
     values = {id:@objectID.recordId()}
     for attributeDescription in @entity.attributes
