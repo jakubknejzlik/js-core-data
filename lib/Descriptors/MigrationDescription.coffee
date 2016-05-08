@@ -12,13 +12,13 @@ class MigrationDescription
 
 
   addEntity:(name)->
-    @entitiesChanges.push({entity:name,change:'+'})
+    @entitiesChanges.push({entity: @_entityName(name),change:'+'})
 
   renameEntity:(oldName,newName)->
-    @entitiesChanges.push({entity:oldName,change:newName})
+    @entitiesChanges.push({entity: @_entityName(oldName),change: @_entityName(newName)})
 
   removeEntity:(name)->
-    @entitiesChanges.push({entity:name,change:'-'})
+    @entitiesChanges.push({entity: @_entityName(name),change:'-'})
 
 
   _entityName:(entity)->
