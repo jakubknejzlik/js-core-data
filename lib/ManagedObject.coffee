@@ -199,6 +199,9 @@ class ManagedObject extends Object
   awakeFromFetch:()->
 
   willSave:()->
+    for attribute in @entity.getNonTransientAttributes()
+      if attribute.info.required and @[attribute.name] is null
+        throw new Error('cannot save ' + @entity.name + ', attribute ' + attribute.name + ' is required')
 
   didSave:()->
 
