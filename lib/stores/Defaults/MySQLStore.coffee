@@ -83,9 +83,10 @@ class MySQLStore extends GenericSQLStore
     for index in @_indexesForEntity(entity)
       parts.push((if index.type is 'unique' then 'UNIQUE ' else '') + 'KEY `'+index.name+'` (`'+index.columns.join('`,`')+'`)')
 
-    for relationship in entity.relationships
-      if not relationship.toMany
-        parts.push(@_relationshipColumnDefinition(relationship))
+    if not options.noRelationships
+      for relationship in entity.relationships
+        if not relationship.toMany
+          parts.push(@_relationshipColumnDefinition(relationship))
 
     sql = 'CREATE TABLE IF NOT EXISTS `' + tableName + '` ('
     sql += parts.join(',')

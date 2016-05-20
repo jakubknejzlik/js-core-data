@@ -44,6 +44,9 @@ describe('migrations',function(){
             name123:'string',
             name2:'string'
         });
+        model2.defineEntity('Test2',{
+            name:'string'
+        });
         model2.defineRelationshipManyToOne('User',company2Name,'company2','users2',{onDelete:'cascade'});
         model2.defineRelationshipOneToMany('User',company2Name,'favoriteCompanies','favoritedUser',{onDelete:'cascade'});
 //        model2.defineRelationshipOneToMany('Company','User','users','company')
@@ -53,6 +56,7 @@ describe('migrations',function(){
         var migration1to2 = model2.createMigrationFrom(model1);
 
         migration1to2.removeEntity('Test')
+        migration1to2.addEntity('Test2')
         migration1to2.renameEntity('Company',company2Name);
         migration1to2.addAttribute(company2Name,'name2');
         migration1to2.renameAttribute(company2Name,'name','name123');

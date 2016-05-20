@@ -65,9 +65,10 @@ class SQLiteStore extends GenericSQLStore
       else
         throw new Error('unknown attribute type ' + attribute.type)
 
-    for relationship in entity.relationships
-      if not relationship.toMany
-        parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`_id`) ON DELETE ' + relationship.getOnDeleteRule())
+    if not options.noRelationships
+      for relationship in entity.relationships
+        if not relationship.toMany
+          parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`_id`) ON DELETE ' + relationship.getOnDeleteRule())
 
 #    if force
 #      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')

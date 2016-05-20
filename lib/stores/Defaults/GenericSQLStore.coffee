@@ -597,7 +597,9 @@ class GenericSQLStore extends IncrementalStore
       switch change.change
         when '+'
           addedEntitiesNames.push(entityName)
-          sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName)))
+          sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName),no,{noRelationships: yes}))
+          for relationship in modelTo.getEntity(entityName).relationships
+            sqls = sqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
         when '-'
           sqls = sqls.concat(@_dropEntityQueries(modelFrom.getEntity(entityName)))
         else

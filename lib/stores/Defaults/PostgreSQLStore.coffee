@@ -75,9 +75,10 @@ class PostgreSQLStore extends GenericSQLStore
       else
         throw new Error('unknown attribute type ' + attribute.type)
 
-    for relationship in entity.relationships
-      if not relationship.toMany
-        parts.push(@_relationshipColumnDefinition(relationship))
+    if not options.noRelationships
+      for relationship in entity.relationships
+        if not relationship.toMany
+          parts.push(@_relationshipColumnDefinition(relationship))
 
 #    if force
 #      sqls.push('DROP TABLE IF EXISTS "' + tableName + '" CASCADE')
