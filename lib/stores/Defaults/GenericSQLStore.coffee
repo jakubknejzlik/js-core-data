@@ -599,7 +599,11 @@ class GenericSQLStore extends IncrementalStore
           addedEntitiesNames.push(entityName)
           sqls = sqls.concat(@createEntityQueries(modelTo.getEntity(entityName),no,{noRelationships: yes}))
           for relationship in modelTo.getEntity(entityName).relationships
-            sqls = sqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
+            inverseRelationship = relationship.inverseRelationship()
+            if not relationship.toMany
+              sqls = sqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
+            if not inverseRelationship.toMany
+              sqls = sqls.concat(@_addRelationshipQueries(inverseRelationship.entity.name,inverseRelationship))
         when '-'
           sqls = sqls.concat(@_dropEntityQueries(modelFrom.getEntity(entityName)))
         else
