@@ -236,10 +236,11 @@ class ManagedObjectContext extends Object
 
 
   saveAndDestroy:(callback)->
-    @save().then(()=>
+    promise = @save().then(()=>
       @destroy()
       callback() if callback
-    ).catch(callback)
+    )
+    promise.catch(callback) if callback
 
   save: (callback)->
     return new Promise((resolve,reject)=>
