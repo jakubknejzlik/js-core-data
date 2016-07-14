@@ -48,6 +48,8 @@ Hello:
       regexp: /^(aa)+$/i
     transformable:
       type: transformable
+    transformableArray:
+      type: transformable
     privateAttribute:
       type: string
       default: this is private!

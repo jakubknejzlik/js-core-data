@@ -43,6 +43,7 @@ describe('ManagedObject',function(){
             var storeCoordinator,timestamp = Date.now();
             var date = new Date(Math.round(timestamp/1000)*1000);
             var transformableObject = {aa:'bb',date:(new Date())};
+            var transformableArray = [{aa:'bb',date:(new Date())}];
             function deleteAll(storeCoordinator,done){
                 var context = new ManagedObjectContext(storeCoordinator);
                 context.getObjects('Hello',function(err,objects){
@@ -109,6 +110,7 @@ describe('ManagedObject',function(){
                     obj.date = date;
                     obj.timestamp = timestamp;
                     obj.transformable = transformableObject;
+                    obj.transformableArray = transformableArray;
                 });
                 context.save(done);
             });
@@ -127,6 +129,7 @@ describe('ManagedObject',function(){
                 assert.equal(obj.enum,null);
                 assert.equal(obj.timestamp,null);
                 assert.equal(obj.transformable,null);
+                assert.equal(obj.transformableArray,null);
                 assert.equal(obj.getWorldID(),null);
             });
             it('should load all attributes',function(done){
@@ -147,6 +150,7 @@ describe('ManagedObject',function(){
                     assert.equal(obj.date.toISOString(),date.toISOString());
                     assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString());
                     assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject));
+                    assert.equal(JSON.stringify(obj.transformableArray),JSON.stringify(transformableArray));
                     assert.equal(obj.getWorldID(),null);
                     done();
                 })
@@ -167,6 +171,7 @@ describe('ManagedObject',function(){
                         assert.equal(obj.date,null);
                         assert.equal(obj.timestamp,null);
                         assert.equal(obj.transformable,null);
+                        assert.equal(obj.transformableArray,null);
                         assert.equal(obj.getWorldID(),null);
                         done();
                     }).catch(done)
@@ -188,6 +193,7 @@ describe('ManagedObject',function(){
                         url:'http://www.google.com',
                         timestamp: timestamp,
                         transformable: transformableObject,
+                        transformableArray: transformableArray,
                         enum:'a'
                     })
                 });
@@ -210,6 +216,7 @@ describe('ManagedObject',function(){
                     assert.equal(obj.date.toISOString(),date.toISOString());
                     assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString());
                     assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject));
+                    assert.equal(JSON.stringify(obj.transformableArray),JSON.stringify(transformableArray));
                     done();
                 })
             });
