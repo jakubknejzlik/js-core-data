@@ -15,6 +15,7 @@ capitalizedString = (string)->
 
 class ManagedObject extends Object
   constructor:(@entity,@managedObjectContext,@_rawData) ->
+    @context = @managedObjectContext
     @_objectID = null
     @_isInserted = no
 #    @_isUpdated = no
