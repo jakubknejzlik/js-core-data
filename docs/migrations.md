@@ -67,3 +67,7 @@ Every persistent store (database) has schema version stored in table `_meta`, du
 
 
 *Note: stores can join multiple migrations (eg. 0.1=>0.2=>...=>0.8=>0.9), currently not performed in one transaction*
+
+## Next
+
+Continue to [Express middleware](express.md)

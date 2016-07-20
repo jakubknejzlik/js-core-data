@@ -80,3 +80,7 @@ context.fetch('User',{
 ```
 
 *Note: using SQL functions in raw fetch is store dependent (different set of functions for each store)*
+
+## Next
+
+Continue to [Predicates](predicates.md)

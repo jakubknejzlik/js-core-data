@@ -53,3 +53,8 @@ Object notation support these format
 - `{'SELF.name?': '*test?'}` - transforms to `SELF.name LIKE '%test_'` (`*` => `%` and `?` => `_`)
 - `{'SELF.name': null}` - transforms to `SELF.name IS NULL`
 - `{'SELF.name!': null}` - transforms to `SELF.name IS NOT NULL`
+
+
+## Next
+
+Continue to [Migrations](migrations.md)
