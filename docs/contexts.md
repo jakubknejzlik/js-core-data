@@ -1,24 +1,57 @@
-# Context
+## Context
 
 When you create/update/access/delete data you always use context. Every time you create or fetch some object (entity instance) it's stored in context. Every updated attribute or relationship is stored in memory. After everything is ready, you just save the context.
 
 The *best* thing about the context is that all changes are stored in memory until you save them into persistent store in ***one transaction***.
 
 
-# Working with objects
+## Creating contexts
 
-Objects are created in contexts. Every object exists in one instance per context (every time you fetch object twice, it's still the same instance).
+You can create contexts with method `createContext()` on database client.
 
 ```
-var db = new CoreData(...);
-var context = db.createContext();
-var userId = 123;
-context.getObjectWithId('User',userid).then(function(user1){
-    context.getObjectWithId('User',userid).then(function(user2){
-        console.log(user1 === user2); // true
-    })
+var context = database.createContext();
+```
+
+When you have context, you can create new entities in it. This code creates new Author entity. 
+
+```
+var author = context.create('Author',{firstname: 'John', lastname: 'Doe'});
+```
+
+You can also create relationships.
+
+```
+var book = context.create('Book',{title: 'Book written by John Doe'});
+book.setAuthor(author);
+// or author.addBook(book);
+```
+
+After you have created all objects. You can save context. By saving context all created/updated objects are stored in database in one transaction.
+
+```
+context.save().then(function(){
+    console.log('all saved');
 })
 ```
 
-Every change to objects are made in memory (attributes and relationships). All changes are stored in persistent store (database) after save in one transaction.
+It's important to do cleanup memory. This is done by destroying context. When context is destroyed, no more changes could be done with it.
 
+```
+context.destory();
+// context.saveAndDestroy(); saves context and destroys it in one call
+```
+
+
+It's important to realise that created object are considered *temporary* until context is saved. Every temporary object has temporary id (id is updated automatically after save).
+
+You can check object's state with these attributes:
+
+- `object.isInserted` - true when object is inserted to context, but not saved already
+- `object.isUpdated` - true when object has changes that are not saved to store
+- `object.isDeleted` - true when object was deleted (if you still have reference to it)
+- `object.isFault` - object is in fault state when it has not fetched data from database (fetch is done automatically)
+
+## Next
+
+Continue to [Schema](schema.md)

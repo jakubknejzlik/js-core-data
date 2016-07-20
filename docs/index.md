@@ -24,9 +24,13 @@ CoreData is very powerful framework created by Apple for working with data. This
 
 Currently supported persistent stores: MySQL, PostgreSQL, SQLite
 
-# TO-DO
-- more detailed documentation (object subclasses, transient/private attributes etc.)
-- more examples
-- multiple migrations in one transaction
-- sofisticated (store parsed) predicate
-- caching mechanism (redis)
+# Documentation
+
+* [Getting started](getting-started.md)
+* [Contexts](contexts.md)
+* [Schema](schema.md)
+* [Fetching](fetching.md)
+* [Predicates](predicates.md)
+* [Migrations](migrations.md)
+* [Examples](examples.md)
+* [Express middleware](express.md)

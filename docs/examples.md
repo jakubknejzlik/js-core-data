@@ -30,5 +30,5 @@ db.syncSchema({force:true}).then(function(){
 })
 ```
 
-For more examples see */examples*, especially TODO list REST backend example.
+For more examples see [Example sources](https://github.com/jakubknejzlik/js-core-data/tree/master/examples), especially TODO list REST backend example.
 
