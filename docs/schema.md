@@ -157,3 +157,7 @@ database.setModelVersion('v1'); // you need to specify which version to use
 ```
 
 You can migrate between model versions. For more information see [Migrations](migrations.md)
+
+## Next
+
+Continue to [Fetching](fetching.md)

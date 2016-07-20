@@ -103,3 +103,7 @@ context.getObjects('Book').then(function(books){
 ```
 
 For more details visit [Fetching section](fetching.md).
+
+## Next
+
+Continue to [Contexts](contexts.md)
