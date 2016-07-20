@@ -31,4 +31,3 @@ db.syncSchema({force:true}).then(function(){
 ```
 
 For more examples see */examples*, especially TODO list REST backend example.
-
