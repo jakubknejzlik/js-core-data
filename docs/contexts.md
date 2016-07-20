@@ -51,3 +51,7 @@ You can check object's state with these attributes:
 - `object.isUpdated` - true when object has changes that are not saved to store
 - `object.isDeleted` - true when object was deleted (if you still have reference to it)
 - `object.isFault` - object is in fault state when it has not fetched data from database (fetch is done automatically)
+
+## Next
+
+Continue to [Schema](schema.md)

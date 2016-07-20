@@ -29,7 +29,6 @@ Currently supported persistent stores: MySQL, PostgreSQL, SQLite
 * [Getting started](getting-started.md)
 * [Contexts](contexts.md)
 * [Schema](schema.md)
-* [Relationships](relationships.md)
 * [Fetching](fetching.md)
 * [Predicates](predicates.md)
 * [Migrations](migrations.md)
