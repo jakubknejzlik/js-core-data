@@ -73,7 +73,7 @@ describe('Predicate',function(){
         var predicate = new Predicate({$and:{$or:{}},$or:{}});
         assert.equal(predicate.toString(),"TRUE");
     });
-    it.only('should correctly parse object condition with array',function(){
+    it('should correctly parse object condition with array',function(){
         var predicate = new Predicate({emptyArray:[],array:['value1']});
         assert.equal(predicate.toString(),"(SELF.array IN ('value1'))");
     });
