@@ -78,7 +78,7 @@ class Predicate extends Object
           predicates.push(@parseObjectCondition(value,'OR'))
         else if key is '$and'
           predicates.push(@parseObjectCondition(value,'AND'))
-        else if Array.isArray(value)
+        else if Array.isArray(value) and value.length > 0
           predicates.push(new Predicate(key + ' IN %a',value))
         else if typeof value is 'number'
           predicates.push(new Predicate(key + ' ' + operator + ' %d',value))

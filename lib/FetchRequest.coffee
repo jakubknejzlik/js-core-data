@@ -32,4 +32,4 @@ class FetchRequest extends PersistentStoreRequest
 
 
 
-module.exports = FetchRequest;
+module.exports = FetchRequest
