@@ -19,7 +19,6 @@
     "js-yaml": "^3.3.1",
     "lock": "^0.1.2",
     "moment": "^2.11.2",
-    "pg-native": "^1.9.0",
     "squel": "^5.0.2",
     "string": "^3.3.1",
     "underscore": "^1.8.3",
@@ -37,6 +36,7 @@
     "passport": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "pg": "^4.4.2",
+    "pg-native": "^1.9.0",
     "sqlite3": "^3.0.9",
     "supertest": "^1.1.0",
     "tmp": "0.0.28"
