@@ -134,11 +134,11 @@ class ManagedObject extends Object
           @fetchData() if @isFault
           async.nextTick(()=>
             if @_data[relationshipDescription.name] is undefined
-              @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,object)=>
+              @managedObjectContext._getObjectsForRelationship relationshipDescription,@,@managedObjectContext,(err,objects)=>
                 if err
                   reject(err)
                 else
-                  resolve(object)
+                  resolve(objects[0] or null)
             else resolve(@_data[relationshipDescription.name]);
           )
         ).asCallback(callback)

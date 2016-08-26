@@ -227,11 +227,7 @@ class ManagedObjectContext extends Object
     @storeCoordinator._valuesForForRelationship relationship,object.objectID,context,(err,objects)=>
       return callback(err) if err
       ac.addObjects(@registeredObjects,objects)
-      if relationship.toMany
-        callback(null,objects)
-      else
-        callback(null,objects[0] or null)
-
+      callback(null,objects)
 
 
 
