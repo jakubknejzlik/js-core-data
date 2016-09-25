@@ -278,16 +278,16 @@ class GenericSQLStore extends IncrementalStore
           middleTableName = @_getMiddleTableNameForManyToManyRelation(primaryRelation)
           middleTableNameAlias = pathAlias + "__mid"
           if primaryRelation is relation
-            query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + ".reflexive")
-            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + "." + relation.name + "_id = " + pathAlias + "._id")
+            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + ".reflexive")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + "." + relation.name + "_id = " + pathAlias + "._id")
           else
-            query.left_join(middleTableName, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
-            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
+            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
         else
           if relation.toMany
-            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
           else
-            query.left_join(@_formatTableName(relation.destinationEntity.name), pathAlias, pathAlias + '._id' + ' = ' + parentAlias + '.' + relation.name + '_id')
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + '._id' + ' = ' + parentAlias + '.' + relation.name + '_id')
       leftJoin(subkeys, relation.destinationEntity, subPath) if subkeys.length > 0
 
     replaceNames[@tableAlias] = @tableAlias
@@ -331,6 +331,9 @@ class GenericSQLStore extends IncrementalStore
         column = match.replace(/\./g,'\.')
         columnAfter = match.replace(/\.([^\.]+)$/g,'.' + @quoteSymbol + '$1' + @quoteSymbol)
         query = query.replace(new RegExp(column,'g'),columnAfter)
+
+    tableName = @_formatTableName(request.entity.name)
+    query = query.replace("FROM #{tableName} #{@tableAlias}","FROM #{@quoteSymbol}#{tableName}#{@quoteSymbol} #{@tableAlias}")
 
     return query
 
