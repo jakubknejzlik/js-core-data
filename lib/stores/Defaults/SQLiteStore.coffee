@@ -217,7 +217,7 @@ class SQLiteConnection extends SQLConnection
     @connection.all(query,callback)
 
   createRow:(tableName,callback)->
-    query = 'INSERT INTO ' + tableName+ ' (`_id`) VALUES (NULL)'
+    query = 'INSERT INTO `' + tableName + '` (`_id`) VALUES (NULL)'
     @log(query)
     @connection.run(query,(err)->
       return callback(err) if err

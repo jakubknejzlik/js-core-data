@@ -204,7 +204,7 @@ class PostgreSQLConnection extends SQLConnection
     )
 
   createRow:(tableName,callback)->
-    query = 'INSERT INTO ' + tableName + ' ("_id") VALUES (DEFAULT) RETURNING "_id"'
+    query = 'INSERT INTO "' + tableName + '" ("_id") VALUES (DEFAULT) RETURNING "_id"'
     @connection.query(query,(err,result)->
       return callback(err) if err
       callback(null,result.rows[0]._id)
