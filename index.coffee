@@ -7,6 +7,7 @@ EntityDescription = require('./lib/Descriptors/EntityDescription')
 AttributeDescription = require('./lib/Descriptors/AttributeDescription')
 AttributeType = require('./lib/Descriptors/AttributeType')
 RelationshipDescription = require('./lib/Descriptors/RelationshipDescription')
+ModelYamlParser = require('./lib/Parsers/ModelYamlParser')
 Pool = require('generic-pool')
 url = require('url')
 async = require('async')
@@ -50,6 +51,9 @@ class CoreData
     @model = @models[@modelVersion]
     @persistentStoreCoordinator = null
 
+  createModelFromYaml:(yamlSource, modelVersion) ->
+    @models[modelVersion] = ModelYamlParser.objectModelFromYaml(yamlSource)
+    return @models[modelVersion]
   createModel:(modelVersion)->
     @models[modelVersion] = new ManagedObjectModel(null, null, modelVersion)
     return @models[modelVersion]
