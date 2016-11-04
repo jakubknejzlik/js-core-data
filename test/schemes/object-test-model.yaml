@@ -1,5 +1,5 @@
 Hello:
-  class: /Classes/Hello
+  class: Hello
   columns:
     awakeFromInsertValue: string
     awakeFromFetchValue: string

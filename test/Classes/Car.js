@@ -14,9 +14,6 @@
     }
 
     Car.prototype.setBrand = function(value) {
-      if (typeof value === 'string') {
-        value += 'x';
-      }
       return this._setBrand(value);
     };
 

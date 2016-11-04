@@ -5,8 +5,8 @@ class Car extends ManagedObject
     super
 
   setBrand:(value)->
-    if typeof value is 'string'
-      value += 'x'
+#    if typeof value is 'string'
+#      value += 'x'
     @_setBrand(value)
 
   setBrandCustom:(value)->

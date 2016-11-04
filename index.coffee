@@ -25,7 +25,6 @@ class CoreData
     if (@options.logging and typeof @options.logging isnt 'function')
       @options.logging = console.log
     @models = {}
-    @model = @models[@modelVersion] = new ManagedObjectModel(@options.modelFile, @options.modelClasses, @modelVersion)
 
   syncSchema:(options,callback)->
     if typeof options is 'function'
@@ -44,6 +43,11 @@ class CoreData
       )
     ).asCallback(callback)
 
+  _ensureModel: ()->
+    if not @model
+      @model = @createModel()
+    return @model
+
   setModelVersion:(version)->
     if not @models[version]
       throw new Error('unknown model version ' + version)
@@ -51,11 +55,18 @@ class CoreData
     @model = @models[@modelVersion]
     @persistentStoreCoordinator = null
 
-  createModelFromYaml:(yamlSource, modelVersion) ->
-    @models[modelVersion] = ModelYamlParser.objectModelFromYaml(yamlSource)
-    return @models[modelVersion]
+  createModelFromYaml:(yamlSource, objectClasses, modelVersion) ->
+    modelVersion = modelVersion or @modelVersion
+    model = @createModel(modelVersion)
+    ModelYamlParser.fillModelFromYaml(model,yamlSource,objectClasses)
+    return model
   createModel:(modelVersion)->
-    @models[modelVersion] = new ManagedObjectModel(null, null, modelVersion)
+    modelVersion = modelVersion or @modelVersion
+    @models[modelVersion] = new ManagedObjectModel(modelVersion)
+
+    if not @model
+      @model = @models[modelVersion]
+
     return @models[modelVersion]
   getModel:(modelVersion)->
     if not @models[modelVersion]
@@ -63,25 +74,25 @@ class CoreData
     return @models[modelVersion]
 
   defineEntity:(entityName,attributes,options = {})->
-    return @model.defineEntity(entityName,attributes,options)
+    return @_ensureModel().defineEntity(entityName,attributes,options)
 
   defineRelationship:(entity,destinationEntity,name,options = {})->
-    @model.defineRelationship(entity,destinationEntity,name,options)
+    @_ensureModel().defineRelationship(entity,destinationEntity,name,options)
 
   defineRelationshipToMany:(entity,destinationEntity,name,inverse,options)->
-    @model.defineRelationshipToMany(entity,destinationEntity,name,inverse,options)
+    @_ensureModel().defineRelationshipToMany(entity,destinationEntity,name,inverse,options)
 
   defineRelationshipToOne:(entity,destinationEntity,name,inverse,options)->
-    @model.defineRelationshipToOne(entity,destinationEntity,name,inverse,options)
+    @_ensureModel().defineRelationshipToOne(entity,destinationEntity,name,inverse,options)
 
   defineRelationshipOneToMany:(entity,destinationEntity,name,inverse,options)->
-    @model.defineRelationshipOneToMany(entity,destinationEntity,name,inverse,options)
+    @_ensureModel().defineRelationshipOneToMany(entity,destinationEntity,name,inverse,options)
 
   defineRelationshipManyToOne:(entity,destinationEntity,name,inverse,options)->
-    @model.defineRelationshipManyToOne(entity,destinationEntity,name,inverse,options)
+    @_ensureModel().defineRelationshipManyToOne(entity,destinationEntity,name,inverse,options)
 
   defineRelationshipManyToMany:(entity,destinationEntity,name,inverse,options)->
-    @model.defineRelationshipManyToMany(entity,destinationEntity,name,inverse,options)
+    @_ensureModel().defineRelationshipManyToMany(entity,destinationEntity,name,inverse,options)
 
   createContext:()->
     return new ManagedObjectContext(@_persistentStoreCoordinator())

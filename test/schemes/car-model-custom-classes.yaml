@@ -1,5 +1,5 @@
 Owner:
-  class: /Classes/Owner
+  class: Owner
   columns:
     name: string
   relationships:

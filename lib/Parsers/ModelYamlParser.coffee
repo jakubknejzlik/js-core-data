@@ -6,23 +6,24 @@ RelationshipDescription = require('./../Descriptors/RelationshipDescription')
 ManagedObjectModel = require('./../ManagedObjectModel')
 
 class ModelYamlParser extends Object
-  @objectModelFromYamlFile: (file)->
+  @objectModelFromYaml: (yamlSource, objectClasses)->
     objectModel = new ManagedObjectModel();
-    @fillModelFromYamlFile(objectModel,file)
+    @fillModelFromYaml(objectModel, yamlSource, objectClasses)
     return objectModel
-  @objectModelFromYaml: (yamlSource)->
-    objectModel = new ManagedObjectModel();
-    @fillModelFromYaml(objectModel,yamlSource)
-    return objectModel
-  @fillModelFromYamlFile:(objectModel,file)->
-    @fillModelFromYaml(objectModel,fs.readFileSync(file,'utf8'))
-  @fillModelFromYaml:(objectModel,yamlSource)->
+
+  @fillModelFromYaml:(objectModel, yamlSource, objectClasses = {})->
     try
       entities = {}
       entitiesArray = []
       _entities = yaml.safeLoad(yamlSource)
+
       for entityName,info of _entities
-        entity = new EntityDescription(entityName,info)
+        entityClass = objectClasses[entityName or info.class]
+        if info.class and not entityClass
+          throw new Error('Could not find objectClass ' + info.class)
+        entity = objectModel.defineEntity(entityName,info.columns,{
+          class: entityClass
+        })
         entities[entityName] = entity
         entitiesArray.push(entity)
 
@@ -32,17 +33,7 @@ class ModelYamlParser extends Object
           if relationshipInfo.delete_rule or relationshipInfo.deleteRule
             relationship.deleteRule = relationshipInfo.delete_rule or relationshipInfo.deleteRule
           entities[entityName].addRelationship(relationship)
-
-
-      for entity in entitiesArray
-        objectModel.addEntity(entity)
     catch e
       throw new Error('Could not parse yaml, reason: ' + e.message)
-
-
-
-
-
-
 
 module.exports = ModelYamlParser;

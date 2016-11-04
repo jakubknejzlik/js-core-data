@@ -10,13 +10,15 @@ var assert = require("assert"),
     SortDescriptor= require('./../lib/FetchClasses/SortDescriptor'),
     CoreData = require('../index');
 var async = require('async');
+var fs = require('fs');
 
 var store_url = require('./get_storage_url');
 
 var coreData = new CoreData(store_url,{
-    modelFile:__dirname + '/schemes/car-model.yaml',
     logging:false
 });
+
+coreData.createModelFromYaml(fs.readFileSync(__dirname + '/schemes/car-model.yaml'),{Car: require('./Classes/Car')})
 
 describe('Context', function(){
     describe('store stuff',function(){
@@ -143,7 +145,7 @@ describe('Context', function(){
                     var context2 = coreData.createContext();
                     context2.getObjectWithObjectID(car.objectID).then(function(car2){
                         assert.equal(car.timestamp.toString(),car2.timestamp.toString());
-                        console.log(JSON.stringify(car))
+                        // console.log(JSON.stringify(car))
                         done();
                     }).catch(done)
                 });

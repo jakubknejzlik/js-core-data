@@ -2,12 +2,15 @@ var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
-    moment = require('moment');
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser'),
+    moment = require('moment'),
+    fs = require('fs');
 
 var store_url = require('./get_storage_url');
 
 describe('serialization',function(){
-    var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
+    var objectModel = new ManagedObjectModel();
+    ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/object-test-model.yaml'),{Hello: require('./Classes/Hello')})
     describe('json',function(){
         var storeCoordinator,timestamp = Math.round(Date.now() / 1000);
         var date = new Date(timestamp*1000);

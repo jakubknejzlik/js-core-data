@@ -45,7 +45,6 @@
         this.options.logging = console.log;
       }
       this.models = {};
-      this.model = this.models[this.modelVersion] = new ManagedObjectModel(this.options.modelFile, this.options.modelClasses, this.modelVersion);
     }
 
     CoreData.prototype.syncSchema = function(options, callback) {
@@ -69,6 +68,13 @@
       })(this)).asCallback(callback);
     };
 
+    CoreData.prototype._ensureModel = function() {
+      if (!this.model) {
+        this.model = this.createModel();
+      }
+      return this.model;
+    };
+
     CoreData.prototype.setModelVersion = function(version) {
       if (!this.models[version]) {
         throw new Error('unknown model version ' + version);
@@ -78,13 +84,20 @@
       return this.persistentStoreCoordinator = null;
     };
 
-    CoreData.prototype.createModelFromYaml = function(yamlSource, modelVersion) {
-      this.models[modelVersion] = ModelYamlParser.objectModelFromYaml(yamlSource);
-      return this.models[modelVersion];
+    CoreData.prototype.createModelFromYaml = function(yamlSource, objectClasses, modelVersion) {
+      var model;
+      modelVersion = modelVersion || this.modelVersion;
+      model = this.createModel(modelVersion);
+      ModelYamlParser.fillModelFromYaml(model, yamlSource, objectClasses);
+      return model;
     };
 
     CoreData.prototype.createModel = function(modelVersion) {
-      this.models[modelVersion] = new ManagedObjectModel(null, null, modelVersion);
+      modelVersion = modelVersion || this.modelVersion;
+      this.models[modelVersion] = new ManagedObjectModel(modelVersion);
+      if (!this.model) {
+        this.model = this.models[modelVersion];
+      }
       return this.models[modelVersion];
     };
 
@@ -99,34 +112,34 @@
       if (options == null) {
         options = {};
       }
-      return this.model.defineEntity(entityName, attributes, options);
+      return this._ensureModel().defineEntity(entityName, attributes, options);
     };
 
     CoreData.prototype.defineRelationship = function(entity, destinationEntity, name, options) {
       if (options == null) {
         options = {};
       }
-      return this.model.defineRelationship(entity, destinationEntity, name, options);
+      return this._ensureModel().defineRelationship(entity, destinationEntity, name, options);
     };
 
     CoreData.prototype.defineRelationshipToMany = function(entity, destinationEntity, name, inverse, options) {
-      return this.model.defineRelationshipToMany(entity, destinationEntity, name, inverse, options);
+      return this._ensureModel().defineRelationshipToMany(entity, destinationEntity, name, inverse, options);
     };
 
     CoreData.prototype.defineRelationshipToOne = function(entity, destinationEntity, name, inverse, options) {
-      return this.model.defineRelationshipToOne(entity, destinationEntity, name, inverse, options);
+      return this._ensureModel().defineRelationshipToOne(entity, destinationEntity, name, inverse, options);
     };
 
     CoreData.prototype.defineRelationshipOneToMany = function(entity, destinationEntity, name, inverse, options) {
-      return this.model.defineRelationshipOneToMany(entity, destinationEntity, name, inverse, options);
+      return this._ensureModel().defineRelationshipOneToMany(entity, destinationEntity, name, inverse, options);
     };
 
     CoreData.prototype.defineRelationshipManyToOne = function(entity, destinationEntity, name, inverse, options) {
-      return this.model.defineRelationshipManyToOne(entity, destinationEntity, name, inverse, options);
+      return this._ensureModel().defineRelationshipManyToOne(entity, destinationEntity, name, inverse, options);
     };
 
     CoreData.prototype.defineRelationshipManyToMany = function(entity, destinationEntity, name, inverse, options) {
-      return this.model.defineRelationshipManyToMany(entity, destinationEntity, name, inverse, options);
+      return this._ensureModel().defineRelationshipManyToMany(entity, destinationEntity, name, inverse, options);
     };
 
     CoreData.prototype.createContext = function() {

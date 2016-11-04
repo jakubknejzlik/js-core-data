@@ -3,10 +3,12 @@ var assert = require("assert"),
     ManagedObject = require('./../lib/ManagedObject'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser')
     Car = require('./Classes/Car'),
     Owner = require('./Classes/Owner'),
     User = require('./Classes/User'),
-    moment = require('moment');
+    moment = require('moment'),
+    fs = require('fs');
 
 
 var store_url = require('./get_storage_url');
@@ -44,8 +46,9 @@ describe('custom classes',function(){
         })
     });
 
-    describe('yaml',function(){
-        var objectModel = new ManagedObjectModel(__dirname + '/schemes/car-model-custom-classes.yaml',{'Car':require('./Classes/Car')});
+    describe('yaml classes',function(){
+        var objectModel = new ManagedObjectModel();
+        ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/car-model-custom-classes.yaml','utf-8'),{'Car':require('./Classes/Car'),'Owner':require('./Classes/Owner')})
         var storeCoordinator,car,owner;
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
@@ -58,18 +61,13 @@ describe('custom classes',function(){
                 done()
             });
         });
-        it('should throw error if no custom file module found',function(){
-            assert.throws(function(){
-                var model = new ManagedObjectModel(__dirname + '/schemes/car-model-custom-classes-invalid.yaml');
-            })
-        });
         it('should create object with valid class',function(){
-            assert.ok(car instanceof Car);
-            assert.ok(owner instanceof Owner)
+            assert.ok(car instanceof Car,'isn\'t instance of Car');
+            assert.ok(owner instanceof Owner,'isn\'t instance of Owner')
         });
         it('should be able to call custom methods',function(){
             car.setBrandCustom('test!');
-            assert.equal(car.brand,'test!test!x')
+            assert.equal(car.brand,'test!test!')
         });
         it('should call relation methods correctly',function(done){
             car.setOwner(owner);

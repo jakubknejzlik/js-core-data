@@ -2,12 +2,15 @@ var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser'),
+    fs = require('fs'),
     moment = require('moment');
 
 var store_url = require('./get_storage_url');
 
 describe('delete rules',function(){
-    var objectModel = new ManagedObjectModel(__dirname + '/schemes/deletion-test.yaml');
+    var objectModel = new ManagedObjectModel();
+    ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/deletion-test.yaml'))
     var storeCoordinator,department;
 
     before(function(done){

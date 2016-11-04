@@ -1,36 +1,26 @@
 var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser')
     fs = require('fs');
 
 describe('yaml',function(){
     var objectModel;
     before(function(){
-        objectModel = new ManagedObjectModel(__dirname + '/schemes/test-model.yaml');
+        objectModel = new ManagedObjectModel();
+        ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/test-model.yaml','utf-8'))
     })
 
     it('should fail loading invalid scheme',function(){
         assert.throws(function(){
-            objectModel = new ManagedObjectModel(__dirname + '/schemes/relationship-invalid-test.yaml');
+            objectModel = new ManagedObjectModel();
+            ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/relationship-invalid-test.yaml','utf-8'))
         })
     })
 
     it('should load from yaml source',function(){
         assert.doesNotThrow(function(){
-            objectModel = new ManagedObjectModel(fs.readFileSync(__dirname + '/schemes/test-model.yaml'));
-        })
-    })
-
-    it('should fail loading invalid scheme source',function(){
-        assert.throws(function(){
-            objectModel = new ManagedObjectModel(fs.readFileSync(__dirname + '/schemes/relationship-invalid-test.yaml'));
-        })
-    })
-
-    it('should fail loading invalid yaml source',function(){
-        assert.throws(function(){
-            objectModel = new ManagedObjectModel(fs.readFileSync(__dirname + '/schemes/invalid-yaml.yaml'));
-        },function(err){
-            return err.message.indexOf('Could not parse yaml, reason:') === 0;
+            objectModel = new ManagedObjectModel();
+            ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/test-model.yaml'))
         })
     })
 

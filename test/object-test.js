@@ -2,19 +2,23 @@ var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator'),
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser')
     moment = require('moment'),
-    CoreData = require('../');
+    CoreData = require('../'),
+    fs = require('fs');
 
 var store_url = require('./get_storage_url');
 
 describe('ManagedObject',function(){
     describe('attributes',function(){
-        var objectModel = new ManagedObjectModel(__dirname + '/schemes/object-test-model.yaml');
+        var objectModel = new ManagedObjectModel();
+        ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/object-test-model.yaml'),{Hello: require('./Classes/Hello')})
 //        var invalidObjectModel = new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
 
         it('should throw error for invalid model',function(){
             assert.throws(function(){
-                new ManagedObjectModel(__dirname + '/schemes/attribute-invalid-test-model.yaml');
+                new ManagedObjectModel();
+                ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/attribute-invalid-test-model.yaml'))
             },/unknown attribute type/);
 //            storeCoordinator = new PersistentStoreCoordinator(invalidObjectModel,{logging:console.log});
 //
@@ -635,9 +639,9 @@ describe('ManagedObject',function(){
     describe('relationships',function(){
         before(function(done){
             coreData = new CoreData(store_url,{
-                modelFile:__dirname + '/schemes/car-model.yaml',
                 logging:false
             });
+            coreData.createModelFromYaml(fs.readFileSync(__dirname + '/schemes/car-model.yaml'))
             coreData.syncSchema({force:true}).then(done,done);
         });
 

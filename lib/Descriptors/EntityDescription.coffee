@@ -13,10 +13,10 @@ class EntityDescription
     @_relationshipsByName = {}
 
     if initData
-      if typeof initData.class is 'string'
-        @objectClassName = initData.class
-      else if typeof initData.class is 'function'
+      if typeof initData.class is 'function'
         @objectClass = initData.class
+      else
+        @objectClass = ManagedObject
       for attributeKey,attributeInfo of initData.columns
         if attributeInfo not instanceof Object
           attributeInfo = {type:attributeInfo}

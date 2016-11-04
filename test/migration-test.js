@@ -11,7 +11,7 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('migrations',function(){
 
-    var db = new CoreData(store_url,{logging:false});
+    var db = new CoreData(store_url,{logging:true});
 
     var company2Name = 'Company2' + Math.round(Math.random()*10000);
     var userFriendsRelationshipName = 'friends' + Math.round(Math.random()*10000);
@@ -164,7 +164,7 @@ describe('migrations',function(){
 
     it('should validate user objects created in 0.2',function(done){
         var context = db.createContext();
-
+        console.log(db.modelVersion)
         context.getObjects('User').then(function(users){
             assert.equal(users.length,1);
             var user = users[0];

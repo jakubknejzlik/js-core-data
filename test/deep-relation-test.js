@@ -2,6 +2,7 @@ var assert = require("assert"),
     ManagedObjectModel = require('./../lib/ManagedObjectModel'),
     ManagedObject = require('./../lib/ManagedObject'),
     ManagedObjectContext = require('./../lib/ManagedObjectContext'),
+    ModelYamlParser = require('../lib/Parsers/ModelYamlParser')
     PersistentStoreCoordinator = require('./../lib/PersistentStoreCoordinator');
 var CoreData = require('../index');
 
@@ -9,12 +10,13 @@ var store_url = require('./get_storage_url');;
 
 
 var coreData = new CoreData(store_url,{
-    modelFile:__dirname + '/schemes/deep-relation-model.yaml',
     logging:false
 });
+coreData.createModelFromYaml(fs.readFileSync(__dirname + '/schemes/deep-relation-model.yaml'))
 
 describe('deep relation',function(){
-    var objectModel = new ManagedObjectModel(__dirname + '/schemes/deep-relation-model.yaml');
+    var objectModel = new ManagedObjectModel()
+    ModelYamlParser.fillModelFromYaml(objectModel, fs.readFileSync(__dirname + '/schemes/deep-relation-model.yaml'))
 
     describe('parent class',function(){
         var storeCoordinator;

@@ -2,37 +2,16 @@ EntityDescription = require('./Descriptors/EntityDescription')
 RelationshipDescription = require('./Descriptors/RelationshipDescription')
 MigrationDescription = require('./Descriptors/MigrationDescription')
 ManagedObject = require('./ManagedObject')
+ModelYamlParser = require('./Parsers/ModelYamlParser')
 path = require('path')
 fs = require('fs')
 util = require('util')
 
 class ManagedObjectModel extends Object
-  constructor:(scheme = null,modelClasses, @version = 'unknown') ->
+  constructor:(@version = 'unknown') ->
     @entities = {}
     @classes = {}
     @migrations = []
-    @modelClasses = modelClasses or {}
-    if scheme
-      if fs.existsSync(scheme)
-        @loadSchemeFromUrl(scheme)
-      else
-        @loadSchemeFromYaml(scheme)
-
-  loadSchemeFromUrl:(url) ->
-    ext = path.extname(url)
-    switch ext
-      when '.yaml' then require('./Parsers/ModelYamlParser').fillModelFromYamlFile(@,url)
-      else throw new Error('unknown extension '+ext)
-
-    for key,entity of @entities
-      @_entityObjectClass(entity)
-
-  loadSchemeFromYaml:(yamlSource)->
-    require('./Parsers/ModelYamlParser').fillModelFromYaml(@,yamlSource)
-
-    for key,entity of @entities
-      @_entityObjectClass(entity)
-
 
   addEntity:(entity) ->
     if entity instanceof EntityDescription
@@ -66,27 +45,7 @@ class ManagedObjectModel extends Object
 
 
   _entityObjectClass:(entity)->
-    if entity.objectClass
-      return entity.objectClass
-    objectClassName = entity.objectClassName
-    cls = null
-    if objectClassName
-      if @modelClasses[objectClassName]
-        cls = @modelClasses[objectClassName]
-      else
-        _m = module.parent
-        loop
-          try
-            cls = require(path.dirname(_m.filename) + objectClassName)
-          catch e
-          _m = _m.parent
-          break unless _m
-    else
-      cls = ManagedObject
-    if not cls
-      throw new Error('module for class ' + entity.name + ' not found')
-    entity.objectClass = cls
-    return cls
+    return entity.objectClass
 
   insertObjectIntoContext:(entityName,context) ->
     entity = @entities[entityName]
