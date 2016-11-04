@@ -613,6 +613,15 @@ class GenericSQLStore extends IncrementalStore
           entityChangedNames[change.change] = entityName
           sqls.push('ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' RENAME TO ' + @quoteSymbol + @_formatTableName(change.change) + @quoteSymbol)
 
+    for change in migration.entitiesChanges
+      entityName = change.entity
+      switch change.change
+        when '+'
+          for relationship in modelTo.getEntity(entityName).relationships
+            inverseRelationship = relationship.inverseRelationship()
+            if relationship.toMany and inverseRelationship.toMany
+              sqls = sqls.concat(@createRelationshipQueries(relationship))
+
     updatedEntities = _.uniq(Object.keys(migration.attributesChanges).concat(Object.keys(migration.relationshipsChanges)))
 
     for entityName in updatedEntities
