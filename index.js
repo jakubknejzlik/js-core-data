@@ -68,6 +68,21 @@
       })(this)).asCallback(callback);
     };
 
+    CoreData.prototype.closeAllConnections = function() {
+      return new Promise((function(_this) {
+        return function(resolve, reject) {
+          return async.forEach(_this._persistentStoreCoordinator().persistentStores, function(store, cb) {
+            return store.closeAllConnections(cb);
+          }, function(err) {
+            if (err) {
+              return reject(err);
+            }
+            return resolve();
+          });
+        };
+      })(this));
+    };
+
     CoreData.prototype._ensureModel = function() {
       if (!this.model) {
         this.model = this.createModel();

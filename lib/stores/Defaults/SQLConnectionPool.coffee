@@ -46,4 +46,7 @@ class SQLConnectionPool
   releaseTransaction: (transaction)->
     @pool.release(transaction.connection);
 
+  closeAllConnections: (callback)->
+    @pool.destroyAllNow(callback)
+
 module.exports = SQLConnectionPool

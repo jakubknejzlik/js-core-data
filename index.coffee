@@ -43,6 +43,16 @@ class CoreData
       )
     ).asCallback(callback)
 
+  closeAllConnections: ()->
+    return new Promise((resolve,reject)=>
+      async.forEach(@_persistentStoreCoordinator().persistentStores,(store,cb)->
+        store.closeAllConnections(cb)
+      ,(err)->
+        return reject(err) if err
+        resolve()
+      )
+    )
+
   _ensureModel: ()->
     if not @model
       @model = @createModel()

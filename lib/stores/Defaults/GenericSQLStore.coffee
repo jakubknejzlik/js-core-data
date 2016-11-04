@@ -40,6 +40,9 @@ class GenericSQLStore extends IncrementalStore
   createConnection: (url)->
     throw new Error('createConnection must be overriden')
 
+  closeAllConnections: (callback)->
+    @connectionPool.closeAllConnections(callback)
+
   execute:(request,context,callback,afterInsertCallback) ->
     if request not instanceof  PersistentStoreRequest
       throw new Error('request ' + request + ' is not instance of PersistentStoreRequest')

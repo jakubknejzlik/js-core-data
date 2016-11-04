@@ -133,7 +133,9 @@ describe('migrations',function(){
         },'my failing script')
     });
     after(function(){
-        if(fs.existsSync(storeTmpName))fs.unlinkSync(storeTmpName)
+        return db.closeAllConnections().then(function() {
+            if(fs.existsSync(storeTmpName))fs.unlinkSync(storeTmpName)
+        })
     });
 
     it('should sync schema to 0.1',function(done){
