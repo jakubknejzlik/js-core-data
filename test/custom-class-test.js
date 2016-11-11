@@ -50,15 +50,13 @@ describe('custom classes',function(){
         var objectModel = new ManagedObjectModel();
         ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/car-model-custom-classes.yaml','utf-8'),{'Car':require('./Classes/Car'),'Owner':require('./Classes/Owner')})
         var storeCoordinator,car,owner;
-        before(function(done){
+        before(function(){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
             storeCoordinator.addStore(store_url);
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                if(err)done(err);
+            return storeCoordinator.persistentStores[0].syncSchema({force:true}).then(function(){
                 var context = new ManagedObjectContext(storeCoordinator);
                 car = context.createObjectWithName('Car');
                 owner = context.createObjectWithName('Owner');
-                done()
             });
         });
         it('should create object with valid class',function(){

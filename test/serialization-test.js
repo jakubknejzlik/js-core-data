@@ -27,8 +27,7 @@ describe('serialization',function(){
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
             storeCoordinator.addStore(store_url)
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                if(err)return done(err);
+            return storeCoordinator.persistentStores[0].syncSchema({force:true}).then(function(){
                 deleteAll(storeCoordinator,done);
             });
         })

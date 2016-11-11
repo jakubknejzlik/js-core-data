@@ -197,16 +197,16 @@ describe('migrations',function(){
     })
 
 
-    it('should migrate with force anytime',function(done){
-        db.setModelVersion('0.1');
-        db.syncSchema({force:true},done);
+    it('should migrate with force anytime',function(){
+        db.setModelVersion('0.1')
+        return db.syncSchema({force:true})
     })
 
-    it('should migrate multiple versions',function(done){
-        db.setModelVersion('0.1');
-        db.syncSchema({force:true}).then(function(){
-            db.setModelVersion('0.7');
-            db.syncSchema(done)
-        }).catch(done)
+    it('should migrate multiple versions',function(){
+        db.setModelVersion('0.1')
+        return db.syncSchema({force:true}).then(function(){
+            db.setModelVersion('0.7')
+            return db.syncSchema()
+        })
     })
 });
