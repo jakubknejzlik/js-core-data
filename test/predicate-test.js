@@ -73,6 +73,10 @@ describe('Predicate',function(){
         var predicate = new Predicate({$and:{$or:{}},$or:{}});
         assert.equal(predicate.toString(),"TRUE");
     });
+    it('should correctly parse object condition with array',function(){
+        var predicate = new Predicate({emptyArray:[],array:['value1']});
+        assert.equal(predicate.toString(),"(SELF.array IN ('value1'))");
+    });
     it('should correctly parse object condition with custom object',function(){
         date = new Date(1420070400000);
         var predicate = new Predicate({test:date});
