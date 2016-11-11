@@ -115,8 +115,14 @@ class MySQLStore extends GenericSQLStore
   _renameAttributeQuery:(tableName,attributeFrom,attributeTo)->
     return 'ALTER TABLE ' + @quoteSymbol + tableName + @quoteSymbol + ' CHANGE ' + @quoteSymbol + attributeFrom.name + @quoteSymbol + ' ' + @_columnDefinitionForAttribute(attributeTo)
   _removeRelationshipQuery:(entityName,relationship)->
-    columnName = relationship.name + '_id'
-    return 'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP FOREIGN KEY ' + @quoteSymbol + @_foreignKeyNameForRelationship(relationship) + @quoteSymbol + ';' + @_removeColumnQuery(entityName,columnName)
+    inverseRelationship = relationship.inverseRelationship()
+    if relationship.toMany and inverseRelationship.toMany
+      reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+      reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+      return @_dropTableQuery(reflexiveTableName)
+    else
+      columnName = relationship.name + '_id'
+      return 'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP FOREIGN KEY ' + @quoteSymbol + @_foreignKeyNameForRelationship(relationship) + @quoteSymbol + ';' + @_removeColumnQuery(entityName,columnName)
   _relationshipColumnDefinition:(relationship)->
     return super(relationship) + ',' + @_foreignKeyDefinitionForRelationship(relationship)
   _addRelationshipQueries:(entityName,relationship)->

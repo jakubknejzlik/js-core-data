@@ -611,6 +611,9 @@ class GenericSQLStore extends IncrementalStore
             if not inverseRelationship.toMany
               sqls = sqls.concat(@_addRelationshipQueries(inverseRelationship.entity.name,inverseRelationship))
         when '-'
+          entity = modelFrom.getEntity(entityName)
+          for name,relationship of entity.relationshipsByName()
+            sqls.push(@_removeRelationshipQuery(entityName,relationship))
           sqls = sqls.concat(@_dropEntityQueries(modelFrom.getEntity(entityName)))
         else
           entityChangedNames[change.change] = entityName
@@ -746,7 +749,13 @@ class GenericSQLStore extends IncrementalStore
   _removeColumnQuery:(entityName,column)->
     'ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' DROP COLUMN ' + @quoteSymbol + column + @quoteSymbol
   _removeRelationshipQuery:(entityName,relationship)->
-    return @_removeColumnQuery(entityName,relationship.name + '_id')
+    inverseRelationship = relationship.inverseRelationship()
+    if relationship.toMany and inverseRelationship.toMany
+      reflexiveRelationship = @_relationshipByPriority(relationship,inverseRelationship)
+      reflexiveTableName = @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name
+      return @_dropTableQuery(reflexiveTableName)
+    else
+      return @_removeColumnQuery(entityName,relationship.name + '_id')
   _addRelationshipQueries:(entityName,relationship)->
     return ['ALTER TABLE ' + @quoteSymbol + @_formatTableName(entityName) + @quoteSymbol + ' ADD COLUMN ' + @_relationshipColumnDefinition(relationship)]
 
