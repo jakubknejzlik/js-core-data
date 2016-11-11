@@ -27,10 +27,9 @@ describe('serialization',function(){
         before(function(done){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
             storeCoordinator.addStore(store_url)
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                if(err)return done(err);
+            storeCoordinator.persistentStores[0].syncSchema({force:true}).then(function(){
                 deleteAll(storeCoordinator,done);
-            });
+            }).catch(done)
         })
         it('should create generate valid JSON',function(){
             var context = new ManagedObjectContext(storeCoordinator)

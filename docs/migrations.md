@@ -54,6 +54,7 @@ Migration is performed automaticaly with `syncSchema(options)` method:
 - `options`
     - `ignoreMissingVersion` - when `true` sync doesn't fail if no current version is found in `_meta` table 
     - `force` - force recreate schema (drops all tables and creates them again)
+    - `automigration` - see below for more information
 
 Example:
 
@@ -67,6 +68,17 @@ Every persistent store (database) has schema version stored in table `_meta`, du
 
 
 *Note: stores can join multiple migrations (eg. 0.1=>0.2=>...=>0.8=>0.9), currently not performed in one transaction*
+
+## Automatic migration
+
+Since version 1.6.0 `js-core-data` can generate automigrations. It adds/removes missing entities/attributes/relationships. Automatic migration can be used only between two existing models (thus you have to use schema definitions and model version related to current database model version must exists).
+  
+Usage:
+```
+database.syncSchema({automigration}).then(function(){
+    // tables synced
+})
+```
 
 ## Next
 
