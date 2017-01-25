@@ -88,10 +88,10 @@ class Predicate extends Object
           if operator in ['LIKE','NOT LIKE']
             predicates.push(new Predicate(key + ' ' + operator + ' %s',value.replace(/\*/g,'%').replace(/\?/g,'_')))
           else
-            if isFinite(value)
-              predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
-            else
-              predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
+#            if isFinite(value)
+#              predicates.push(new Predicate(key + ' ' + operator + ' %d',value))
+#            else
+            predicates.push(new Predicate(key + ' ' + operator + ' %s',value))
         else
           if value instanceof Date
             predicates.push(new Predicate(key + ' ' + operator + ' %s',moment(value).format(DATE_FORMAT)))

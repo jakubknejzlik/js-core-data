@@ -55,7 +55,7 @@ describe('Predicate',function(){
 
     it('should correctly parse object condition',function(){
         var predicate = new Predicate({'SELF.tags.key':['aa','bb'],'test':24,'minustest':-25,'minustest2':'-25',negativeBool:false,bool:true,'nullAttr':null,'nonnullAttr!':null,'lt<':10,'lte<=':15,'gt>':5,'gte>=':15,'notequal!':'aa','like?':'test*aa?','notLike!?':'test*aa?'});
-        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND SELF.test = 24 AND SELF.minustest = -25 AND SELF.minustest2 = -25 AND SELF.negativeBool = FALSE AND SELF.bool = TRUE AND SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL AND SELF.lt < 10 AND SELF.lte <= 15 AND SELF.gt > 5 AND SELF.gte >= 15 AND SELF.notequal <> 'aa' AND SELF.like LIKE 'test%aa_' AND SELF.notLike NOT LIKE 'test%aa_')");
+        assert.equal(predicate.toString(),"(SELF.tags.key IN ('aa','bb') AND SELF.test = 24 AND SELF.minustest = -25 AND SELF.minustest2 = '-25' AND SELF.negativeBool = FALSE AND SELF.bool = TRUE AND SELF.nullAttr IS NULL AND SELF.nonnullAttr IS NOT NULL AND SELF.lt < 10 AND SELF.lte <= 15 AND SELF.gt > 5 AND SELF.gte >= 15 AND SELF.notequal <> 'aa' AND SELF.like LIKE 'test%aa_' AND SELF.notLike NOT LIKE 'test%aa_')");
     });
     it('should correctly parse object condition with OR',function(){
         var predicate = new Predicate({$or:{'SELF.tags.key':['aa','bb'],'LEAST(test)':24,'testBool':true,$or:{'nullAttr':null,'nonnullAttr!':null}}});
