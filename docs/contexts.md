@@ -17,6 +17,11 @@ When you have context, you can create new entities in it. This code creates new 
 
 ```
 var author = context.create('Author',{firstname: 'John', lastname: 'Doe'});
+
+// alternatively you can upsert object
+// var data = {firstname: 'John', lastname: 'Doe'};
+// context.getOrCreateObject('Author',{where:data},data).then(function(author) {
+// });
 ```
 
 You can also create relationships.
@@ -35,7 +40,7 @@ context.save().then(function(){
 })
 ```
 
-It's important to do cleanup memory. This is done by destroying context. When context is destroyed, no more changes could be done with it.
+It's important to cleanup memory. This is done by destroying context. When context is destroyed, no more changes could be done with it.
 
 ```
 context.destory();
