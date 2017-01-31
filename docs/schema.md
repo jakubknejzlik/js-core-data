@@ -158,6 +158,45 @@ database.setModelVersion('v1'); // you need to specify which version to use
 
 You can migrate between model versions. For more information see [Migrations](migrations.md)
 
+## YAML schema
+
+Sometimes it's more convenient to define schema in some sort of string and be able parse it.
+
+For example you can have this schema written in yaml:
+```
+Company:
+  columns:
+    name: string
+  relationships:
+    employees:
+      entity: Person
+      toMany: true # default is false
+      inverse: company
+
+Person:
+  columns:
+    firstname: string
+    lastname: string
+  relationships:
+    company:
+      entity: Company
+      inverse: employees
+    friends: # many-2-many
+      entity: Person
+      toMany: true
+      inverse: friends 
+```
+
+Then you can create model from yaml file this way:
+```
+var entityDefinitions = {
+    Person: PersonClass // PersonClass should be subclass of ManagedObject
+}
+database.createModelFromYaml(fs.readFileSync('path/to/file.yml')),entityDefinitions,'v1')
+```
+
+Empty object `entityDefinitions` is place where you can inject subclasses (object key is entity name).
+
 ## Next
 
 Continue to [Fetching](fetching.md)
