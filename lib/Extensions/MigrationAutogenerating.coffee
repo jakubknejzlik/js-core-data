@@ -1,7 +1,10 @@
 ManagedObjectModel = require('../ManagedObjectModel')
 MigrationDescription = require('../Descriptors/MigrationDescription')
 
-diff = require('array-differ')
+diff = (arr, arr2) =>
+  return arr.filter((x) =>
+    return x not in arr2
+  )
 
 ManagedObjectModel::autogenerateMigrationFromModel = (modelFrom, options)->
 

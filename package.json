@@ -13,7 +13,6 @@
   ],
   "dependencies": {
     "array-control": "^0.2.0",
-    "array-differ": "^2.0.3",
     "async": "^1.4.0",
     "bluebird": "^3.3.4",
     "generic-pool": "^2.2.0",
