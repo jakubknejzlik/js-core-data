@@ -21,7 +21,7 @@ CoreData::syncStoreSchema = (store, options) ->
     else if not databaseModelVersion and not options.ignoreMissingVersion and not options.force
       throw new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion')
     else if (not databaseModelVersion and options.ignoreMissingVersion) or options.force
-      return store.syncSchema()
+      return store.syncSchema(options)
     else
       migrations = objectModel.getMigrationsFrom(databaseModelVersion)
       if not migrations or migrations.length is 0
