@@ -1,14 +1,16 @@
-IncrementalStore = require('./../IncrementalStore')
-PersistentStoreRequest = require('./../PersistentStoreRequest')
 #GenericPool = require('generic-pool')
 url = require('url')
 async = require('async')
+squel = require('squel')
+moment = require('moment')
+Promise = require('bluebird')
+
+IncrementalStore = require('./../IncrementalStore')
+PersistentStoreRequest = require('./../PersistentStoreRequest')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
 FetchRequest = require('./../../FetchRequest')
 SortDescriptor = require('./../../FetchClasses/SortDescriptor')
-squel = require('squel')
-moment = require('moment')
 
 PersistentStoreCoordinator = require('../../PersistentStoreCoordinator')
 ManagedObjectContext = require('../../ManagedObjectContext')
@@ -517,54 +519,46 @@ class GenericSQLStore extends IncrementalStore
 
 
 # schema synchronization
-  syncSchema: (options,callback)->
-    if typeof options is 'function'
-      callback = options
-      options = null
-    options = options or {}
-
-    objectModel = @storeCoordinator.objectModel
-
-    @getCurrentVersion((err,currentVersion)=>
-      if currentVersion is objectModel.version and not options.force
-        callback()
-      else if not currentVersion and not options.ignoreMissingVersion and not options.force
-        callback(new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion'))
-      else if (not currentVersion and options.ignoreMissingVersion) or options.force
-        @connectionPool.createTransaction((err,transaction)=>
-          return callback(err) if err
-          @createSchemaQueries(options,transaction,(err,queries)=>
-            if err
-              transaction.rollback(()=>
-                callback(err)
-              )
-            else
-              @_runRawQueriesInSingleTransaction(queries,transaction,callback)
-          )
+  syncSchema: (options)->
+    return new Promise((resolve, reject) =>
+      @connectionPool.createTransaction((err,transaction)=>
+        return callback(err) if err
+        @createSchemaQueries(options,transaction,(err,queries)=>
+          if err
+            transaction.rollback(()=>
+              reject(err)
+            )
+          else
+            @_runRawQueriesInSingleTransaction(queries,transaction,(err, result) =>
+              return reject(err) if err
+              resolve(result)
+            )
         )
-      else
-        migrations = objectModel.getMigrationsFrom(currentVersion)
-        if not migrations or migrations.length is 0
-          throw new Error('migration ' + currentVersion + '=>' + objectModel.version + ' not found')
-        async.forEachSeries(migrations,@runMigration.bind(@),callback)
+      )
     )
 
-  runMigration:(migration,callback)->
-    objectModel = @storeCoordinator.objectModel
-    async.forEachSeries(migration.scriptsBefore,(script,cb)=>
-      @_runMigrationScript(migration.modelFrom,script,cb)
-    ,(err)=>
-      return callback(err) if err
-      try
-        queries = @createMigrationQueries(migration)
-        queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
-      catch err
-        return callback(err)
-      @_runRawQueriesInSingleTransaction(queries,(err)=>
-        return callback(err) if err
-        async.forEachSeries(migration.scriptsAfter,(script,cb)=>
-          @_runMigrationScript(migration.modelTo,script,cb)
-        ,callback)
+
+  runMigration:(migration)->
+    return new Promise((resolve, reject) =>
+      objectModel = @storeCoordinator.objectModel
+      async.forEachSeries(migration.scriptsBefore,(script,cb)=>
+        @_runMigrationScript(migration.modelFrom,script,cb)
+      ,(err)=>
+        return reject(err) if err
+        try
+          queries = @createMigrationQueries(migration)
+          queries.push('UPDATE ' + @quoteSymbol + '_meta' + @quoteSymbol + ' SET ' + @quoteSymbol + 'value' + @quoteSymbol + ' = \'' + objectModel.version + '\' WHERE ' + @quoteSymbol + 'key' + @quoteSymbol + ' = \'version\'')
+        catch err
+          return reject(err)
+        @_runRawQueriesInSingleTransaction(queries,(err)=>
+          return reject(err) if err
+          async.forEachSeries(migration.scriptsAfter,(script,cb)=>
+            @_runMigrationScript(migration.modelTo,script,cb)
+          ,(err,result) =>
+            return reject(err) if err
+            resolve(result)
+          )
+        )
       )
     )
 
@@ -584,11 +578,14 @@ class GenericSQLStore extends IncrementalStore
 
 
 
-  getCurrentVersion:(callback)->
-    query = squel.select().from('_meta').field('value').where(@quoteSymbol + 'key' + @quoteSymbol + ' = ?','version').limit(1)
-    @connectionPool.query(query.toString(),(err,rows)->
-      return callback(err) if err
-      callback(null,rows[0]?.value)
+  getCurrentVersion:()->
+    return new Promise((resolve, reject) =>
+      query = squel.select().from('_meta').field('value').where(@quoteSymbol + 'key' + @quoteSymbol + ' = ?','version').limit(1)
+      @connectionPool.query(query.toString(),(err,rows)->
+#        return reject(err) if err
+        return resolve(null) if not rows
+        resolve(rows[0]?.value)
+      )
     )
 
   createMigrationQueries:(migration)->

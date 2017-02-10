@@ -33,15 +33,11 @@ describe('ManagedObject',function(){
 //                done()
 //            })
         });
-        it('shouldn\'t throw error for valid model',function(done){
+        it('shouldn\'t throw error for valid model',function(){
             storeCoordinator = new PersistentStoreCoordinator(objectModel);
 
             store = storeCoordinator.addStore(store_url);
-            storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                console.log(err)
-                assert.ifError(err);
-                done()
-            })
+            return storeCoordinator.persistentStores[0].syncSchema({force:true})
         });
         describe('validation',function(){
             var storeCoordinator,timestamp = Date.now();
@@ -62,10 +58,9 @@ describe('ManagedObject',function(){
                 storeCoordinator = new PersistentStoreCoordinator(objectModel,{logging:false});
                 storeCoordinator.addStore(store_url);
                 //storeCoordinator.persistentStores[0].globals.logging = console.log
-                storeCoordinator.persistentStores[0].syncSchema({force:true},function(err){
-                    if(err)return done(err);
+                storeCoordinator.persistentStores[0].syncSchema({force:true}).then(function(){
                     deleteAll(storeCoordinator,done);
-                })
+                }).catch(done)
             });
     //        after(function(done){
     //            deleteAll(storeCoordinator,done);

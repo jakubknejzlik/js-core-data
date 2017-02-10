@@ -13,10 +13,10 @@ describe('delete rules',function(){
     ModelYamlParser.fillModelFromYaml(objectModel,fs.readFileSync(__dirname + '/schemes/deletion-test.yaml'))
     var storeCoordinator,department;
 
-    before(function(done){
+    before(function(){
         storeCoordinator = new PersistentStoreCoordinator(objectModel);
         storeCoordinator.addStore(store_url)
-        storeCoordinator.persistentStores[0].syncSchema({force:true},done);
+        return storeCoordinator.persistentStores[0].syncSchema({force:true});
     })
 //    after(function(done){
 //        var context = new ManagedObjectContext(storeCoordinator)

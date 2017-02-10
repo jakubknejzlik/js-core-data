@@ -136,5 +136,4 @@ class ManagedObjectModel extends Object
 
     return null
 
-
 module.exports = ManagedObjectModel;
