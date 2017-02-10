@@ -522,7 +522,7 @@ class GenericSQLStore extends IncrementalStore
   syncSchema: (options)->
     return new Promise((resolve, reject) =>
       @connectionPool.createTransaction((err,transaction)=>
-        return callback(err) if err
+        return reject(err) if err
         @createSchemaQueries(options,transaction,(err,queries)=>
           if err
             transaction.rollback(()=>
