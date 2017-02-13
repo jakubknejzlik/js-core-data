@@ -75,7 +75,7 @@ Since version 1.6.0 `js-core-data` can generate automigrations. It adds/removes 
   
 Usage:
 ```
-database.syncSchema({automigration}).then(function(){
+database.syncSchema({automigration: true}).then(function(){
     // tables synced
 })
 ```
