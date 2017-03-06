@@ -590,6 +590,7 @@ class GenericSQLStore extends IncrementalStore
 
   createMigrationQueries:(migration)->
     sqls = []
+    changedRelationshipsSqls = []
     entityChangedNames = {}
     addedEntitiesNames = []
     modelTo = migration.modelTo
@@ -604,9 +605,9 @@ class GenericSQLStore extends IncrementalStore
           for relationship in modelTo.getEntity(entityName).relationships
             inverseRelationship = relationship.inverseRelationship()
             if not relationship.toMany
-              sqls = sqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
+              changedRelationshipsSqls = changedRelationshipsSqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
             if not inverseRelationship.toMany
-              sqls = sqls.concat(@_addRelationshipQueries(inverseRelationship.entity.name,inverseRelationship))
+              changedRelationshipsSqls = changedRelationshipsSqls.concat(@_addRelationshipQueries(inverseRelationship.entity.name,inverseRelationship))
         when '-'
           entity = modelFrom.getEntity(entityName)
           for name,relationship of entity.relationshipsByName()
@@ -723,16 +724,16 @@ class GenericSQLStore extends IncrementalStore
             #              relationship = inverseRelationship
             switch change
               when '+'
-                sqls = sqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
+                changedRelationshipsSqls = changedRelationshipsSqls.concat(@_addRelationshipQueries(relationship.entity.name,relationship))
                 break
       for relationship in entityTo.relationships
         inverseRelationship = relationship.inverseRelationship()
         if relationship.toMany and inverseRelationship.toMany
           change = migration.relationshipsChanges[entityName]?[relationship.name] or migration.relationshipsChanges[inverseRelationship.entity.name]?[inverseRelationship.name]
           if change is '+'
-            sqls = sqls.concat(@createRelationshipQueries(relationship))
+            changedRelationshipsSqls = changedRelationshipsSqls.concat(@createRelationshipQueries(relationship))
 
-
+    sqls = sqls.concat(changedRelationshipsSqls)
     return sqls
 
   _dropTableQuery:(tableName)->
