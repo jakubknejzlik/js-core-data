@@ -734,7 +734,7 @@ class GenericSQLStore extends IncrementalStore
             changedRelationshipsSqls = changedRelationshipsSqls.concat(@createRelationshipQueries(relationship))
 
     sqls = sqls.concat(changedRelationshipsSqls)
-    return sqls
+    return _.uniq(sqls)
 
   _dropTableQuery:(tableName)->
     return 'DROP TABLE IF EXISTS ' + @quoteSymbol + tableName + @quoteSymbol

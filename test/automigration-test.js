@@ -37,7 +37,12 @@ describe('automigrations',function(){
         model2.defineEntity('Company', {
             name: 'string'
         })
-        model2.defineRelationshipManyToOne('Company', 'User', 'employees', 'company')
+        model2.defineEntity('Car', {
+            model: 'string'
+        })
+        model2.defineRelationshipManyToOne('Company', 'User', 'users', 'company')
+        model2.defineRelationshipManyToOne('Company', 'Car', 'cars', 'company')
+        model2.defineRelationshipManyToMany('Car', 'Car', 'relatedCars', 'relatedCars')
     })
 
     it('should autogenerate migration', function () {
@@ -45,6 +50,7 @@ describe('automigrations',function(){
 
         assert.deepEqual(migrationGenerated.entitiesChanges, [
             {entity: 'Company', change: '+'},
+            {entity: 'Car', change: '+'},
             {entity: 'Token', change: '-'}
         ])
         assert.deepEqual(migrationGenerated.attributesChanges, {
@@ -54,6 +60,7 @@ describe('automigrations',function(){
                 firstname: '-'
             }
         })
+        console.log(migrationGenerated.relationshipsChanges)
         assert.deepEqual(migrationGenerated.relationshipsChanges, {
             User: {
                 friends: '-',
