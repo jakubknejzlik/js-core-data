@@ -256,7 +256,7 @@ describe('ManagedObject',function(){
                         assert.doesNotThrow(function () {
                             obj.date = _d;
                         }, i);
-                        assert.equal(obj.date.toISOString(), date.toISOString(), `format ${i} (${obj.date})`);
+                        assert.equal(obj.date.toISOString(), date.toISOString(), 'format '+i+'('+obj.date+')');
                     }
                 }
             });
