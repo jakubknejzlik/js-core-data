@@ -146,7 +146,7 @@ describe('ManagedObject',function(){
                     assert.strictEqual(obj.email,'jackie@gmail.com');
                     assert.strictEqual(obj.url,'http://www.google.com');
                     assert.strictEqual(obj.enum,'c');
-                    assert.equal(obj.date.toISOString(),date.toISOString());
+                    assert.equal(obj.date.toISOString(),date.toISOString(),'date doesnt match');
                     assert.equal(obj.timestamp.toISOString(),(new Date(timestamp)).toISOString());
                     assert.equal(JSON.stringify(obj.transformable),JSON.stringify(transformableObject));
                     assert.equal(JSON.stringify(obj.transformableArray),JSON.stringify(transformableArray));
@@ -256,7 +256,7 @@ describe('ManagedObject',function(){
                         assert.doesNotThrow(function () {
                             obj.date = _d;
                         }, i);
-                        assert.equal(obj.date.toISOString(), date.toISOString(), 'format');
+                        assert.equal(obj.date.toISOString(), date.toISOString(), `format ${i} (${obj.date})`);
                     }
                 }
             });

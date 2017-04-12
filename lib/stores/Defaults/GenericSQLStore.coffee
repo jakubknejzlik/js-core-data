@@ -492,7 +492,7 @@ class GenericSQLStore extends IncrementalStore
       return null
     switch attribute.persistentType
       when 'datetime','date'
-        return moment(new Date(value)).format('YYYY-MM-DD HH:mm:ss')
+        return moment.utc(value).toISOString()#.format('YYYY-MM-DD HH:mm:ss')
     return value
 
   decodeValueForAttribute:(value,attribute)->
@@ -500,7 +500,7 @@ class GenericSQLStore extends IncrementalStore
       return null
     switch attribute.persistentType
       when 'datetime','date'
-        return new Date(value)
+        return moment.utc(value).toDate()
       when 'timestamp'
         return Number(value)
       when 'boolean'

@@ -1,0 +1,18 @@
+version: '2'
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=test
+  mysql:
+    ports:
+      - "3306:3306"
+    image: mysql
+    environment:
+       MYSQL_ALLOW_EMPTY_PASSWORD: 1
+       MYSQL_DATABASE: test
+       MYSQL_USER: test
+       MYSQL_PASSWORD: test

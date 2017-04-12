@@ -67,3 +67,19 @@ db.syncSchema({force:true}).then(function(){
     })
 })
 ```
+
+# Running tests
+
+To run tests locally you need `docker` and `docker-compose` installed
+
+* first start database services:
+
+```
+docker-compose up
+```
+
+* then run tests:
+
+```
+npm test
+```

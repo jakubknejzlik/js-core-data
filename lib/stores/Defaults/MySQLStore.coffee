@@ -174,8 +174,8 @@ class MySQLConnection extends SQLConnection
   connect:(callback)->
     url = @url
     if ~url.indexOf('?')
-      url += '&multipleStatements=yes'
-    else url += '?multipleStatements=yes'
+      url += '&multipleStatements=yes&dateStrings=true'
+    else url += '?multipleStatements=yes&dateStrings=true'
     @connection = mysql.createConnection(url)
     @connection.connect((err)=>
       return callback(err) if err
@@ -190,7 +190,10 @@ class MySQLConnection extends SQLConnection
     @connection.destroy()
 
   execute:(query,callback)->
-    @connection.query(query,callback)
+    @connection.query(query,(err,rows)=>
+        # console.log(rows)
+        callback(err,rows)
+      )
 
   createRow:(tableName,callback)->
     query = 'INSERT INTO `' + tableName + '` (`_id`) VALUES (NULL)'
@@ -198,6 +201,5 @@ class MySQLConnection extends SQLConnection
       return callback(err) if err
       callback(null,result.insertId)
     )
-
 
 module.exports = MySQLStore;

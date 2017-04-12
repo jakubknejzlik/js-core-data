@@ -138,7 +138,7 @@ AttributeDescription.registerType((new AttributeType('date','date')).transformFn
       return null
     if value is 'now'
       value = new Date()
-    return moment(value, attribute.info.format).toDate()
+    return moment(value).toDate()
   ).validateFn((value)->
     if value in ['now']
       return yes
@@ -149,10 +149,9 @@ AttributeDescription.registerType((new AttributeType('date','date')).transformFn
       return null
     return moment(value).toISOString()
   ).decodeFn((value)->
-#    console.log('decode',value instanceof Date,'=>',moment(value).toDate().toISOString())
     if value is null
       return null
-    return moment(value).toDate()
+    return moment.utc(value).toDate()
   )
 )
 AttributeDescription.registerType((new AttributeType('timestamp','timestamp')).transformFn((value)->

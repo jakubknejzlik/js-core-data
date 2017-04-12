@@ -3,6 +3,9 @@ Owner:
     name:
       type: string
       indexed: true
+    year:
+      type: integer
+      indexed: true
     lastName: string
     fullName:
       type: string
@@ -32,6 +35,9 @@ Owner:
 Manufacturer:
   columns:
     name: string
+    year:
+      type: integer
+      indexed: true
   relations:
     cars:
       entity: Car
