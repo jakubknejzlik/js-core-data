@@ -11,7 +11,7 @@ var store_url = require('./get_storage_url').replace(':memory:',storeTmpName);
 
 describe('automigrations',function(){
 
-    var db = new CoreData(store_url,{logging:true});
+    var db = new CoreData(store_url,{logging:false});
 
     var model1 = null
     var model2 = null
