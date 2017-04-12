@@ -51,7 +51,6 @@ describe('raw fetch',function(){
                     'SELF.company._id>':0,
                     'SELF.company._id':null
                 },
-                'CAST(SELF.company._id AS int)>':'0',
                 '(50.01 - 20.33)>':25
             },
             having:{
@@ -123,7 +122,7 @@ describe('raw fetch',function(){
                 'companyName':'SELF.company.name'
             },
             where:{
-                $or:{'CAST(SELF._id AS int)':123}
+                $or:{'SELF._id':123}
             }
         }).then(function(data){
             console.log(data)
