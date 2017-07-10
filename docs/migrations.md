@@ -20,8 +20,8 @@ You add steps to migration with these methods:
 - `removeAttribute(entityName, attributeName)`
 - `addRelationship(entityName, relationshipName)`
 - `removeRelationship(entityName, relationshipName)`
-- `addScriptBefore(function)` - add function that runs before migration start
-- `addScriptAfter(function)` - add function that runs after migration start
+- `addScriptBefore(function)` - add function that runs before migration start (with arguments (context, completionHandler))
+- `addScriptAfter(function)` - add function that runs after migration start (with arguments (context, completionHandler))
 
 
 Example:
@@ -35,6 +35,12 @@ model2.defineEntity('User',{username:{type:'string',unique:true},password:'strin
 
 migration1to2 = model2.createMigrationFrom(model1);
 migration1to2.addAttribute('User','password');
+
+migration1to2.addScriptAfter(funchion(context, done){
+  context.getObjects('User').map(function(user){
+    user.password = "default value";
+  }).then(done).catch(done);
+});
 
 // build schema for version 0.1
 db.setModelVersion('0.1');
