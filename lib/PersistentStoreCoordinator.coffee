@@ -1,6 +1,7 @@
 PersistentStoreRequest = require('./stores/PersistentStoreRequest')
 IncrementalStore = require('./stores/IncrementalStore')
 ManagedObject = require('./ManagedObject')
+ManagedObjectID = require('./ManagedObjectID')
 Predicate = require('./FetchClasses/Predicate')
 #AttributeTransformer = require('./Helpers/AttributeTransformer')
 FetchRequest = require('./FetchRequest')
@@ -160,7 +161,7 @@ class PersistentStoreCoordinator extends Object
 
   _valuesForForRelationship: (relationship,ObjectID,context,callback)->
     inversedRelationship = relationship.inverseRelationship()
-    request = new FetchRequest(inversedRelationship.entity,new Predicate('SELF.' + inversedRelationship.name + '._id = %d',ObjectID.recordId()))
+    request = new FetchRequest(inversedRelationship.entity,new Predicate('SELF.' + inversedRelationship.name + '.' + ManagedObjectID.idColumnName + ' = %d',ObjectID.recordId()))
     @execute(request,context,callback)
 #    store = @persistentStores[0]
 #    store.valuesForRelationship relationship,ObjectID,context,(err,ObjectIDs)=>

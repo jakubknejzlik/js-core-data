@@ -17,7 +17,7 @@ CoreData::syncStoreSchema = (store, options) ->
 
   return store.getCurrentVersion().then((databaseModelVersion)=>
     if databaseModelVersion is objectModel.version and not options.force
-      return
+      return null
     else if not databaseModelVersion and not options.ignoreMissingVersion and not options.force
       throw new Error('current version not found, rerun syncSchema with enabled option ignoreMissingVersion')
     else if (not databaseModelVersion and options.ignoreMissingVersion) or options.force

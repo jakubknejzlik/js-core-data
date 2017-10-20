@@ -110,7 +110,7 @@ class Predicate extends Object
 
   toString:(tableAlias = 'SELF')->
     if @format instanceof ManagedObjectID
-      return '_id = ' + @format.recordId();
+      return ManagedObjectID.idColumnName + ' = ' + @format.recordId();
     else
       if typeof @format is 'object'
         return @parseObjectCondition(@format, undefined, tableAlias) or 'TRUE'

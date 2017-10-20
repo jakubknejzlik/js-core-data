@@ -72,7 +72,7 @@ class MySQLStore extends GenericSQLStore
   createEntityQueries:(entity,force,options = {})->
     sqls = []
     tableName = @_formatTableName(entity.name)
-    parts = ['`_id` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`_id`)']
+    parts = ['`' + ManagedObjectID.idColumnName + '` int(11) NOT NULL AUTO_INCREMENT','PRIMARY KEY (`' + ManagedObjectID.idColumnName + '`)']
 
     for attribute in entity.getNonTransientAttributes()
       columnDefinition = @_columnDefinitionForAttribute(attribute)
@@ -102,7 +102,7 @@ class MySQLStore extends GenericSQLStore
   _foreignKeyNameForRelationship:(relationship)->
     return 'fk_' + @_formatTableName(relationship.entity.name) + '_' + relationship.name + '_id'
   _foreignKeyDefinitionForRelationship:(relationship)->
-    return 'CONSTRAINT `' + @_foreignKeyNameForRelationship(relationship) + '` FOREIGN KEY (`' + relationship.name + '_id`) REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`_id`) ON DELETE ' + relationship.getOnDeleteRule()
+    return 'CONSTRAINT `' + @_foreignKeyNameForRelationship(relationship) + '` FOREIGN KEY (`' + relationship.name + '_id`) REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE ' + relationship.getOnDeleteRule()
 
 
 
@@ -152,8 +152,8 @@ class MySQLStore extends GenericSQLStore
         parts.push('`'+reflexiveRelationship.name+'_id` int(11) NOT NULL')
         parts.push('`reflexive` int(11) NOT NULL')
         parts.push('PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`)')
-        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + '_primary_id` FOREIGN KEY (`' + reflexiveRelationship.name + '_id`) REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`_id`) ON DELETE CASCADE')
-        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '_reflexive_id` FOREIGN KEY (`reflexive`) REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.entity.name) + '_' + reflexiveRelationship.name + '_primary_id` FOREIGN KEY (`' + reflexiveRelationship.name + '_id`) REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE CASCADE')
+        parts.push('CONSTRAINT `fk_' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '_' + reflexiveRelationship.inverseRelationship().name + '_reflexive_id` FOREIGN KEY (`reflexive`) REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE CASCADE')
 
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (' + parts.join(',') + ')')
 
@@ -204,7 +204,7 @@ class MySQLConnection extends SQLConnection
       )
 
   createRow:(tableName,callback)->
-    query = 'INSERT INTO `' + tableName + '` (`_id`) VALUES (NULL)'
+    query = 'INSERT INTO `' + tableName + '` (`' + ManagedObjectID.idColumnName + '`) VALUES (NULL)'
     @execute(query,(err,result)->
       return callback(err) if err
       callback(null,result.insertId)

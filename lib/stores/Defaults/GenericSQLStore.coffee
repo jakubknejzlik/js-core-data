@@ -1,6 +1,6 @@
 #GenericPool = require('generic-pool')
 url = require('url')
-async = require('async')
+_async = require('async')
 squel = require('squel')
 moment = require('moment')
 Promise = require('bluebird')
@@ -52,8 +52,8 @@ class GenericSQLStore extends IncrementalStore
     if request.type is 'save'
       @connectionPool.createTransaction (err,transaction)=>
         return callback(err) if err
-        async.series [
-          (seriesCallback)=> async.forEach request.insertedObjects,
+        _async.series [
+          (seriesCallback)=> _async.forEach request.insertedObjects,
             (insertedObject,cb)=>
               formattedTableName = @_formatTableName(insertedObject.entity.name)
               transaction.createRow(formattedTableName,(err,rowId)=>
@@ -65,33 +65,33 @@ class GenericSQLStore extends IncrementalStore
           ,(err)=>
             afterInsertCallback();
             seriesCallback(err)
-          (seriesCallback)=> async.forEach request.deletedObjects,
+          (seriesCallback)=> _async.forEach request.deletedObjects,
             (deletedObject,cb)=>
               formattedTableName = @_formatTableName(deletedObject.entity.name)
               id = @_recordIDForObjectID(deletedObject.objectID);
-              sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id
+              sql = 'DELETE FROM ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' WHERE ' + @quoteSymbol + ManagedObjectID.idColumnName + @quoteSymbol + ' = ' + id
               transaction.query sql,(err)->
                 cb(err)
           ,seriesCallback
           (seriesCallback)=>
-            async.forEachSeries(request.insertedObjects,(insertedObject,cb)=>
+            _async.forEachSeries(request.insertedObjects,(insertedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(insertedObject)
               if sql
                 transaction.query(sql,updateValues,cb)
               else cb()
             ,seriesCallback)
-          (seriesCallback)=> async.forEachSeries request.insertedObjects,
+          (seriesCallback)=> _async.forEachSeries request.insertedObjects,
             (insertedObject,cb)=>
               @_updateRelationsForObject(transaction,insertedObject,cb)
           ,seriesCallback
-          (seriesCallback)=> async.forEachSeries request.updatedObjects,
+          (seriesCallback)=> _async.forEachSeries request.updatedObjects,
             (updatedObject,cb)=>
               [sql,updateValues] = @updateQueryForUpdatedObject(updatedObject)
               if sql
                 transaction.query(sql,updateValues,cb)
               else cb()
           ,seriesCallback
-          (seriesCallback)=> async.forEachSeries request.updatedObjects,
+          (seriesCallback)=> _async.forEachSeries request.updatedObjects,
             (updatedObject,cb)=>
               @_updateRelationsForObject(transaction,updatedObject,cb)
           ,seriesCallback
@@ -124,7 +124,7 @@ class GenericSQLStore extends IncrementalStore
             if not relationship.toMany
               columnName = _.singularize(relationship.name) + '_id'
               _row[columnName] = row[columnName]
-          objectID = @_permanentIDForRecord(request.entity,row._id)
+          objectID = @_permanentIDForRecord(request.entity,row[ManagedObjectID.idColumnName])
           #          @fetchedObjectValuesCache[objectID.toString()] = _row;
           for attribute in request.entity.getNonTransientAttributes()
             _row[attribute.name] = @decodeValueForAttribute(_row[attribute.name],attribute)
@@ -157,7 +157,7 @@ class GenericSQLStore extends IncrementalStore
         updates.push(@quoteSymbol + key + @quoteSymbol + ' = ?')
         updateValues.push(value)
     if updates.length > 0
-      return ['UPDATE ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' SET ' + updates.join(',') + ' WHERE ' + @quoteSymbol + '_id' + @quoteSymbol + ' = ' + id,updateValues]
+      return ['UPDATE ' + @quoteSymbol + formattedTableName + @quoteSymbol + ' SET ' + updates.join(',') + ' WHERE ' + @quoteSymbol + ManagedObjectID.idColumnName + @quoteSymbol + ' = ' + id,updateValues]
     else
       return [null,null]
 
@@ -168,7 +168,7 @@ class GenericSQLStore extends IncrementalStore
       for attribute in request.entity.getNonTransientAttributes()
         fields[attribute.name] = @tableAlias + '.' + attribute.name
       request.fields = fields
-      request.fields['_id'] = @tableAlias + '._id'
+      request.fields[ManagedObjectID.idColumnName] = @tableAlias + '.'+ManagedObjectID.idColumnName
     else
       allFieldsMark = null
       for name,field of request.fields
@@ -179,16 +179,16 @@ class GenericSQLStore extends IncrementalStore
         delete request.fields[allFieldsMark]
         for attribute in request.entity.getNonTransientAttributes()
           request.fields[attribute.name] = @tableAlias + '.' + attribute.name
-        request.fields['_id'] = @tableAlias + '._id'
+        request.fields[ManagedObjectID.idColumnName] = @tableAlias + '.' + ManagedObjectID.idColumnName
 
     if request.type isnt 'fetch'
-      request.fields['_id'] = @tableAlias + '._id'
+      request.fields[ManagedObjectID.idColumnName] = @tableAlias + '.' + ManagedObjectID.idColumnName
 
 
   countSqlForFetchRequest:(request)->
     @processRequest(request)
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
-    query.field('COUNT(DISTINCT ' + @tableAlias + '._id)','count')
+    query.field('COUNT(DISTINCT ' + @tableAlias + '.' + ManagedObjectID.idColumnName + ')','count')
     if request.predicate
       query.where(@parsePredicate(request.predicate),request)
     if request.havingPredicate
@@ -204,8 +204,8 @@ class GenericSQLStore extends IncrementalStore
     query = squel.select({autoQuoteAliasNames:no}).from(@_formatTableName(request.entity.name),@tableAlias)
 
     if request.resultType is FetchRequest.RESULT_TYPE.MANAGED_OBJECTS
-      query.group(@tableAlias + '._id')
-      query.field(@tableAlias + '.' + @quoteSymbol + '_id' + @quoteSymbol,@quoteSymbol + '_id' + @quoteSymbol)
+      query.group(@tableAlias + '.' + ManagedObjectID.idColumnName)
+      query.field(@tableAlias + '.' + @quoteSymbol + ManagedObjectID.idColumnName + @quoteSymbol,@quoteSymbol + ManagedObjectID.idColumnName + @quoteSymbol)
       for attribute in request.entity.getNonTransientAttributes()
         query.field(@tableAlias + '.' + @quoteSymbol + attribute.name + @quoteSymbol,@quoteSymbol + attribute.name + @quoteSymbol)
       for relationship in request.entity.relationships
@@ -283,16 +283,16 @@ class GenericSQLStore extends IncrementalStore
           middleTableName = @_getMiddleTableNameForManyToManyRelation(primaryRelation)
           middleTableNameAlias = pathAlias + "__mid"
           if primaryRelation is relation
-            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + ".reflexive")
-            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + "." + relation.name + "_id = " + pathAlias + "._id")
+            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "." + ManagedObjectID.idColumnName + " = " + middleTableNameAlias + ".reflexive")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + "." + relation.name + "_id = " + pathAlias + "." + ManagedObjectID.idColumnName)
           else
-            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "._id = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
-            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "._id")
+            query.left_join(@quoteSymbol + middleTableName + @quoteSymbol, middleTableNameAlias, parentAlias + "." + ManagedObjectID.idColumnName + " = " + middleTableNameAlias + "." + inversedRelation.name + "_id")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, middleTableNameAlias + ".reflexive" + " = " + pathAlias + "." + ManagedObjectID.idColumnName)
         else
           if relation.toMany
-            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "._id")
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + "." + _.singularize(inversedRelation.name) + "_id" + " = " + parentAlias + "." + ManagedObjectID.idColumnName)
           else
-            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + '._id' + ' = ' + parentAlias + '.' + relation.name + '_id')
+            query.left_join(@quoteSymbol + @_formatTableName(relation.destinationEntity.name) + @quoteSymbol, pathAlias, pathAlias + '.' + ManagedObjectID.idColumnName + ' = ' + parentAlias + '.' + relation.name + '_id')
       leftJoin(subkeys, relation.destinationEntity, subPath) if subkeys.length > 0
 
     replaceNames[@tableAlias] = @tableAlias
@@ -366,7 +366,7 @@ class GenericSQLStore extends IncrementalStore
 #          console.log('xxxxx',object.relationChanges);
             sql = 'DELETE FROM ' + @quoteSymbol + @_getMiddleTableNameForManyToManyRelation(relationship) + @quoteSymbol + ' WHERE reflexive = ' + @_recordIDForObjectID(object.objectID) + ' AND ' + @quoteSymbol + relationship.name + '_id' + @quoteSymbol + ' = ' + @_recordIDForObjectID(removedObject.objectID)
             sqls.push(sql)
-    async.forEachSeries sqls,(sql,cb)->
+    _async.forEachSeries sqls,(sql,cb)->
       transaction.query(sql,cb)
     ,callback
 
@@ -541,7 +541,7 @@ class GenericSQLStore extends IncrementalStore
   runMigration:(migration)->
     return new Promise((resolve, reject) =>
       objectModel = @storeCoordinator.objectModel
-      async.forEachSeries(migration.scriptsBefore,(script,cb)=>
+      _async.forEachSeries(migration.scriptsBefore,(script,cb)=>
         @_runMigrationScript(migration.modelFrom,script,cb)
       ,(err)=>
         return reject(err) if err
@@ -552,7 +552,7 @@ class GenericSQLStore extends IncrementalStore
           return reject(err)
         @_runRawQueriesInSingleTransaction(queries,(err)=>
           return reject(err) if err
-          async.forEachSeries(migration.scriptsAfter,(script,cb)=>
+          _async.forEachSeries(migration.scriptsAfter,(script,cb)=>
             @_runMigrationScript(migration.modelTo,script,cb)
           ,(err,result) =>
             return reject(err) if err
@@ -781,7 +781,7 @@ class GenericSQLStore extends IncrementalStore
       callback = transaction
       transaction = undefined
     run = (transaction)=>
-      async.forEachSeries(sqls,(sql,cb)=>
+      _async.forEachSeries(sqls,(sql,cb)=>
         transaction.query(sql,cb)
       ,(err)=>
         if err

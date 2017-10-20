@@ -56,7 +56,7 @@ class SQLiteStore extends GenericSQLStore
   createEntityQueries:(entity,force = no,options = {})->
     sqls = []
     tableName = @_formatTableName(entity.name)
-    parts = ['`_id` INTEGER PRIMARY KEY AUTOINCREMENT']
+    parts = ['`' + ManagedObjectID.idColumnName + '` INTEGER PRIMARY KEY AUTOINCREMENT']
 
     for attribute in entity.getNonTransientAttributes()
       columnDefinition = @_columnDefinitionForAttribute(attribute)
@@ -68,7 +68,7 @@ class SQLiteStore extends GenericSQLStore
     if not options.noRelationships
       for relationship in entity.relationships
         if not relationship.toMany
-          parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`_id`) ON DELETE ' + relationship.getOnDeleteRule())
+          parts.push('`'+relationship.name+'_id` int(11) DEFAULT NULL REFERENCES `' + @_formatTableName(relationship.destinationEntity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE ' + relationship.getOnDeleteRule())
 
 #    if force
 #      sqls.push('DROP TABLE IF EXISTS `' + tableName + '`')
@@ -96,8 +96,8 @@ class SQLiteStore extends GenericSQLStore
 #        if force
 #          sqls.push('DROP TABLE IF EXISTS `' + reflexiveTableName  + '`')
         parts = []
-        parts.push('`'+reflexiveRelationship.name+'_id` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`_id`) ON DELETE CASCADE')
-        parts.push('`reflexive` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`_id`) ON DELETE CASCADE')
+        parts.push('`'+reflexiveRelationship.name+'_id` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.destinationEntity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE CASCADE')
+        parts.push('`reflexive` int(11) NOT NULL REFERENCES `' + @_formatTableName(reflexiveRelationship.entity.name) + '`(`' + ManagedObjectID.idColumnName + '`) ON DELETE CASCADE')
         parts.push('PRIMARY KEY (`'+reflexiveRelationship.name+'_id`,`reflexive`)')
         sqls.push('CREATE TABLE IF NOT EXISTS `' + reflexiveTableName + '` (' + parts.join(',') + ')')
     return sqls
@@ -125,8 +125,8 @@ class SQLiteStore extends GenericSQLStore
       entityTo = modelTo.getEntity(entityName) or modelTo.getEntity(entityChangedNames[entityName])
       entityFrom = modelFrom.getEntity(entityName) or modelFrom.getEntity(entityChangedNames[entityName])
 
-      oldColumnNames = ['_id']
-      newColumnNames = ['_id']
+      oldColumnNames = [ManagedObjectID.idColumnName]
+      newColumnNames = [ManagedObjectID.idColumnName]
 
       for attribute in entityFrom.getNonTransientAttributes()
         change = migration.attributesChanges[entityName]?[attribute.name]
@@ -217,7 +217,7 @@ class SQLiteConnection extends SQLConnection
     @connection.all(query,callback)
 
   createRow:(tableName,callback)->
-    query = 'INSERT INTO `' + tableName + '` (`_id`) VALUES (NULL)'
+    query = 'INSERT INTO `' + tableName + '` (`' + ManagedObjectID.idColumnName + '`) VALUES (NULL)'
     @log(query)
     @connection.run(query,(err)->
       return callback(err) if err

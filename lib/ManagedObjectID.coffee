@@ -3,6 +3,9 @@ class ManagedObjectID extends Object
     @stringValue = @stringValue + ''
     @isTemporaryID = no
 
+
+  @idColumneName: 'id'
+
   isEqual: (objectID)->
     return @toString() == objectID.toString();
 
@@ -13,7 +16,5 @@ class ManagedObjectID extends Object
     components = @stringValue.split('/')
     ID = components[components.length - 1]
     return parseInt(ID.replace(/^[pt]/,''))
-
-
 
 module.exports = ManagedObjectID
