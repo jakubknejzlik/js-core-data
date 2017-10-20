@@ -73,22 +73,24 @@ describe("automigrations", function() {
     });
   });
 
-  it("should not automigrate without automigration sync option", async function() {
+  it("should not automigrate without automigration sync option", function() {
     db.setModelVersion("mig1");
-    await db.syncSchema({ force: true });
-
-    db.setModelVersion("mig2");
-    try {
-      await db.syncSchema();
-    } catch (e) {
-      assert.equal(e.message, "migration mig1=>mig2 not found");
-    }
+    return db
+      .syncSchema({ force: true })
+      .then(() => {
+        db.setModelVersion("mig2");
+        return db.syncSchema();
+      })
+      .catch(e => {
+        assert.equal(e.message, "migration mig1=>mig2 not found");
+      });
   });
 
-  it("should automigrate with automigration sync option", async function() {
+  it("should automigrate with automigration sync option", function() {
     db.setModelVersion("mig1");
-    await db.syncSchema({ force: true });
-    db.setModelVersion("mig2");
-    await db.syncSchema({ automigration: true });
+    return db.syncSchema({ force: true }).then(() => {
+      db.setModelVersion("mig2");
+      return db.syncSchema({ automigration: true });
+    });
   });
 });
