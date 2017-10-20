@@ -1,9 +1,10 @@
 language: node_js
 sudo: false
 node_js:
-  - "0.12"
+  - 6.11.4
+  - 8.4.0
 addons:
-  postgresql: "9.3"
+  postgresql: '9.3'
 before_script:
   - npm install -g mocha
   - mysql -e "create database IF NOT EXISTS test;" -uroot
