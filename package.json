@@ -1,7 +1,7 @@
 {
   "name": "js-core-data",
   "description": "ORM inspired by Apple's Objective-C CoreData",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "license": "MIT",
   "keywords": [
     "ORM",
@@ -42,16 +42,11 @@
   },
   "scripts": {
     "deploy": "git push && git push --tags && npm publish",
-    "test-mysql":
-      "env STORAGE_URL=mysql://root:@localhost/test mocha test --timeout=15000",
-    "test-sqlite":
-      "env STORAGE_URL=sqlite://:memory: mocha test --timeout=15000",
-    "test-postgres":
-      "env STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
-    "test-postgres-native":
-      "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
-    "test":
-      "npm run test-sqlite && npm run test-mysql && npm run test-postgres && npm run test-postgres-native"
+    "test-mysql": "env STORAGE_URL=mysql://root:@localhost/test mocha test --timeout=15000",
+    "test-sqlite": "env STORAGE_URL=sqlite://:memory: mocha test --timeout=15000",
+    "test-postgres": "env STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
+    "test-postgres-native": "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
+    "test": "npm run test-sqlite && npm run test-mysql && npm run test-postgres && npm run test-postgres-native"
   },
   "repository": {
     "type": "git",
