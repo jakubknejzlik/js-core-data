@@ -49,7 +49,8 @@
       "env STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
     "test-postgres-native":
       "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
-    "test": "npm run test-sqlite"
+    "test":
+      "npm run test-sqlite && npm run test-mysql && npm run test-postgres && npm run test-postgres-native"
   },
   "repository": {
     "type": "git",
