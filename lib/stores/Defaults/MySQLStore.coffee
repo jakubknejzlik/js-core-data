@@ -5,6 +5,7 @@ async = require('async')
 ManagedObjectID = require('./../../ManagedObjectID')
 Predicate = require('./../../FetchClasses/Predicate')
 String = require('string')
+moment = require('moment')
 
 SQLConnection = require('./SQLConnection')
 
@@ -167,6 +168,13 @@ class MySQLStore extends GenericSQLStore
         return 'ENUM(\'' + validValues.join('\',\'') + '\')'
       else
         return super(attribute)
+
+  encodeValueForAttribute:(value,attribute)->
+    switch attribute.persistentType
+      when 'date'
+        return null if value is null
+        return moment(value).utc().format("YYYY-MM-DD HH:mm:ss");
+    return super(value,attribute)
 
 
 

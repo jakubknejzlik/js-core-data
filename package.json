@@ -19,6 +19,7 @@
     "js-yaml": "^3.3.1",
     "lock": "^0.1.2",
     "moment": "^2.11.2",
+    "mysql": "^2.15.0",
     "squel": "^5.0.2",
     "string": "^3.3.1",
     "underscore": "^1.8.3",
@@ -27,11 +28,11 @@
     "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "assert-throws-async": "^2.0.1",
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "js-sha512": "^0.2.2",
     "mocha": "^3.0.0",
-    "mysql": "^2.13.0",
     "passport": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "pg": "^6.0.3",
@@ -42,7 +43,7 @@
   "scripts": {
     "deploy": "git push && git push --tags && npm publish",
     "test-mysql":
-      "env STORAGE_URL=mysql://test:test@db.novato.cz/test mocha test --timeout=15000",
+      "env STORAGE_URL=mysql://root:@localhost/test mocha test --timeout=15000",
     "test-sqlite":
       "env STORAGE_URL=sqlite://:memory: mocha test --timeout=15000",
     "test-postgres":
