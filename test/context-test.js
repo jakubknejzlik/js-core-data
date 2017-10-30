@@ -200,6 +200,33 @@ describe("Context", function() {
         );
       });
 
+      it("should get or create object with id", function(done) {
+        var carData = { brand: "this is my car", id: 125 };
+        var carData2 = { brand: "this is my another car", id: 666 };
+        context.getOrCreateObject("Car", { where: carData }, carData, function(
+          err,
+          car
+        ) {
+          assert.ifError(err);
+          assert.equal(car.brand, carData.brand);
+          assert.equal(car.id, carData.id);
+          context.save(function(err) {
+            assert.ifError(err);
+            context.getOrCreateObject(
+              "Car",
+              { where: carData },
+              { brand: carData2 },
+              function(err, car2) {
+                assert.ifError(err);
+                assert.equal(car.brand, carData.brand);
+                assert.equal(car.id, carData.id);
+                done();
+              }
+            );
+          });
+        });
+      });
+
       it("should store object with default values", function(done) {
         var car = context.create("Car");
         context.save(function(err) {
