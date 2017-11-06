@@ -75,5 +75,6 @@ db.syncSchema({force:true}).then(function(){
 * [Fetching](fetching.md)
 * [Predicates](predicates.md)
 * [Migrations](migrations.md)
+* [Seeding](seeding.md)
 * [Examples](examples.md)
 * [Express middleware](express.md)

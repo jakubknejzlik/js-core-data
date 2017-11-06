@@ -286,7 +286,6 @@ describe("Context", function() {
       after(function(done) {
         context.save(function(err) {
           if (err) return done(err);
-          console.log(object);
           context.deleteObject(object);
           context.saveAndDestroy(done);
         });

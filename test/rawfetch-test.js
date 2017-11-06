@@ -147,7 +147,7 @@ describe("raw fetch", function() {
         }
       })
       .then(function(data) {
-        console.log(data);
+        // console.log(data);
         //assert.equal(data.length,2)
         context.destroy();
         done();

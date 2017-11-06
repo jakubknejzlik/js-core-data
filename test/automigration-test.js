@@ -64,7 +64,6 @@ describe("automigrations", function() {
         firstname: "-"
       }
     });
-    console.log(migrationGenerated.relationshipsChanges);
     assert.deepEqual(migrationGenerated.relationshipsChanges, {
       User: {
         friends: "-",

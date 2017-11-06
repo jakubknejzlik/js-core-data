@@ -88,4 +88,4 @@ database.syncSchema({automigration: true}).then(function(){
 
 ## Next
 
-Continue to [Express middleware](express.md)
+Continue to [Seeding](seeding.md)
