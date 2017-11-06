@@ -197,6 +197,17 @@ database.createModelFromYaml(fs.readFileSync('path/to/file.yml')),entityDefiniti
 
 Empty object `entityDefinitions` is place where you can inject subclasses (object key is entity name).
 
+## Loading from folder
+
+You can also load from folder which contains list of schema files (yaml). Filenames has to be named in semversion format.
+
+```
+const CoreData = require('js-core-data')
+const database = new CoreData(...)
+
+await coreData.schema.load('/path/to/folder')
+```
+
 ## Next
 
 Continue to [Fetching](fetching.md)

@@ -1,0 +1,17 @@
+Person:
+    columns:
+        firstname: string
+        lastname: string
+    relationships:
+        company:
+            entity: Company
+            inverse: employees
+
+Company:
+    columns:
+        name: string
+    relationships:
+        employees:
+            entity: Person
+            toMany: true
+            inverse: company

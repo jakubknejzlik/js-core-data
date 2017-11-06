@@ -19,6 +19,7 @@
     "js-yaml": "^3.3.1",
     "lock": "^0.1.2",
     "moment": "^2.11.2",
+    "semver": "^5.4.1",
     "squel": "^5.0.2",
     "string": "^3.3.1",
     "underscore": "^1.8.3",
@@ -41,19 +42,13 @@
     "tmp": "0.0.28"
   },
   "scripts": {
-    "patch-release":
-      "npm version patch && git push --follow-tags && npm publish",
+    "patch-release": "npm version patch && git push --follow-tags && npm publish",
     "deploy": "git push && git push --tags && npm publish",
-    "test-mysql":
-      "env STORAGE_URL=mysql://root:@localhost/test mocha test --timeout=15000",
-    "test-sqlite":
-      "env STORAGE_URL=sqlite://:memory: mocha test --timeout=15000",
-    "test-postgres":
-      "env STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
-    "test-postgres-native":
-      "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
-    "test":
-      "npm run test-sqlite && npm run test-mysql && npm run test-postgres && npm run test-postgres-native"
+    "test-mysql": "env STORAGE_URL=mysql://root:@localhost/test mocha test --timeout=15000",
+    "test-sqlite": "env STORAGE_URL=sqlite://:memory: mocha test --timeout=15000",
+    "test-postgres": "env STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
+    "test-postgres-native": "env NODE_ENV=production STORAGE_URL=postgres://postgres@localhost/test mocha test --timeout=15000",
+    "test": "npm run test-sqlite && npm run test-mysql && npm run test-postgres && npm run test-postgres-native"
   },
   "repository": {
     "type": "git",

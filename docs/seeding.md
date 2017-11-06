@@ -28,7 +28,7 @@ Person:
 
 Company:
     columns:
-        name: strings
+        name: string
     relationships:
         employees:
             entity: Person
