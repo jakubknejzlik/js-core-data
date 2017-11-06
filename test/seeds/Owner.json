@@ -1,4 +1,4 @@
 [
   { "id": 123, "name": "John Doe" },
-  { "id": 1, "name": "Chuck", "cars": [1, 2] }
+  { "id": 1, "name": "Chuck", "cars": [2, 3] }
 ]

@@ -2,7 +2,19 @@
 
 When you have default data (eg. default admin user, country list, etc.) for your application or for dev/staging version, you usually need to seed database.
 
-Seeding can be run over whole folders with json files named by entities. For example if you have following schema:
+Seeding can be run over whole folders by simply running `db.seed.run(path)`:
+
+
+```
+const CoreData = require('js-core-data')
+
+const db = new CoreData(...)
+
+db.seed.run("/path/to/seeding/folder")
+```
+
+
+Seeding folder contains json files named by entities. For example if you have following schema:
 
 ```
 Person:
