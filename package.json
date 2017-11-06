@@ -31,15 +31,15 @@
     "assert-throws-async": "^2.0.1",
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
-    "js-sha512": "^0.2.2",
+    "js-sha512": "^0.6.0",
     "mocha": "^3.0.0",
     "mysql": "^2.15.0",
-    "passport": "^0.3.0",
+    "passport": "^0.4.0",
     "passport-http-bearer": "^1.0.1",
-    "pg": "^6.0.3",
+    "pg": "^7.4.0",
     "sqlite3": "^3.0.9",
-    "supertest": "^2.0.0",
-    "tmp": "0.0.28"
+    "supertest": "^3.0.0",
+    "tmp": "0.0.33"
   },
   "scripts": {
     "patch-release": "npm version patch && git push --follow-tags && npm publish",
