@@ -47,4 +47,24 @@ describe("Seed", function() {
     await coreData.seed.run(path.join(__dirname, "seeds/csv"));
     await validateData();
   });
+
+  it("should fail to import invalid-entity", async () => {
+    try {
+      await coreData.seed.run(path.join(__dirname, "seeds/invalid-entity"));
+      assert.fail("seed should not finish successfuly");
+    } catch (e) {
+      assert.equal(e.message, `entity with name 'Caar' doesn't exists`);
+    }
+  });
+  it("should fail to import invalid-csv", async () => {
+    try {
+      await coreData.seed.run(path.join(__dirname, "seeds/invalid-csv"));
+      assert.fail("seed should not finish successfuly");
+    } catch (e) {
+      assert.equal(
+        e.message,
+        `invalid data {"toyota":"ford","":"2"} for entity \'Car\'`
+      );
+    }
+  });
 });
