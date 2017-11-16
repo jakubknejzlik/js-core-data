@@ -13,30 +13,38 @@ coreData.createModelFromYaml(
   { Car: require("./Classes/Car") }
 );
 
+const validateData = async () => {
+  const context = coreData.createContext();
+
+  let chuck = await context.getObjectWithId("Owner", 1);
+  assert.ok(chuck);
+  assert.equal(chuck.name, "Chuck");
+
+  let chucksCars = await chuck.getCars();
+  assert.equal(chucksCars.length, 2);
+
+  let prius = await context.getObject("Car", { where: { uid: "prius" } });
+  assert.ok(prius);
+
+  let priusOwner = await prius.getOwner();
+  assert.ok(priusOwner);
+  assert.equal(priusOwner.name, "John Doe");
+
+  context.destroy();
+};
+
 describe("Seed", function() {
   beforeEach(() => {
     return coreData.syncSchema({ force: true });
   });
 
-  it("should import test seed data", async () => {
-    await coreData.seed.run(path.join(__dirname, "seeds"));
+  it("should import test seed data from json", async () => {
+    await coreData.seed.run(path.join(__dirname, "seeds/json"));
+    await validateData();
+  });
 
-    const context = coreData.createContext();
-
-    let chuck = await context.getObjectWithId("Owner", 1);
-    assert.ok(chuck);
-    assert.equal(chuck.name, "Chuck");
-
-    let chucksCars = await chuck.getCars();
-    assert.equal(chucksCars.length, 2);
-
-    let prius = await context.getObject("Car", { where: { uid: "prius" } });
-    assert.ok(prius);
-
-    let priusOwner = await prius.getOwner();
-    assert.ok(priusOwner);
-    assert.equal(priusOwner.name, "John Doe");
-
-    context.destroy();
+  it("should import test seed data from csv", async () => {
+    await coreData.seed.run(path.join(__dirname, "seeds/csv"));
+    await validateData();
   });
 });
