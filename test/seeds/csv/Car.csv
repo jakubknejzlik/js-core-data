@@ -1,4 +1,4 @@
-uid,brand,owner,id
-prius,toyota,123,
-,ford,,2
-,chevrolet,,3
+uid,brand,owner,id,price
+prius,toyota,123,,1200
+,ford,,2,230.5
+,chevrolet,NULL,3,NULL

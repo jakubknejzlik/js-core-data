@@ -52,6 +52,9 @@ Car:
     fast:
       type: boolean
       default: 1
+    price:
+      type: decimal
+      length: 12,2
     uid:
       type: uuid
       default: uuidv4
