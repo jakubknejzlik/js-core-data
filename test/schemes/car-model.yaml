@@ -10,6 +10,7 @@ Owner:
     fullName:
       type: string
       transient: true
+    email: email
   relations:
     cars:
       entity: Car
