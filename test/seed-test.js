@@ -56,6 +56,7 @@ describe("Seed", function() {
       assert.equal(e.message, `entity with name 'Caar' doesn't exists`);
     }
   });
+
   it("should fail to import invalid-csv", async () => {
     try {
       await coreData.seed.run(path.join(__dirname, "seeds/invalid-csv"));
@@ -64,6 +65,20 @@ describe("Seed", function() {
       assert.equal(
         e.message,
         `invalid data {"toyota":"ford","":"2"} for entity \'Car\'`
+      );
+    }
+  });
+
+  it("should fail to import invalid-csv-content", async () => {
+    try {
+      await coreData.seed.run(
+        path.join(__dirname, "seeds/invalid-csv-content")
+      );
+      assert.fail("seed should not finish successfuly");
+    } catch (e) {
+      assert.equal(
+        e.message,
+        `Failed to create entity Owner with data {"email":"blahadsfsfg"}, reason: value \'blahadsfsfg\' (string) is not valid for attribute email`
       );
     }
   });
