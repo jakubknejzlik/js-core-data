@@ -304,9 +304,7 @@ describe("Context", function() {
       it("should have changes", function() {
         assert.equal(true, object.hasChanges);
       });
-      it("number of objects after delete should be equal to zero", function(
-        done
-      ) {
+      it("number of objects after delete should be equal to zero", function(done) {
         context.save(function(err) {
           assert.ifError(err);
           context.getObjects("Car", function(err, cars) {
@@ -427,6 +425,17 @@ describe("Context", function() {
         context.getObjects("Car", function(err, cars) {
           assert.ifError(err);
           assert.equal(cars.length, 2);
+        });
+      });
+
+      it("should load object with empty where", function(done) {
+        context.getObjects("Car", { where: {}, limit: 1 }, function(
+          err,
+          objects
+        ) {
+          assert.ifError(err);
+          assert.equal(objects.length, 1);
+          done();
         });
       });
 
@@ -571,9 +580,7 @@ describe("Context", function() {
           });
         });
       });
-      it("should avoid loading same object twice when fetching concurrently", function(
-        done
-      ) {
+      it("should avoid loading same object twice when fetching concurrently", function(done) {
         var array = [];
         var count = 100;
         function loaded() {
@@ -757,9 +764,7 @@ describe("Context", function() {
             done(err);
           });
         });
-        it("should remove object from inversed relation after setting null", function(
-          done
-        ) {
+        it("should remove object from inversed relation after setting null", function(done) {
           owner.getCars(function(err, cars) {
             assert.equal(cars.indexOf(car), -1);
             done(err);
@@ -812,9 +817,7 @@ describe("Context", function() {
             });
           });
         });
-        it("should get inversed assigned object from another context", function(
-          done
-        ) {
+        it("should get inversed assigned object from another context", function(done) {
           context2.reset();
           context2.getObjectWithObjectID(car.objectID, function(err, _car) {
             assert.ok(_car);
