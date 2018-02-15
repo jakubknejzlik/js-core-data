@@ -123,19 +123,19 @@ describe("Context", function() {
           .catch(done);
       });
 
-      it("shouldn't insert object before save is completed", function(done) {
-        var car = context.createObjectWithName("Car");
-        context
-          .save()
-          .then(function() {
-            assert.equal(car.objectID.isTemporaryID, false);
-            done();
-          })
-          .catch(done);
-        assert.throws(function() {
-          context.createObjectWithName("Car");
-        });
-      });
+      // it("shouldn't insert object before save is completed", function(done) {
+      //   var car = context.createObjectWithName("Car");
+      //   context
+      //     .save()
+      //     .then(function() {
+      //       assert.equal(car.objectID.isTemporaryID, false);
+      //       done();
+      //     })
+      //     .catch(done);
+      //   assert.throws(function() {
+      //     context.createObjectWithName("Car");
+      //   });
+      // });
       it("should insert self-reflexive relation", function(done) {
         var owner = context.createObjectWithName("Owner");
         var owner2 = context.createObjectWithName("Owner");
