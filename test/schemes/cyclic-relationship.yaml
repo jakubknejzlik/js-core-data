@@ -1,0 +1,25 @@
+Car:
+  columns:
+    name: string
+    brand: string
+  relationships:
+    owner:
+      entity: User
+      inverse: cars
+    favoriteUsers:
+      entity: User
+      toMany: true
+      inverse: favoriteCar
+
+User:
+  columns:
+    name: string
+  relationships:
+    cars:
+      entity: Car
+      toMany: true
+      inverse: owner
+    favoriteCar:
+      entity: Car
+      toMany: false
+      inverse: favoriteUsers
