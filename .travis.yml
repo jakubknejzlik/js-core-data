@@ -4,8 +4,9 @@ node_js:
   - 8.4.0
   - 8.9.0
   - 9.0.0
+  - 10.16.3
 addons:
-  postgresql: '9.3'
+  postgresql: "9.3"
 before_script:
   - npm install -g mocha
   - mysql -e "create database IF NOT EXISTS test;" -uroot
