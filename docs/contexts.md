@@ -43,7 +43,7 @@ context.save().then(function(){
 It's important to cleanup memory. This is done by destroying context. When context is destroyed, no more changes could be done with it.
 
 ```
-context.destory();
+context.destroy();
 // context.saveAndDestroy(); saves context and destroys it in one call
 ```
 
