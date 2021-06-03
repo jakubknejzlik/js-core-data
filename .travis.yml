@@ -7,8 +7,6 @@ node_js:
   - 10.16.3
   - 12.18.4
   - 12.20.0
-  - 14.17.0
-  - 16.3.0
 before_script:
   - npm install -g mocha
   - mysql -e "create database IF NOT EXISTS test;" -uroot
