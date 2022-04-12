@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "array-control": "^0.2.0",
-    "async": "^2.0.1",
+    "async": "^3.2.2",
     "bluebird": "^3.3.4",
     "csv": "^2.0.0",
     "event-stream": "^3.3.4",
