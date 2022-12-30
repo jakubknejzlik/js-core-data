@@ -36,7 +36,7 @@
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
     "js-sha512": "^0.6.0",
-    "mocha": "^6.0.2",
+    "mocha": "^10.2.0",
     "mysql": "^2.15.0",
     "passport": "^0.4.0",
     "passport-http-bearer": "^1.0.1",
